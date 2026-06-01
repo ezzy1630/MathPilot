@@ -245,12 +245,41 @@ export interface CodexInvokeResult {
   stderr: string
   mode: 'codex_cli' | 'unavailable'
   sessionId?: string
+  timedOut?: boolean
+  cancelled?: boolean
+  callId?: string
+}
+
+const DEFAULT_CODEX_TIMEOUT_SECS = 120
+let activeCodexCallId: string | null = null
+
+export function currentCodexCallId(): string | null {
+  return activeCodexCallId
+}
+
+export function createCodexCallId(): string {
+  return `codex-${Date.now()}`
+}
+
+export async function cancelCodexCli(callId?: string): Promise<boolean> {
+  if (typeof window === 'undefined' || !(window as Window & { __TAURI__?: unknown }).__TAURI__) {
+    return false
+  }
+  try {
+    const { invoke } = await import('@tauri-apps/api/core')
+    const cancelled = await invoke<boolean>('cancel_codex', { callId: callId ?? activeCodexCallId })
+    if (cancelled) activeCodexCallId = null
+    return cancelled
+  } catch {
+    return false
+  }
 }
 
 export async function invokeCodexCli(
   packet: string,
   task: string,
   sessionId?: string,
+  options: { timeoutSecs?: number; callId?: string } = {},
 ): Promise<CodexInvokeResult> {
   if (typeof window !== 'undefined' && !(window as Window & { __TAURI__?: unknown }).__TAURI__) {
     return {
@@ -262,21 +291,42 @@ export async function invokeCodexCli(
     }
   }
 
+  const callId = options.callId ?? createCodexCallId()
+  activeCodexCallId = callId
+
   try {
     const { invoke } = await import('@tauri-apps/api/core')
-    const result = await invoke<{ stdout: string; stderr: string; ok: boolean }>('invoke_codex', {
+    const result = await invoke<{
+      stdout: string
+      stderr: string
+      ok: boolean
+      timed_out: boolean
+      cancelled: boolean
+    }>('invoke_codex', {
       packet,
       task,
       sessionId: sessionId ?? null,
+      timeoutSecs: options.timeoutSecs ?? DEFAULT_CODEX_TIMEOUT_SECS,
+      callId,
     })
-    return { ...result, mode: 'codex_cli', sessionId }
+    activeCodexCallId = null
+    return {
+      ...result,
+      timedOut: result.timed_out,
+      cancelled: result.cancelled,
+      mode: 'codex_cli',
+      sessionId,
+      callId,
+    }
   } catch (error) {
+    activeCodexCallId = null
     return {
       ok: false,
       stdout: '',
       stderr: error instanceof Error ? error.message : String(error),
       mode: 'unavailable',
       sessionId,
+      callId,
     }
   }
 }
@@ -323,6 +373,7 @@ export async function invokeCodexForTask(
     skillBodies?: string[]
     homeworkId?: string
     forceNewSession?: boolean
+    callId?: string
   } = {},
 ): Promise<{ state: MathPilotState; packet: string; result: CodexInvokeResult }> {
   const memory = options.memoryLines ?? (await ensureMemoryLoaded())
@@ -340,7 +391,8 @@ export async function invokeCodexForTask(
     sessionId,
     resume,
   })
-  const result = await invokeCodexCli(packet, task, sessionId)
+  const callId = options.callId ?? createCodexCallId()
+  const result = await invokeCodexCli(packet, task, sessionId, { callId })
   const logged = logCodexCall(withSession, task, packet, result)
   return { state: logged, packet, result }
 }

@@ -32,6 +32,7 @@ pub fn run() {
             db::health_kit_available,
             db::read_skill_files,
             db::invoke_codex,
+            db::cancel_codex,
             db::check_math_symbolic,
             db::write_backup,
             db::ocr_homework_image,

@@ -6,6 +6,8 @@ import {
   invokeCodexCli,
   invokeCodexForTask,
   logManualPacket,
+  cancelCodexCli,
+  createCodexCallId,
 } from '@mathpilot/ai-adapter'
 import { loadSkillsForPrompt } from '../domain/skillLoader'
 import { resolveAnswerDisagreement } from '../domain/mathDisagreement'
@@ -48,7 +50,8 @@ import { defaultSyllabus } from '../domain/syllabus'
 import { requiresShowWork } from '../domain/showWorkPolicy'
 import { syncProfileToMemoryFiles } from '../domain/memorySync'
 import { syncSkillMasteryNotes } from '../domain/skillFileSync'
-import { maybeNotifyReviewDue, requestNotificationPermission } from '../domain/notifications'
+import { maybeNotifyReviewDue, maybeNotifyStudyBlock, maybeNotifyPlannedStudy, requestNotificationPermission } from '../domain/notifications'
+import { parseResourceImport, mergeImportedResources } from '../domain/resourceResolver'
 import { startActiveVideo } from '../domain/activeVideoMode'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
 import { clearContinuingDiagnosticPending, evaluateContinuingDiagnostic } from '../domain/continuingDiagnostics'
@@ -84,6 +87,7 @@ export function useMathPilotApp() {
   const [lostOpen, setLostOpen] = useState(false)
   const [showSteps, setShowSteps] = useState(false)
   const [codexBusy, setCodexBusy] = useState(false)
+  const [codexCallId, setCodexCallId] = useState<string | null>(null)
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome')
   const [expandedAreas, setExpandedAreas] = useState<Record<string, boolean>>({})
   const [homeworkAnalyzing, setHomeworkAnalyzing] = useState(false)
@@ -131,6 +135,8 @@ export function useMathPilotApp() {
     if (!state) return
     requestNotificationPermission()
     void maybeNotifyReviewDue(state)
+    void maybeNotifyStudyBlock(state)
+    void maybeNotifyPlannedStudy(state)
   }, [state])
 
   useEffect(() => {
@@ -344,7 +350,7 @@ export function useMathPilotApp() {
     const styled = feedbackForMode(mode, result, hintCount, wrongEscalation)
     setWrongEscalation(result.correct ? 0 : styled.nextEscalation)
     update(pushToast(merged, result.correct ? motivationLine(state, 'correct') : 'Attempt saved', result.correct ? 'success' : 'info'))
-    setFeedback(styled.message)
+    setFeedback(result.correct ? styled.message : styled.nextMove)
     setFeedbackTone(styled.tone)
     setFeedbackNextSteps(styled.nextSteps)
     if (showSteps && steps.some(Boolean)) {
@@ -353,7 +359,8 @@ export function useMathPilotApp() {
         activeProblem.expectedAnswer,
         activeProblem.skillIds,
       )
-      setFeedback(`${styled.message}\n${stepGrade.stepFeedback.join('\n')}`)
+      const stepNote = stepGrade.stepFeedback.join(' ')
+      setFeedback(result.correct ? `${styled.message}\n${stepNote}` : `${styled.nextMove} ${stepNote}`)
     }
     setAnswer('')
     void syncAttemptRecord(merged.attempts[0])
@@ -400,33 +407,62 @@ export function useMathPilotApp() {
       return
     }
     setCodexBusy(true)
+    const callId = createCodexCallId()
+    setCodexCallId(callId)
     const { state: logged, result } = await invokeCodexForTask(sessionState, task, {
       problem: activeProblem,
       userAttempt: answer,
       memoryLines: memory,
       skillBodies: skills,
+      callId,
     })
     setCodexBusy(false)
+    setCodexCallId(null)
     const parsed = parseCodexResponse(result.stdout)
     const next = parsed ? applyCodexResponse(logged, parsed) : logged
     update(next)
     if (parsed?.feedback_to_user) setFeedback(parsed.feedback_to_user)
     else if (!result.ok) {
-      const offline = offlineHelpForTask(state, task, activeProblem)
-      setFeedback(offline.feedback)
-      if (offline.suggestRepair) {
-        update({
-          ...next,
-          codexHint: {
-            kind: 'quick_repair',
-            title: 'Suggested repair',
-            skillIds: [offline.suggestRepair],
-            reason: offline.feedback,
-            cta: 'Start quick repair',
-          },
-        })
+      if (result.timedOut) {
+        setFeedback(result.stderr || 'Codex timed out — try again or use a manual packet.')
+      } else if (result.cancelled) {
+        setFeedback('Codex call cancelled.')
+      } else {
+        const offline = offlineHelpForTask(state, task, activeProblem)
+        setFeedback(offline.feedback)
+        if (offline.suggestRepair) {
+          update({
+            ...next,
+            codexHint: {
+              kind: 'quick_repair',
+              title: 'Suggested repair',
+              skillIds: [offline.suggestRepair],
+              reason: offline.feedback,
+              cta: 'Start quick repair',
+            },
+          })
+        }
       }
     }
+  }
+
+  async function cancelCodex() {
+    const cancelled = await cancelCodexCli(codexCallId ?? undefined)
+    if (cancelled) {
+      setCodexBusy(false)
+      setCodexCallId(null)
+      setFeedback('Codex call cancelled.')
+    }
+  }
+
+  function importResources(json: string): { ok: boolean; errors: string[]; imported: number } {
+    if (!state) return { ok: false, errors: ['App not ready.'], imported: 0 }
+    const { resources, errors } = parseResourceImport(json)
+    if (resources.length === 0) {
+      return { ok: false, errors: errors.length ? errors : ['No valid resources found.'], imported: 0 }
+    }
+    update(mergeImportedResources(state, resources))
+    return { ok: true, errors, imported: resources.length }
   }
 
   function generatePacket(task: string) {
@@ -575,6 +611,9 @@ export function useMathPilotApp() {
     showSteps,
     setShowSteps,
     codexBusy,
+    codexCallId,
+    cancelCodex,
+    importResources,
     onboardingStep,
     setOnboardingStep,
     expandedAreas,

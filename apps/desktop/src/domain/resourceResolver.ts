@@ -88,3 +88,97 @@ export function skillNamesForResource(state: MathPilotState, resource: ResourceR
     .map((id) => state.skills[id]?.name)
     .filter(Boolean) as string[]
 }
+
+const RESOURCE_FORMATS = new Set<ResourceRecord['format']>(['video', 'article', 'notes'])
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+export function validateResourceRecord(raw: unknown, index?: number): { resource?: ResourceRecord; error?: string } {
+  const label = index === undefined ? 'Resource' : `Resource[${index}]`
+  if (!isRecord(raw)) {
+    return { error: `${label}: expected an object.` }
+  }
+
+  const id = typeof raw.id === 'string' ? raw.id.trim() : ''
+  const title = typeof raw.title === 'string' ? raw.title.trim() : ''
+  const source = typeof raw.source === 'string' ? raw.source.trim() : ''
+  const url = typeof raw.url === 'string' ? raw.url.trim() : ''
+  const duration = typeof raw.duration === 'string' ? raw.duration.trim() : ''
+  const notes = typeof raw.notes === 'string' ? raw.notes.trim() : ''
+  const format = raw.format
+  const effectivenessScore = raw.effectivenessScore
+  const skillIds = raw.skillIds
+
+  if (!id) return { error: `${label}: missing id.` }
+  if (!title) return { error: `${label}: missing title.` }
+  if (!source) return { error: `${label}: missing source.` }
+  if (!url) return { error: `${label}: missing url.` }
+  if (typeof format !== 'string' || !RESOURCE_FORMATS.has(format as ResourceRecord['format'])) {
+    return { error: `${label}: format must be video, article, or notes.` }
+  }
+  if (typeof effectivenessScore !== 'number' || Number.isNaN(effectivenessScore)) {
+    return { error: `${label}: effectivenessScore must be a number.` }
+  }
+  if (!Array.isArray(skillIds) || skillIds.some((skillId) => typeof skillId !== 'string' || !skillId.trim())) {
+    return { error: `${label}: skillIds must be a string array.` }
+  }
+
+  return {
+    resource: {
+      id,
+      title,
+      source,
+      url,
+      skillIds: skillIds.map((skillId) => skillId.trim()),
+      duration: duration || '—',
+      format: format as ResourceRecord['format'],
+      effectivenessScore,
+      notes,
+    },
+  }
+}
+
+export function parseResourceImport(json: string): { resources: ResourceRecord[]; errors: string[] } {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(json)
+  } catch {
+    return { resources: [], errors: ['Invalid JSON — paste an array of resource objects.'] }
+  }
+  if (!Array.isArray(parsed)) {
+    return { resources: [], errors: ['Expected a JSON array of resources.'] }
+  }
+
+  const resources: ResourceRecord[] = []
+  const errors: string[] = []
+  parsed.forEach((entry, index) => {
+    const result = validateResourceRecord(entry, index)
+    if (result.error) errors.push(result.error)
+    else if (result.resource) resources.push(result.resource)
+  })
+  return { resources, errors }
+}
+
+export function mergeImportedResources(state: MathPilotState, resources: ResourceRecord[]): MathPilotState {
+  const merged = { ...state.resources }
+  for (const resource of resources) {
+    const existing = merged[resource.id]
+    merged[resource.id] = existing
+      ? {
+          ...existing,
+          ...resource,
+          skillIds: [...new Set([...existing.skillIds, ...resource.skillIds])],
+        }
+      : resource
+  }
+  return {
+    ...state,
+    resources: merged,
+    changelog: [
+      `${new Date().toISOString()}: Imported ${resources.length} resource${resources.length === 1 ? '' : 's'}.`,
+      ...state.changelog,
+    ],
+  }
+}

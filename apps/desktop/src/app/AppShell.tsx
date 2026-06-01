@@ -176,6 +176,8 @@ export function AppShell() {
     showSteps,
     setShowSteps,
     codexBusy,
+    cancelCodex,
+    importResources,
     onboardingStep,
     setOnboardingStep,
     expandedAreas,
@@ -536,6 +538,7 @@ export function AppShell() {
             generatePacket={generatePacket}
             requestHelp={(task) => void requestHelp(task)}
             codexBusy={codexBusy}
+            cancelCodex={() => void cancelCodex()}
             mathFieldRef={mathFieldRef}
             startAction={startAction}
             diagnosticProgress={
@@ -621,6 +624,9 @@ export function AppShell() {
               onTestCodex={() => void testCodexConnection()}
               codexPingStatus={codexPingStatus}
               codexPingBusy={codexPingBusy}
+              codexBusy={codexBusy}
+              cancelCodex={() => void cancelCodex()}
+              onImportResources={importResources}
               showFullPrompts={appState.preferences?.developerShowFullPrompts ?? false}
               onToggleShowFullPrompts={(enabled) =>
                 update({

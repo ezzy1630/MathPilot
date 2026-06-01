@@ -3,9 +3,76 @@ use crate::relational;
 use rusqlite::{params, Connection};
 use std::io::{Read, Write};
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
-use std::sync::Mutex;
+use std::process::{Child, Command, Stdio};
+use std::sync::{Arc, Mutex, OnceLock};
+use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
+
+struct ActiveCodex {
+    call_id: String,
+    child_slot: Arc<Mutex<Option<Child>>>,
+}
+
+fn active_codex() -> &'static Mutex<Option<ActiveCodex>> {
+    static ACTIVE: OnceLock<Mutex<Option<ActiveCodex>>> = OnceLock::new();
+    ACTIVE.get_or_init(|| Mutex::new(None))
+}
+
+fn clear_active_codex(call_id: &str) {
+    if let Ok(mut guard) = active_codex().lock() {
+        if guard
+            .as_ref()
+            .is_some_and(|active| active.call_id == call_id)
+        {
+            *guard = None;
+        }
+    }
+}
+
+fn kill_active_codex(call_id: Option<&str>) -> bool {
+    let mut guard = match active_codex().lock() {
+        Ok(guard) => guard,
+        Err(_) => return false,
+    };
+    let Some(active) = guard.take() else {
+        return false;
+    };
+    if call_id.is_some_and(|id| id != active.call_id) {
+        *guard = Some(active);
+        return false;
+    }
+    if let Some(mut child) = active.child_slot.lock().ok().and_then(|mut slot| slot.take()) {
+        let _ = child.kill();
+        return true;
+    }
+    false
+}
+
+struct CodexIoResult {
+    stdout: String,
+    stderr: String,
+    ok: bool,
+}
+
+fn read_codex_output(mut child: Child) -> CodexIoResult {
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    if let Some(mut out) = child.stdout.take() {
+        let _ = out.read_to_string(&mut stdout);
+    }
+    if let Some(mut err) = child.stderr.take() {
+        let _ = err.read_to_string(&mut stderr);
+    }
+    let ok = child
+        .wait()
+        .map(|status| status.success())
+        .unwrap_or(false);
+    CodexIoResult {
+        stdout,
+        stderr,
+        ok,
+    }
+}
 
 pub struct DbState(pub Mutex<Connection>);
 
@@ -297,7 +364,13 @@ fn collect_skill_md(base: &PathBuf, dir: &PathBuf, out: &mut Vec<String>) -> Res
 }
 
 #[tauri::command]
-pub fn invoke_codex(packet: String, task: String, session_id: Option<String>) -> Result<CodexResult, String> {
+pub fn invoke_codex(
+    packet: String,
+    task: String,
+    session_id: Option<String>,
+    timeout_secs: Option<u64>,
+    call_id: Option<String>,
+) -> Result<CodexResult, String> {
     let packet_with_session = match session_id {
         Some(sid) if !sid.is_empty() => format!(
             "## Codex session (CLI)\nSession-Id: {}\n\n{}",
@@ -305,6 +378,9 @@ pub fn invoke_codex(packet: String, task: String, session_id: Option<String>) ->
         ),
         _ => packet,
     };
+    let timeout = Duration::from_secs(timeout_secs.unwrap_or(120));
+    let call_id = call_id.unwrap_or_else(|| format!("codex-{}", chrono::Utc::now().timestamp_millis()));
+
     let mut child = match Command::new("codex")
         .arg("exec")
         .arg("--skip-git-repo-check")
@@ -320,6 +396,8 @@ pub fn invoke_codex(packet: String, task: String, session_id: Option<String>) ->
                 ok: false,
                 stdout: String::new(),
                 stderr: format!("Codex CLI not available ({e}). Use manual prompt packet mode."),
+                timed_out: false,
+                cancelled: false,
             });
         }
     };
@@ -328,21 +406,110 @@ pub fn invoke_codex(packet: String, task: String, session_id: Option<String>) ->
         let _ = stdin.write_all(packet_with_session.as_bytes());
     }
 
-    let mut stdout = String::new();
-    let mut stderr = String::new();
-    if let Some(mut out) = child.stdout.take() {
-        let _ = out.read_to_string(&mut stdout);
-    }
-    if let Some(mut err) = child.stderr.take() {
-        let _ = err.read_to_string(&mut stderr);
+    let child_slot = Arc::new(Mutex::new(Some(child)));
+    {
+        let mut guard = active_codex()
+            .lock()
+            .map_err(|e| format!("codex runtime lock poisoned: {e}"))?;
+        *guard = Some(ActiveCodex {
+            call_id: call_id.clone(),
+            child_slot: Arc::clone(&child_slot),
+        });
     }
 
-    let status = child.wait().map_err(|e| e.to_string())?;
-    Ok(CodexResult {
-        ok: status.success(),
-        stdout,
-        stderr,
-    })
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let child = match child_slot.lock() {
+            Ok(mut slot) => slot.take(),
+            Err(_) => None,
+        };
+        let result = child.map(read_codex_output).unwrap_or(CodexIoResult {
+            stdout: String::new(),
+            stderr: String::new(),
+            ok: false,
+        });
+        let _ = tx.send(result);
+    });
+
+    let started = Instant::now();
+    loop {
+        match rx.try_recv() {
+            Ok(result) => {
+                let cancelled = active_codex()
+                    .lock()
+                    .ok()
+                    .and_then(|guard| guard.as_ref().map(|active| active.call_id.clone()))
+                    != Some(call_id.clone());
+                clear_active_codex(&call_id);
+                return Ok(CodexResult {
+                    ok: !cancelled && result.ok,
+                    stdout: result.stdout,
+                    stderr: if cancelled {
+                        "Codex call cancelled.".to_string()
+                    } else {
+                        result.stderr
+                    },
+                    timed_out: false,
+                    cancelled,
+                });
+            }
+            Err(std::sync::mpsc::TryRecvError::Empty) => {}
+            Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                clear_active_codex(&call_id);
+                let cancelled = kill_active_codex(Some(&call_id));
+                return Ok(CodexResult {
+                    ok: false,
+                    stdout: String::new(),
+                    stderr: if cancelled {
+                        "Codex call cancelled.".to_string()
+                    } else {
+                        "Codex call ended unexpectedly.".to_string()
+                    },
+                    timed_out: false,
+                    cancelled,
+                });
+            }
+        }
+
+        if started.elapsed() >= timeout {
+            kill_active_codex(Some(&call_id));
+            clear_active_codex(&call_id);
+            let _ = rx.recv_timeout(Duration::from_millis(250));
+            return Ok(CodexResult {
+                ok: false,
+                stdout: String::new(),
+                stderr: format!(
+                    "Codex call timed out after {} seconds.",
+                    timeout.as_secs()
+                ),
+                timed_out: true,
+                cancelled: false,
+            });
+        }
+
+        if active_codex()
+            .lock()
+            .ok()
+            .and_then(|guard| guard.as_ref().map(|active| active.call_id.clone()))
+            != Some(call_id.clone())
+        {
+            let _ = rx.recv_timeout(Duration::from_millis(250));
+            return Ok(CodexResult {
+                ok: false,
+                stdout: String::new(),
+                stderr: "Codex call cancelled.".to_string(),
+                timed_out: false,
+                cancelled: true,
+            });
+        }
+
+        std::thread::sleep(Duration::from_millis(100));
+    }
+}
+
+#[tauri::command]
+pub fn cancel_codex(call_id: Option<String>) -> Result<bool, String> {
+    Ok(kill_active_codex(call_id.as_deref()))
 }
 
 #[derive(serde::Serialize)]
@@ -350,6 +517,8 @@ pub struct CodexResult {
     pub ok: bool,
     pub stdout: String,
     pub stderr: String,
+    pub timed_out: bool,
+    pub cancelled: bool,
 }
 
 #[derive(serde::Deserialize)]

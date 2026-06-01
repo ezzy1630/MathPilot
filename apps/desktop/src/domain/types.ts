@@ -70,6 +70,8 @@ export interface Problem {
   deprecationReason?: string
   attemptCount?: number
   requiresShowWork?: boolean
+  /** e.g. 'transfer', 'misconception:chain_rule_inner' */
+  tags?: string[]
 }
 
 export interface AttemptInput {
@@ -313,7 +315,12 @@ export interface MathPilotState {
     confidencePrompts: 'off' | 'review_only' | 'often'
     developerShowFullPrompts?: boolean
     videoEmbedPreferred?: boolean
+    studyPlanReminderEnabled?: boolean
+    studyBlockTime?: string
+    studyBlockDays?: number[]
   }
+  /** YYYY-MM-DD when the user marked today as a planned study day. */
+  plannedStudyToday?: string
   studyPlan?: {
     focus: CourseFocus
     updatedAt: string
