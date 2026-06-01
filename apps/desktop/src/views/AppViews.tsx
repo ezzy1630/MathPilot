@@ -2121,6 +2121,31 @@ export function DeveloperView({
           />
         </label>
       </div>
+      <div className="settings-row" style={{ marginBottom: 16 }}>
+        <span>Codex problem generation in sessions (§9.2)</span>
+        <label className="toggle">
+          <input
+            type="checkbox"
+            checked={state.preferences?.enableCodexProblemGen ?? false}
+            onChange={(e) =>
+              onUpdateState?.({
+                ...state,
+                preferences: {
+                  tone: state.preferences?.tone ?? 'direct',
+                  gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
+                  notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
+                  reportsMode: 'on_demand_only',
+                  activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
+                  theme: state.preferences?.theme ?? 'system',
+                  confidencePrompts: state.preferences?.confidencePrompts ?? 'review_only',
+                  ...state.preferences,
+                  enableCodexProblemGen: e.target.checked,
+                },
+              })
+            }
+          />
+        </label>
+      </div>
       <section className="developer-inspect-grid">
         <div className="panel">
           <h2>Skill inspect (read-only)</h2>
