@@ -1,6 +1,7 @@
 mod db;
 mod menu;
 mod migrations;
+mod ocr_macos;
 mod relational;
 
 use db::{init_db, DbState};
@@ -33,6 +34,7 @@ pub fn run() {
             db::read_skill_files,
             db::invoke_codex,
             db::cancel_codex,
+            db::runtime_self_test,
             db::check_math_symbolic,
             db::write_backup,
             db::ocr_homework_image,

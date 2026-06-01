@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build",
+    "desktop:build": "bash ../../scripts/prepare-macos-bundle.sh && tauri build",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

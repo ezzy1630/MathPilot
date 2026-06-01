@@ -86,6 +86,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare macOS bundle resources (Python, OCR)
+        run: bash scripts/prepare-macos-bundle.sh
+
       - name: Build desktop frontend
         run: pnpm --filter @mathpilot/desktop build
 

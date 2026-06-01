@@ -35,7 +35,10 @@
     "targets": ["dmg", "app"],
     "resources": {
       "../../../scripts/math_check.py": "scripts/math_check.py",
-      "../../../scripts/ocr_homework.py": "scripts/ocr_homework.py"
+      "../../../scripts/ocr_homework.py": "scripts/ocr_homework.py",
+      "../../../skills/": "skills/",
+      "resources/bin/mathpilot-ocr": "bin/mathpilot-ocr",
+      "resources/python/": "python/"
     },
     "icon": [
       "icons/32x32.png",

@@ -89,16 +89,67 @@ fn repo_root() -> PathBuf {
         .join("..")
 }
 
-fn python_command() -> PathBuf {
-    let mut candidates = vec![PathBuf::from("python3")];
-    let venv = repo_root().join(".venv").join("bin").join("python3");
-    if venv.exists() {
-        candidates.insert(0, venv);
+fn manifest_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+}
+
+fn bundled_python_candidates(app: Option<&AppHandle>) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(bundle_py) = exe
+            .parent()
+            .and_then(|macos| macos.parent())
+            .map(|contents| contents.join("Resources").join("python").join("bin").join("python3"))
+        {
+            candidates.push(bundle_py);
+        }
     }
+
+    if let Some(app) = app {
+        if let Ok(resource_dir) = app.path().resource_dir() {
+            candidates.push(
+                resource_dir
+                    .join("python")
+                    .join("bin")
+                    .join("python3"),
+            );
+        }
+    }
+
+    candidates.push(
+        manifest_dir()
+            .join("resources")
+            .join("python")
+            .join("bin")
+            .join("python3"),
+    );
+
+    #[cfg(debug_assertions)]
+    {
+        let venv = repo_root().join(".venv").join("bin").join("python3");
+        if venv.exists() {
+            candidates.push(venv);
+        }
+    }
+
+    candidates.push(PathBuf::from("python3"));
     candidates
+}
+
+pub fn bundled_python(app: Option<&AppHandle>) -> PathBuf {
+    bundled_python_candidates(app)
         .into_iter()
-        .next()
+        .find(|path| path.exists())
         .unwrap_or_else(|| PathBuf::from("python3"))
+}
+
+fn python_imports(module: &str, python: &PathBuf) -> bool {
+    Command::new(python)
+        .args(["-c", &format!("import {module}")])
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
 }
 
 fn script_path(name: &str) -> PathBuf {
@@ -330,13 +381,34 @@ pub fn health_kit_available() -> bool {
     false
 }
 
+fn skills_dir_candidates() -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(bundle) = exe
+            .parent()
+            .and_then(|macos| macos.parent())
+            .map(|contents| contents.join("Resources").join("skills"))
+        {
+            candidates.push(bundle);
+        }
+    }
+    candidates.push(manifest_dir().join("resources").join("skills"));
+    candidates.push(repo_root().join("skills"));
+    candidates
+}
+
+fn resolve_skills_dir() -> Option<PathBuf> {
+    skills_dir_candidates()
+        .into_iter()
+        .find(|path| path.is_dir())
+}
+
 #[tauri::command]
 pub fn read_skill_files() -> Result<Vec<String>, String> {
-    let skills_dir = repo_root().join("skills");
+    let Some(skills_dir) = resolve_skills_dir() else {
+        return Ok(Vec::new());
+    };
     let mut out = Vec::new();
-    if !skills_dir.exists() {
-        return Ok(out);
-    }
     collect_skill_md(&skills_dir, &skills_dir, &mut out)?;
     Ok(out)
 }
@@ -536,8 +608,24 @@ pub fn write_backup(app: AppHandle, backup_id: String, payload: String) -> Resul
     Ok(path.to_string_lossy().to_string())
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RuntimeSelfTest {
+    pub sympy: bool,
+    pub python: String,
+}
+
 #[tauri::command]
-pub fn check_math_symbolic(input: MathCheckInput) -> Result<String, String> {
+pub fn runtime_self_test(app: AppHandle) -> Result<RuntimeSelfTest, String> {
+    let python = bundled_python(Some(&app));
+    Ok(RuntimeSelfTest {
+        sympy: python_imports("sympy", &python),
+        python: python.to_string_lossy().to_string(),
+    })
+}
+
+#[tauri::command]
+pub fn check_math_symbolic(app: AppHandle, input: MathCheckInput) -> Result<String, String> {
     let script = script_path("math_check.py");
     if !script.exists() {
         return Ok(serde_json::json!({
@@ -556,7 +644,8 @@ pub fn check_math_symbolic(input: MathCheckInput) -> Result<String, String> {
         "variables": input.variables.unwrap_or_else(|| vec!["x".to_string()]),
     });
 
-    let mut child = Command::new(python_command())
+    let python = bundled_python(Some(&app));
+    let mut child = Command::new(&python)
         .arg(&script)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -577,7 +666,7 @@ pub fn check_math_symbolic(input: MathCheckInput) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn ocr_homework_base64(data_url: String) -> Result<String, String> {
+pub fn ocr_homework_base64(app: AppHandle, data_url: String) -> Result<String, String> {
     let comma = data_url.find(',').unwrap_or(0);
     let b64 = data_url.get(comma + 1..).unwrap_or("");
     let bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64.trim())
@@ -587,23 +676,54 @@ pub fn ocr_homework_base64(data_url: String) -> Result<String, String> {
         chrono::Utc::now().timestamp_millis()
     ));
     std::fs::write(&tmp, bytes).map_err(|e| e.to_string())?;
-    let out = ocr_homework_image(tmp.to_string_lossy().to_string())?;
+    let out = ocr_homework_image(app, tmp.to_string_lossy().to_string())?;
     let _ = std::fs::remove_file(&tmp);
     Ok(out)
 }
 
-#[tauri::command]
-pub fn ocr_homework_image(image_path: String) -> Result<String, String> {
+#[cfg(all(target_os = "macos", debug_assertions))]
+fn ocr_result_ok(json: &str) -> bool {
+    serde_json::from_str::<serde_json::Value>(json)
+        .ok()
+        .and_then(|value| value.get("ok").and_then(|ok| ok.as_bool()))
+        .unwrap_or(false)
+}
+
+#[cfg(all(target_os = "macos", debug_assertions))]
+fn ocr_homework_image_python(app: &AppHandle, image_path: String) -> Result<String, String> {
     let script = script_path("ocr_homework.py");
     if !script.exists() {
         return Ok(r#"{"ok":false,"text":""}"#.to_string());
     }
-    let output = Command::new(python_command())
+    let python = bundled_python(Some(app));
+    let output = Command::new(&python)
         .arg(&script)
         .arg(&image_path)
         .output()
         .map_err(|e| e.to_string())?;
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
+#[tauri::command]
+pub fn ocr_homework_image(app: AppHandle, image_path: String) -> Result<String, String> {
+    #[cfg(all(target_os = "macos", not(debug_assertions)))]
+    {
+        return crate::ocr_macos::recognize_text(&image_path);
+    }
+
+    #[cfg(all(target_os = "macos", debug_assertions))]
+    {
+        match crate::ocr_macos::recognize_text(&image_path) {
+            Ok(result) if ocr_result_ok(&result) => Ok(result),
+            _ => ocr_homework_image_python(&app, image_path),
+        }
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = image_path;
+        Ok(r#"{"ok":false,"text":""}"#.to_string())
+    }
 }
 
 #[tauri::command]

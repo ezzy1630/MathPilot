@@ -1,19 +1,7 @@
 import { useEffect, useState } from 'react'
 import { isTauriRuntime } from '../lib/nativeChrome'
 
-type CheckerIssue = 'sympy' | 'script' | 'python' | null
-
-function parseCheckerIssue(raw: string): CheckerIssue {
-  try {
-    const parsed = JSON.parse(raw) as { ok?: boolean; error?: string }
-    if (parsed.ok !== false) return null
-    if (parsed.error === 'sympy_not_installed') return 'sympy'
-    if (parsed.error === 'math_check_script_missing') return 'script'
-    return 'python'
-  } catch {
-    return 'python'
-  }
-}
+type CheckerIssue = 'sympy' | 'python' | null
 
 export function PythonStatusBanner() {
   const [issue, setIssue] = useState<CheckerIssue>(null)
@@ -21,12 +9,14 @@ export function PythonStatusBanner() {
   useEffect(() => {
     if (!isTauriRuntime()) return
     void import('@tauri-apps/api/core')
-      .then(({ invoke }) =>
-        invoke<string>('check_math_symbolic', {
-          input: { expected: '1', actual: '1', variables: ['x'] },
-        }),
-      )
-      .then((raw) => setIssue(parseCheckerIssue(raw)))
+      .then(({ invoke }) => invoke<{ sympy: boolean; python: string }>('runtime_self_test'))
+      .then((result) => {
+        if (result.sympy) {
+          setIssue(null)
+          return
+        }
+        setIssue(result.python === 'python3' ? 'python' : 'sympy')
+      })
       .catch(() => setIssue('python'))
   }, [])
 
@@ -35,17 +25,14 @@ export function PythonStatusBanner() {
   const detail =
     issue === 'sympy' ? (
       <>
-        SymPy is not installed for the Python MathPilot uses. From the MathPilot folder run{' '}
-        <code>{'python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt'}</code>, then restart.
-        Or install SymPy for system Python with <code>pip3 install sympy</code>. Until then,
-        answers use numeric/string fallback only.
+        Symbolic answer checking is unavailable in this build. Reinstall MathPilot from a release that includes the
+        bundled Python runtime. Developers can run{' '}
+        <code>./scripts/build-macos-python-runtime.sh</code> before <code>desktop:build</code>.
       </>
-    ) : issue === 'script' ? (
-      <>Math checking script was not found in the app bundle. Reinstall MathPilot from a fresh build.</>
     ) : (
       <>
-        Python 3 could not run the math checker. Install Python 3 and SymPy (<code>pip3 install sympy</code>), then
-        restart.
+        Python 3 could not run the math checker. Reinstall MathPilot, or (developers) create{' '}
+        <code>.venv</code> with <code>pip install -r scripts/requirements.txt</code>, then restart.
       </>
     )
 

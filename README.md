@@ -114,6 +114,7 @@ Build from source and copy the bundle to Applications:
 git clone https://github.com/ezzy1630/MathPilot.git
 cd MathPilot
 pnpm install
+./scripts/build-macos-python-runtime.sh   # maintainer: bundle Python + SymPy (macOS arm64)
 pnpm --filter @mathpilot/desktop desktop:build
 cp -R apps/desktop/src-tauri/target/release/bundle/macos/MathPilot.app /Applications/
 open -a MathPilot
@@ -130,9 +131,9 @@ Or use the install script (builds if needed, prompts for sudo when replacing `/A
 | Step | Action |
 |------|--------|
 | 1 | Choose **Calculus 1** or **Calculus 2**, complete the short diagnostic |
-| 2 | Optional: `python3 -m pip install sympy` for symbolic answer checking |
+| 2 | Symbolic answer checking works out of the box when the app was built with the bundled Python runtime |
 | 3 | Optional: install and sign in to **Codex CLI** for richer AI help |
-| 4 | Optional: `python3 -m pip install pyobjc-framework-Vision pyobjc-framework-Quartz` for homework OCR |
+| 4 | Homework OCR uses the native Vision helper on macOS release builds |
 
 Local data is stored at:
 
@@ -151,12 +152,15 @@ Manual QA checklist: [docs/MANUAL_QA_CHECKLIST.md](docs/MANUAL_QA_CHECKLIST.md)
 - **Node.js** 22  
 - **pnpm** 9+  
 - **Rust** (for Tauri)  
-- **Python 3** (optional — SymPy checking, OCR)
+- **Python 3** (optional for local dev — use repo `.venv` or run the macOS runtime build script)
 
 ### Commands
 
 ```bash
 pnpm install
+
+# macOS release packaging: bundle portable Python + SymPy before tauri build
+./scripts/build-macos-python-runtime.sh
 
 # Web UI only (fast iteration)
 pnpm dev
