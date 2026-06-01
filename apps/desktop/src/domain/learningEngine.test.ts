@@ -310,4 +310,43 @@ describe('learning engine', () => {
     expect(fast.mastery.chain_rule.fluencyScore).toBeGreaterThan(slow.mastery.chain_rule.fluencyScore)
     expect(fast.attempts[0].fluencyDelta).toBeGreaterThan(slow.attempts[0].fluencyDelta ?? -1)
   })
+
+  it('prioritizes continuing diagnostic when pending', () => {
+    const state = createInitialState('Calculus 1')
+    const action = chooseNextAction({
+      ...state,
+      continuingDiagnosticPending: true,
+      coachInsight: {
+        updatedAt: new Date().toISOString(),
+        narrative: 'Chain rule gaps detected — recalibrate before new topics.',
+        gapBullets: [],
+        mapHighlightSkillIds: ['chain_rule'],
+        source: 'deterministic',
+      },
+    })
+    expect(action.kind).toBe('diagnostic')
+    expect(action.title).toContain('Continuing diagnostic')
+    expect(action.reason).toContain('Chain rule gaps')
+  })
+
+  it('routes recurring mistake patterns to quick repair', () => {
+    const state = createInitialState('Calculus 1')
+    for (const record of Object.values(state.mastery)) {
+      record.masteryScore = 0.55
+      record.masteryState = 'Developing'
+    }
+    state.mistakePatterns = {
+      inner_deriv: {
+        tag: 'inner_deriv',
+        skillIds: ['chain_rule'],
+        count: 4,
+        lastSeen: new Date().toISOString(),
+        note: 'test',
+      },
+    }
+    const action = chooseNextAction(state)
+    expect(action.kind).toBe('quick_repair')
+    expect(action.skillIds).toEqual(['chain_rule'])
+    expect(action.title).toContain('pattern')
+  })
 })

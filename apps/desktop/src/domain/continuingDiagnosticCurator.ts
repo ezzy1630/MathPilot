@@ -1,5 +1,6 @@
 import { ensureMemoryLoaded, invokeCodexForTask } from './aiAdapter'
 import { parseContinuingDiagnosticCuratorResponse } from './codexParser'
+import { buildLearnerSnapshot, topMistakeSkillIds } from './curatorContext'
 import { buildCoachInsightFallback } from './diagnosticCurator'
 import { loadSkillsForPrompt } from './skillLoader'
 import type { CoachInsight, MathPilotState } from './types'
@@ -17,6 +18,13 @@ export function shouldScheduleContinuingDiagnosticCurator(
 
 export function markContinuingDiagnosticCuratorScheduled(state: MathPilotState): MathPilotState {
   return { ...state, continuingDiagnosticCuratorRan: true }
+}
+
+function continuingDiagnosticFallbackNarrative(state: MathPilotState): string {
+  const top = Object.values(state.mistakePatterns).sort((a, b) => b.count - a.count)[0]
+  if (!top) return 'Recent work suggests a quick calibration check before continuing.'
+  const skills = top.skillIds.map((id) => state.skills[id]?.name).filter(Boolean).join(', ')
+  return `Recurring ${top.tag.replace(/_/g, ' ')} (${top.count}×)${skills ? ` on ${skills}` : ''} — a short continuing diagnostic will refine your map.`
 }
 
 function narrativeFromPayload(
@@ -37,11 +45,7 @@ function narrativeFromPayload(
 export async function runContinuingDiagnosticCurator(state: MathPilotState): Promise<MathPilotState> {
   if (!state.continuingDiagnosticPending) return state
 
-  const weakIds = Object.entries(state.mistakePatterns)
-    .filter(([, p]) => p.count >= 3)
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 5)
-    .flatMap(([, p]) => p.skillIds)
+  const weakIds = topMistakeSkillIds(state, 8)
   const recentAttempts = state.attempts.slice(0, 8).map((a) => ({
     correct: a.correct,
     skills: a.skillIds.join(','),
@@ -55,7 +59,11 @@ export async function runContinuingDiagnosticCurator(state: MathPilotState): Pro
     'continuing_diagnostic_curator',
     'Label the most important knowledge gap for a short continuing diagnostic. Do not change routing or session plans.',
     `Recent attempts: ${JSON.stringify(recentAttempts)}`,
-    `Mistake patterns: ${Object.keys(state.mistakePatterns).slice(0, 6).join(', ') || 'none'}`,
+    `Mistake patterns: ${Object.entries(state.mistakePatterns)
+      .slice(0, 6)
+      .map(([tag, p]) => `${tag}(${p.count})`)
+      .join(', ') || 'none'}`,
+    `Learner snapshot:\n${buildLearnerSnapshot(state)}`,
     'Return JSON only with keys: gap_label (string), coach_narrative (string).',
   ].join(' ')
 
@@ -66,7 +74,7 @@ export async function runContinuingDiagnosticCurator(state: MathPilotState): Pro
   })
 
   const baseInsight = state.coachInsight ?? buildCoachInsightFallback(state)
-  let narrative = baseInsight.narrative
+  let narrative = continuingDiagnosticFallbackNarrative(state)
 
   if (result.ok && result.mode === 'codex_cli') {
     const payload = parseContinuingDiagnosticCuratorResponse(result.stdout)
@@ -74,12 +82,15 @@ export async function runContinuingDiagnosticCurator(state: MathPilotState): Pro
       const nextNarrative = narrativeFromPayload(payload, baseInsight)
       if (nextNarrative) narrative = nextNarrative
     }
+  } else if (baseInsight.narrative) {
+    narrative = baseInsight.narrative
   }
 
   const insight: CoachInsight = {
     ...baseInsight,
     updatedAt: new Date().toISOString(),
     narrative,
+    mapHighlightSkillIds: weakIds.length ? weakIds.slice(0, 4) : baseInsight.mapHighlightSkillIds,
     source: result.ok && result.mode === 'codex_cli' ? 'codex' : baseInsight.source,
   }
 

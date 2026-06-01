@@ -1,3 +1,4 @@
+import { prioritizedWeakMastery, topMistakeRepairSkill } from './actionPriority'
 import { loadAppSettings } from './configLoader'
 import { evaluateContinuingDiagnostic } from './continuingDiagnostics'
 import { currentSessionPhase } from './dailySessionEngine'
@@ -156,6 +157,22 @@ function chooseNextActionCore(state: MathPilotState): NextAction {
     }
   }
 
+  if (state.continuingDiagnosticPending && !state.diagnostic) {
+    const patternSkill = topMistakeRepairSkill(state)
+    const focusIds = patternSkill
+      ? [patternSkill]
+      : prioritizedWeakMastery(state, 1).map((m) => m.skillId)
+    return {
+      kind: 'diagnostic',
+      title: 'Continuing diagnostic recommended',
+      reason:
+        state.coachInsight?.narrative ||
+        'Recent mistakes suggest a short calibration check before pushing forward.',
+      skillIds: focusIds.filter(Boolean),
+      cta: 'Start continuing diagnostic',
+    }
+  }
+
   const dueReview = state.reviewQueue
     .filter((item) => item.due <= todayIso())
     .sort((a, b) => b.priority + confidenceReviewBoost(state, b.skillId) - (a.priority + confidenceReviewBoost(state, a.skillId)))[0]
@@ -215,6 +232,19 @@ function chooseNextActionCore(state: MathPilotState): NextAction {
     }
   }
 
+  const patternRepairSkill = topMistakeRepairSkill(state)
+  if (patternRepairSkill && state.skills[patternRepairSkill]) {
+    const skill = state.skills[patternRepairSkill]
+    return {
+      kind: 'quick_repair',
+      title: `Repair pattern: ${skill.name}`,
+      reason: `Recurring mistake pattern on ${skill.name} — short repair before new topics.`,
+      skillIds: [patternRepairSkill],
+      problemId: problemForSkill(state, patternRepairSkill, 'quick_repair'),
+      cta: 'Start quick repair',
+    }
+  }
+
   const syllabusIds = syllabusSkillBoost(state).filter(
     (id) => state.skills[id] && (state.mastery[id]?.masteryScore ?? 0) < 0.72,
   )
@@ -231,9 +261,22 @@ function chooseNextActionCore(state: MathPilotState): NextAction {
     }
   }
 
-  const weak = Object.values(state.mastery)
-    .filter((record) => state.skills[record.skillId])
-    .sort((a, b) => a.masteryScore - b.masteryScore)[0]
+  const coachHighlight = state.coachInsight?.mapHighlightSkillIds?.find(
+    (id) => state.skills[id] && (state.mastery[id]?.masteryScore ?? 1) < 0.68,
+  )
+  if (coachHighlight) {
+    const skill = state.skills[coachHighlight]
+    return {
+      kind: 'guided_practice',
+      title: `Coach focus: ${skill.name}`,
+      reason: state.coachInsight?.narrative || `${skill.name} is highlighted on your learning map.`,
+      skillIds: [coachHighlight],
+      problemId: problemForSkill(state, coachHighlight, 'guided_practice'),
+      cta: 'Practice coach focus',
+    }
+  }
+
+  const weak = prioritizedWeakMastery(state, 1)[0]
 
   if (weak && weak.masteryScore < 0.5) {
     return {
@@ -249,8 +292,7 @@ function chooseNextActionCore(state: MathPilotState): NextAction {
     }
   }
 
-  const fallbackSkill =
-    Object.values(state.mastery).sort((a, b) => a.masteryScore - b.masteryScore)[0]?.skillId ?? 'chain_rule'
+  const fallbackSkill = prioritizedWeakMastery(state, 1)[0]?.skillId ?? 'chain_rule'
   return {
     kind: 'independent_practice',
     title: 'Continue independent practice',

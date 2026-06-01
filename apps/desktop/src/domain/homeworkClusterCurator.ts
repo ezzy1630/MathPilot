@@ -1,6 +1,7 @@
 import { ensureMemoryLoaded, invokeCodexForTask } from './aiAdapter'
 import { parseHomeworkClusterResponse } from './codexParser'
-import { chooseRepairRecommendation } from './homeworkLearningBridge'
+import { buildLearnerSnapshot } from './curatorContext'
+import { clusterHomeworkDeterministic } from './homeworkClusterDeterministic'
 import { loadSkillsForPrompt } from './skillLoader'
 import type { MathPilotState } from './types'
 
@@ -8,6 +9,9 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 const COOLDOWN_MS = 10 * 60 * 1000
 
 export function shouldRunHomeworkClusterCurator(state: MathPilotState): boolean {
+  if (state.preferences?.enableMaintenanceCurator === false && !state.developerModeEnabled) {
+    return false
+  }
   if (state.homeworkAnalyses.length < 2) return false
 
   const latest = state.homeworkAnalyses[0]
@@ -24,10 +28,29 @@ export function shouldRunHomeworkClusterCurator(state: MathPilotState): boolean 
   return true
 }
 
+export function applyDeterministicHomeworkCluster(state: MathPilotState): MathPilotState {
+  const { mistakePatterns, homeworkAnalyses, summaryBullets } = clusterHomeworkDeterministic(state)
+  const now = new Date().toISOString()
+  return {
+    ...state,
+    mistakePatterns,
+    homeworkAnalyses,
+    homeworkClusterLastRun: now,
+    changelog: [
+      summaryBullets.length
+        ? `${now}: Homework cluster (deterministic): ${summaryBullets.slice(0, 3).join('; ')}.`
+        : `${now}: Homework cluster curator ran (no recurring patterns).`,
+      ...state.changelog,
+    ],
+  }
+}
+
 export async function runHomeworkClusterCurator(state: MathPilotState): Promise<MathPilotState> {
   if (!shouldRunHomeworkClusterCurator(state)) return state
 
-  const recent = state.homeworkAnalyses
+  let next = applyDeterministicHomeworkCluster(state)
+
+  const recent = next.homeworkAnalyses
     .filter((a) => Date.now() - new Date(a.createdAt).getTime() <= SEVEN_DAYS_MS)
     .slice(0, 8)
 
@@ -44,28 +67,25 @@ export async function runHomeworkClusterCurator(state: MathPilotState): Promise<
 
   const task = [
     'homework_cluster_curator',
-    'Cluster recurring mistake patterns across recent homework analyses.',
+    'Cluster recurring mistake patterns across recent homework analyses. Refine deterministic clusters; do not invent tags absent from the data.',
     `Analyses: ${JSON.stringify(summaries)}`,
+    `Learner snapshot:\n${buildLearnerSnapshot(next)}`,
     'Return JSON only with keys: clustered_patterns ({tag, skill_ids, note, count}[]), repair_recommendations ({analysis_id, skill_id, reason}[]).',
   ].join(' ')
 
-  const { state: logged, result } = await invokeCodexForTask(state, task, {
+  const { state: logged, result } = await invokeCodexForTask(next, task, {
     memoryLines: memory,
     skillBodies: skills,
     forceNewSession: true,
   })
 
-  const now = new Date().toISOString()
-  let next: MathPilotState = {
-    ...logged,
-    homeworkClusterLastRun: now,
-  }
+  next = { ...logged, homeworkClusterLastRun: next.homeworkClusterLastRun }
 
   if (!result.ok || result.mode !== 'codex_cli') {
     return {
       ...next,
       changelog: [
-        `${now}: Homework cluster curator skipped (Codex unavailable).`,
+        `${new Date().toISOString()}: Homework cluster curator used deterministic fallback (Codex unavailable).`,
         ...next.changelog,
       ],
     }
@@ -75,19 +95,23 @@ export async function runHomeworkClusterCurator(state: MathPilotState): Promise<
   if (!payload) {
     return {
       ...next,
-      changelog: [`${now}: Homework cluster curator returned no parseable JSON.`, ...next.changelog],
+      changelog: [
+        `${new Date().toISOString()}: Homework cluster curator kept deterministic clusters (unparseable Codex JSON).`,
+        ...next.changelog,
+      ],
     }
   }
 
+  const now = new Date().toISOString()
   const mistakePatterns = { ...next.mistakePatterns }
   for (const pattern of payload.clustered_patterns ?? []) {
     const tag = pattern.tag.trim()
     if (!tag) continue
     const existing = mistakePatterns[tag]
-    const skillIds = pattern.skill_ids?.filter((id) => next.skills[id]) ?? existing?.skillIds ?? []
+    const ids = pattern.skill_ids?.filter((id) => next.skills[id]) ?? existing?.skillIds ?? []
     mistakePatterns[tag] = {
       tag,
-      skillIds: skillIds.length ? skillIds : existing?.skillIds ?? [],
+      skillIds: ids.length ? ids : existing?.skillIds ?? [],
       count: Math.max(existing?.count ?? 0, pattern.count ?? recent.length),
       lastSeen: now,
       note: pattern.note?.trim() || existing?.note || `Homework cluster: ${tag}`,
@@ -109,20 +133,12 @@ export async function runHomeworkClusterCurator(state: MathPilotState): Promise<
     }
   }
 
-  const latest = homeworkAnalyses[0]
-  if (latest && !latest.repairRecommendation && latest.correctness !== 'correct') {
-    const repair = chooseRepairRecommendation(next, latest.skillsAffected, latest.mistakeTags)
-    if (repair) {
-      homeworkAnalyses[0] = { ...latest, repairRecommendation: repair }
-    }
-  }
-
   return {
     ...next,
     mistakePatterns,
     homeworkAnalyses,
     changelog: [
-      `${now}: Homework cluster curator updated patterns and repair hints.`,
+      `${now}: Homework cluster curator refined patterns and repair hints (Codex).`,
       ...next.changelog,
     ],
   }

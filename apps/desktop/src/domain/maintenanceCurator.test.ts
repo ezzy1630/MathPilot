@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { maintenanceCuratorFallbackSummary, shouldRunMaintenanceCurator } from './maintenanceCurator'
+import {
+  buildDeterministicMaintenanceInsight,
+  maintenanceCuratorFallbackSummary,
+  shouldRunMaintenanceCurator,
+} from './maintenanceCurator'
 import type { MaintenanceRun } from './maintenance'
 import { createInitialState } from './learningEngine'
 
@@ -40,5 +44,36 @@ describe('maintenanceCurator', () => {
         developerModeEnabled: true,
       }),
     ).toBe(true)
+  })
+
+  it('builds deterministic maintenance insight from run and learner state', () => {
+    const state = createInitialState('Calculus 1')
+    state.mistakePatterns = {
+      chain_miss: {
+        tag: 'chain_miss',
+        skillIds: ['chain_rule'],
+        count: 3,
+        lastSeen: new Date().toISOString(),
+        note: 'test',
+      },
+    }
+    const run: MaintenanceRun = {
+      id: 'm1',
+      startedAt: '2026-01-01T00:00:00.000Z',
+      endedAt: '2026-01-01T00:01:00.000Z',
+      trigger: 'manual',
+      jobsRun: ['skill_audit'],
+      changesMade: ['Skill graph audit: no issues.'],
+      backupsCreated: [],
+      skillsUpdated: [],
+      memoriesUpdated: [],
+      problemBankChanges: [],
+      resourceRankChanges: [],
+      reviewScheduleChanges: [],
+      warnings: [],
+    }
+    const insight = buildDeterministicMaintenanceInsight(state, run)
+    expect(insight.changelog_summary).toContain('Skill graph audit')
+    expect(insight.learning_model_bullets?.[0]).toContain('Chain Rule')
   })
 })

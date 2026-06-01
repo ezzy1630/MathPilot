@@ -60,6 +60,9 @@ export function enrichNextAction(state: MathPilotState, action: NextAction): Nex
   }
 
   if (action.kind === 'diagnostic') {
+    if (action.title.toLowerCase().includes('continuing')) {
+      return action
+    }
     return {
       ...action,
       reason:

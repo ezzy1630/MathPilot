@@ -28,6 +28,7 @@ export interface MaintenanceCuratorPayload {
   learning_model_bullets?: string[]
   durable_notes_bullets?: string[]
   warnings?: string[]
+  coach_narrative?: string
 }
 
 export interface ContinuingDiagnosticCuratorPayload {
@@ -110,17 +111,20 @@ export function parseMaintenanceCuratorResponse(stdout: string): MaintenanceCura
   const learning_model_bullets = stringArrayField(parsed, 'learning_model_bullets')
   const durable_notes_bullets = stringArrayField(parsed, 'durable_notes_bullets')
   const warnings = stringArrayField(parsed, 'warnings')
+  const coach_narrative =
+    typeof parsed.coach_narrative === 'string' ? parsed.coach_narrative : undefined
 
   if (
     !changelog_summary?.trim() &&
     !learning_model_bullets?.length &&
     !durable_notes_bullets?.length &&
-    !warnings?.length
+    !warnings?.length &&
+    !coach_narrative?.trim()
   ) {
     return null
   }
 
-  return { changelog_summary, learning_model_bullets, durable_notes_bullets, warnings }
+  return { changelog_summary, learning_model_bullets, durable_notes_bullets, warnings, coach_narrative }
 }
 
 export function parseContinuingDiagnosticCuratorResponse(

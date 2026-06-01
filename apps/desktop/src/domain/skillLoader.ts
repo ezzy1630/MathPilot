@@ -30,6 +30,11 @@ const TASK_SKILL_KEYS: Record<string, string[]> = {
     '../../../../skills/grading/classify_mistake.md',
     '../../../../skills/planning/generate_quick_repair.md',
   ],
+  homework_cluster_curator: [
+    '../../../../skills/grading/classify_mistake.md',
+    '../../../../skills/planning/generate_quick_repair.md',
+    '../../../../skills/planning/choose_next_action.md',
+  ],
   resources: [
     '../../../../skills/resources/rank_video_for_skill.md',
     '../../../../skills/resources/select_video_resource.md',
