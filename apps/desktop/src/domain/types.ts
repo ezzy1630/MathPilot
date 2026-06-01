@@ -80,6 +80,11 @@ export interface AttemptInput {
   mistakeTags?: string[]
   confidence?: number
   steps?: string[]
+  sessionId?: string
+  answerLatex?: string
+  partialCredit?: number
+  attemptNumber?: number
+  feedbackSummary?: string
 }
 
 export interface AttemptRecord extends AttemptInput {
@@ -142,6 +147,7 @@ export interface AiCallLog {
   task: string
   mode: 'codex_cli' | 'manual_packet'
   promptPreview: string
+  promptHash?: string
   status: 'drafted' | 'sent' | 'received' | 'failed'
 }
 
@@ -159,6 +165,13 @@ export interface HomeworkAnalysis {
   imagePath?: string
   stepFeedback?: Array<{ step: string; correct: boolean; note: string }>
   repairRecommendation?: { skillId: string; reason: string }
+  detectedProblems?: Array<{
+    label: string
+    problemText: string
+    correctness: 'correct' | 'incorrect' | 'unclear'
+    mistakeTags: string[]
+  }>
+  savedAsWorkedExample?: boolean
 }
 
 export interface OverrideLog {
@@ -237,6 +250,9 @@ export interface MathPilotState {
     itemsCompletedInPhase: number
     itemsTargetInPhase: number
     startedAt: string
+    difficultyBias?: number
+    reviewIntensity?: number
+    videoPhaseWeight?: number
   }
   testOut?: {
     skillId: string
@@ -258,6 +274,9 @@ export interface MathPilotState {
     reportsMode: 'on_demand_only' | 'weekly'
     activeVideoMode: 'never' | 'sometimes' | 'active'
     theme: 'system' | 'light' | 'dark'
+    confidencePrompts: 'off' | 'review_only' | 'often'
+    developerShowFullPrompts?: boolean
+    videoEmbedPreferred?: boolean
   }
   studyPlan?: {
     focus: CourseFocus
@@ -269,7 +288,21 @@ export interface MathPilotState {
     course: CourseFocus
     items: Array<{ week: number; topic: string; skillIds: string[] }>
     currentWeek?: number
+    extractedDates?: string[]
+    extractedExams?: string[]
+    extractedTextbookSections?: string[]
   }
+  syllabusMapping?: Array<{
+    topic: string
+    skillIds: string[]
+    accepted: boolean
+    source: 'upload' | 'default'
+  }>
+  codexSessions?: Record<string, { sessionId: string; updatedAt: string }>
+  /** Incremented when a daily session completes; triggers auto maintenance at 3. */
+  sessionsSinceMaintenance?: number
+  workedExamples?: Record<string, { problemId: string; steps: string[]; source: string; createdAt: string }>
+  continuingDiagnosticPending?: boolean
   activeVideo?: {
     resourceId: string
     skillIds: string[]
@@ -281,4 +314,13 @@ export interface MathPilotState {
   mapViewMode?: 'wheel' | 'list'
   readOnlyExample?: boolean
   codexPasteBuffer?: string
+  codeChangeProposals?: Array<{
+    id: string
+    createdAt: string
+    summary: string
+    files: string[]
+    diffPreview: string
+    status: 'pending_approval' | 'approved' | 'rejected' | 'applied'
+    backupId?: string
+  }>
 }

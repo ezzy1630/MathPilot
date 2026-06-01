@@ -1,4 +1,4 @@
-import { createPromptPacket, ensureMemoryLoaded, invokeCodexCli } from './aiAdapter'
+import { createPromptPacket, ensureMemoryLoaded, invokeCodexCli, resolveCodexSession } from './aiAdapter'
 import { loadSkillsForPrompt } from './skillLoader'
 import { parseCodexResponse } from './codexParser'
 import {
@@ -95,8 +95,10 @@ async function analyzeWithCodex(
 ): Promise<ParsedHomework | null> {
   const memory = await ensureMemoryLoaded()
   const skillBodies = await loadSkillsForPrompt('homework_analysis', [])
+  const homeworkId = input.imageFileName ?? `hw-${Date.now()}`
+  const { sessionId, resume, state: sessionState } = resolveCodexSession(state, 'homework_analysis', undefined, homeworkId)
   const packet = createPromptPacket(
-    state,
+    sessionState,
     'homework_analysis',
     undefined,
     [
@@ -109,9 +111,10 @@ async function analyzeWithCodex(
     ].join('\n'),
     memory,
     skillBodies,
+    { sessionId, resume },
   )
 
-  const result = await invokeCodexCli(packet, 'homework_analysis')
+  const result = await invokeCodexCli(packet, 'homework_analysis', sessionId)
   if (!result.ok) return null
 
   const parsed = parseCodexResponse(result.stdout) as Record<string, unknown> | null
@@ -144,6 +147,39 @@ async function extractTextFromImage(dataUrl: string, fileName?: string): Promise
     : ''
 }
 
+/** Split OCR or pasted text into numbered homework problems when markers are present. */
+export function splitHomeworkProblems(text: string): Array<{ label: string; problemText: string }> {
+  const trimmed = text.trim()
+  if (!trimmed) return []
+
+  const markerPattern = /(?:^|\n)\s*(?:(?:problem|problems|#|question|q)\s*)?(\d{1,2})\s*[.)]\s+/gi
+  const matches = [...trimmed.matchAll(markerPattern)]
+  if (matches.length < 2) return []
+
+  const segments: Array<{ label: string; problemText: string }> = []
+  for (let i = 0; i < matches.length; i += 1) {
+    const match = matches[i]
+    const start = match.index ?? 0
+    const end = i + 1 < matches.length ? (matches[i + 1].index ?? trimmed.length) : trimmed.length
+    const body = trimmed.slice(start, end).replace(/^\s*(?:(?:problem|problems|#|question|q)\s*)?\d{1,2}\s*[.)]\s*/i, '').trim()
+    if (body.length > 4) {
+      segments.push({ label: `Problem ${match[1]}`, problemText: body })
+    }
+  }
+  return segments
+}
+
+function detectedProblemsFromText(text: string, fallbackCorrectness: HomeworkAnalysis['correctness'], mistakeTags: string[]) {
+  const segments = splitHomeworkProblems(text)
+  if (!segments.length) return undefined
+  return segments.map((segment) => ({
+    label: segment.label,
+    problemText: segment.problemText,
+    correctness: fallbackCorrectness,
+    mistakeTags,
+  }))
+}
+
 export async function analyzeHomeworkDeep(
   state: MathPilotState,
   input: HomeworkUploadInput,
@@ -163,9 +199,10 @@ export async function analyzeHomeworkDeep(
   if (!parsed) {
     parsed = keywordFallback(problemText)
     if (input.imageDataUrl) {
+      const ocrEmpty = !problemText.trim() || problemText.includes('OCR did not extract')
       parsed.extractedWorkSummary =
         'Image uploaded; Codex unavailable — add problem text for richer analysis. Image ' +
-        (rawImageSaved ? 'saved per your preference.' : 'discarded after processing.')
+        (rawImageSaved ? 'saved per your preference.' : ocrEmpty ? 'discarded (OCR empty, save not checked).' : 'discarded after processing.')
     }
   }
 
@@ -180,11 +217,19 @@ export async function analyzeHomeworkDeep(
       ? chooseRepairRecommendation(state, skillsAffected, parsed.mistakeTags)
       : undefined
 
+  const detectedProblems = detectedProblemsFromText(
+    problemText || parsed.problemText,
+    parsed.correctness,
+    parsed.mistakeTags,
+  )
+
   const analysis: HomeworkAnalysis = {
     id: `homework-${Date.now()}`,
     createdAt: new Date().toISOString(),
     detectedTopic: parsed.detectedTopic,
-    problemText: parsed.problemText,
+    problemText: detectedProblems?.length
+      ? detectedProblems.map((p) => `${p.label}: ${p.problemText}`).join('\n\n')
+      : parsed.problemText,
     extractedWorkSummary: parsed.extractedWorkSummary,
     correctness: parsed.correctness,
     mistakeTags: parsed.mistakeTags,
@@ -193,6 +238,7 @@ export async function analyzeHomeworkDeep(
     rawImageSaved,
     stepFeedback,
     repairRecommendation,
+    detectedProblems,
   }
 
   let next = applyHomeworkLearningUpdates(state, {

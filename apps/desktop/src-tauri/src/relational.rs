@@ -24,6 +24,7 @@ pub fn save_relational(conn: &Connection, payload: &str) -> Result<(), String> {
     save_skills_graph(&tx, obj)?;
     save_resources_table(&tx, obj)?;
     save_resource_events(&tx, obj)?;
+    save_maintenance_runs(&tx, obj)?;
 
     let now = chrono::Utc::now().to_rfc3339();
     tx.execute(
@@ -57,6 +58,7 @@ pub fn load_relational(conn: &Connection) -> Result<Option<String>, String> {
     load_resource_effectiveness(conn, &mut obj)?;
     load_ai_calls(conn, &mut obj)?;
     load_changelog(conn, &mut obj)?;
+    load_maintenance_runs(conn, &mut obj)?;
     Ok(Some(Value::Object(obj).to_string()))
 }
 
@@ -77,6 +79,9 @@ fn save_settings(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
         "overrides",
         "quickRepair",
         "dailySession",
+        "codexSessions",
+        "sessionsSinceMaintenance",
+        "preferences",
     ] {
         if let Some(val) = obj.get(key) {
             conn.execute(
@@ -753,8 +758,8 @@ fn save_ai_calls(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
     if let Some(calls) = obj.get("aiCalls").and_then(|v| v.as_array()) {
         for call in calls {
             conn.execute(
-                "INSERT INTO ai_calls (id, created_at, task, mode, prompt_preview, status)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                "INSERT INTO ai_calls (id, created_at, task, mode, prompt_preview, status, prompt_hash)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                 params![
                     call.get("id").and_then(|v| v.as_str()).unwrap_or(""),
                     call.get("createdAt").and_then(|v| v.as_str()).unwrap_or(""),
@@ -764,6 +769,7 @@ fn save_ai_calls(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
                         .and_then(|v| v.as_str())
                         .unwrap_or(""),
                     call.get("status").and_then(|v| v.as_str()).unwrap_or(""),
+                    call.get("promptHash").and_then(|v| v.as_str()),
                 ],
             )
             .map_err(|e| e.to_string())?;
@@ -774,7 +780,7 @@ fn save_ai_calls(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
 
 fn load_ai_calls(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), String> {
     let mut stmt = conn
-        .prepare("SELECT id, created_at, task, mode, prompt_preview, status FROM ai_calls ORDER BY created_at DESC LIMIT 100")
+        .prepare("SELECT id, created_at, task, mode, prompt_preview, status, prompt_hash FROM ai_calls ORDER BY created_at DESC LIMIT 100")
         .map_err(|e| e.to_string())?;
     let mut list = Vec::new();
     let rows = stmt
@@ -786,6 +792,7 @@ fn load_ai_calls(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), 
                 "mode": row.get::<_, String>(3)?,
                 "promptPreview": row.get::<_, String>(4)?,
                 "status": row.get::<_, String>(5)?,
+                "promptHash": row.get::<_, Option<String>>(6)?,
             }))
         })
         .map_err(|e| e.to_string())?;
@@ -1101,6 +1108,99 @@ fn save_resource_events(conn: &Connection, obj: &Map<String, Value>) -> Result<(
             )
             .map_err(|e| e.to_string())?;
         }
+    }
+    Ok(())
+}
+
+fn save_maintenance_runs(conn: &Connection, obj: &Map<String, Value>) -> Result<(), String> {
+    conn.execute("DELETE FROM maintenance_runs", [])
+        .map_err(|e| e.to_string())?;
+    if let Some(runs) = obj.get("maintenanceRuns").and_then(|v| v.as_array()) {
+        for run in runs {
+            conn.execute(
+                "INSERT INTO maintenance_runs (
+                  id, started_at, ended_at, trigger, jobs_run_json, changes_made_json,
+                  backups_created_json, skills_updated_json, memories_updated_json,
+                  problem_bank_changes_json, resource_rank_changes_json,
+                  review_schedule_changes_json, warnings_json
+                ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)",
+                params![
+                    run.get("id").and_then(|v| v.as_str()).unwrap_or(""),
+                    run.get("startedAt").and_then(|v| v.as_str()).unwrap_or(""),
+                    run.get("endedAt").and_then(|v| v.as_str()).unwrap_or(""),
+                    run.get("trigger").and_then(|v| v.as_str()).unwrap_or(""),
+                    run.get("jobsRun").map(|v| v.to_string()).unwrap_or_else(|| "[]".into()),
+                    run.get("changesMade")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "[]".into()),
+                    run.get("backupsCreated")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "[]".into()),
+                    run.get("skillsUpdated")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "[]".into()),
+                    run.get("memoriesUpdated")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "[]".into()),
+                    run.get("problemBankChanges")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "[]".into()),
+                    run.get("resourceRankChanges")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "[]".into()),
+                    run.get("reviewScheduleChanges")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "[]".into()),
+                    run.get("warnings")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "[]".into()),
+                ],
+            )
+            .map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+fn load_maintenance_runs(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, started_at, ended_at, trigger, jobs_run_json, changes_made_json,
+                    backups_created_json, skills_updated_json, memories_updated_json,
+                    problem_bank_changes_json, resource_rank_changes_json,
+                    review_schedule_changes_json, warnings_json
+             FROM maintenance_runs ORDER BY ended_at DESC LIMIT 50",
+        )
+        .map_err(|e| e.to_string())?;
+    let mut list = Vec::new();
+    let rows = stmt
+        .query_map([], |row| {
+            let parse_arr = |i: usize| -> Value {
+                let s: String = row.get(i).unwrap_or_else(|_| "[]".into());
+                serde_json::from_str(&s).unwrap_or(Value::Array(vec![]))
+            };
+            Ok(json!({
+                "id": row.get::<_, String>(0)?,
+                "startedAt": row.get::<_, String>(1)?,
+                "endedAt": row.get::<_, String>(2)?,
+                "trigger": row.get::<_, String>(3)?,
+                "jobsRun": parse_arr(4),
+                "changesMade": parse_arr(5),
+                "backupsCreated": parse_arr(6),
+                "skillsUpdated": parse_arr(7),
+                "memoriesUpdated": parse_arr(8),
+                "problemBankChanges": parse_arr(9),
+                "resourceRankChanges": parse_arr(10),
+                "reviewScheduleChanges": parse_arr(11),
+                "warnings": parse_arr(12),
+            }))
+        })
+        .map_err(|e| e.to_string())?;
+    for row in rows.flatten() {
+        list.push(row);
+    }
+    if !list.is_empty() {
+        obj.insert("maintenanceRuns".into(), Value::Array(list));
     }
     Ok(())
 }

@@ -1,10 +1,14 @@
+import { createPromptPacket, invokeCodexCli, resolveCodexSession } from './aiAdapter'
+import { parseCodexResponse } from './codexParser'
 import type { CheckAnswerResult } from './mathEngine'
+import type { MathPilotState } from './types'
 
 export interface DisagreementResolution {
   correct: boolean
   feedback: string
   method: CheckAnswerResult['method']
   usedAiOverride: boolean
+  inspectedByCodex?: boolean
 }
 
 /** When SymPy/checker and Codex disagree, prefer symbolic unless Codex gives high-confidence correct. */
@@ -45,5 +49,86 @@ export function resolveAnswerDisagreement(
     feedback: symbolic.feedback,
     method: symbolic.method,
     usedAiOverride: false,
+  }
+}
+
+export interface CodexInspectPayload {
+  resolution?: 'symbolic' | 'codex' | 'symbolic_preferred'
+  correct?: boolean
+  feedback_to_user?: string
+  confidence?: number
+}
+
+/**
+ * Ask Codex to inspect when symbolic and prior Codex judgment disagree.
+ * Falls back to deterministic policy when CLI is unavailable.
+ */
+export async function resolveWithCodexInspect(
+  state: MathPilotState,
+  symbolic: CheckAnswerResult,
+  codexSaysCorrect: boolean,
+  codexFeedback: string | undefined,
+  context: { problemSummary?: string; userAttempt?: string } = {},
+): Promise<{ resolution: DisagreementResolution; state: MathPilotState }> {
+  if (symbolic.correct === codexSaysCorrect) {
+    return {
+      resolution: resolveAnswerDisagreement(symbolic, codexSaysCorrect, codexFeedback),
+      state,
+    }
+  }
+
+  const { sessionId, resume, state: sessionState } = resolveCodexSession(state, 'disagreement_inspect')
+  const inspectPacket = [
+    createPromptPacket(sessionState, 'disagreement_inspect', undefined, context.userAttempt, undefined, undefined, {
+      sessionId,
+      resume,
+    }),
+    '',
+    '## Disagreement inspect',
+    JSON.stringify(
+      {
+        symbolic_result: {
+          correct: symbolic.correct,
+          method: symbolic.method,
+          feedback: symbolic.feedback,
+          normalized_expected: symbolic.normalizedExpected,
+          normalized_actual: symbolic.normalizedActual,
+        },
+        codex_prior: { correct: codexSaysCorrect, feedback: codexFeedback },
+        problem_summary: context.problemSummary ?? 'active problem',
+      },
+      null,
+      2,
+    ),
+    '',
+    'Return JSON only: { "resolution": "symbolic" | "codex", "correct": boolean, "feedback_to_user": string, "confidence": 0-1 }',
+  ].join('\n')
+
+  const result = await invokeCodexCli(inspectPacket, 'disagreement_inspect', sessionId)
+  const parsed = parseCodexResponse(result.stdout) as CodexInspectPayload | null
+
+  if (!result.ok || !parsed?.resolution) {
+    return {
+      resolution: resolveAnswerDisagreement(symbolic, codexSaysCorrect, codexFeedback),
+      state: sessionState,
+    }
+  }
+
+  const preferSymbolic =
+    parsed.resolution === 'symbolic' || parsed.resolution === 'symbolic_preferred'
+  const correct = preferSymbolic ? symbolic.correct : (parsed.correct ?? codexSaysCorrect)
+  const feedback =
+    parsed.feedback_to_user ??
+    (preferSymbolic ? symbolic.feedback : codexFeedback ?? symbolic.feedback)
+
+  return {
+    resolution: {
+      correct,
+      feedback,
+      method: preferSymbolic ? symbolic.method : 'ai_required',
+      usedAiOverride: !preferSymbolic && correct !== symbolic.correct,
+      inspectedByCodex: true,
+    },
+    state: sessionState,
   }
 }

@@ -41,6 +41,46 @@ def numeric_probe(expected, actual, variables: list[str]) -> bool:
         return False
 
 
+def verify_derivative(expression: str, expected_derivative: str, variable: str = "x") -> dict[str, Any]:
+    """Check that d/d(variable) expression equals expected_derivative."""
+    try:
+        v = sp.Symbol(variable)
+        expr = parse_math(expression)
+        computed = sp.diff(expr, v)
+        expected = parse_math(expected_derivative)
+        if sp.simplify(computed - expected) == 0:
+            return {"ok": True, "correct": True, "method": "symbolic", "feedback": "Derivative verification passed."}
+        return {
+            "ok": True,
+            "correct": False,
+            "method": "symbolic",
+            "feedback": f"Derivative mismatch: got {computed}, expected {expected}.",
+        }
+    except Exception as ex:
+        return {"ok": False, "error": str(ex), "correct": False, "method": "text", "feedback": "Derivative verification failed."}
+
+
+def verify_integral(expression: str, expected_integral: str, variable: str = "x") -> dict[str, Any]:
+    """Check that ∫ expression d(variable) matches expected_integral (+C ignored)."""
+    try:
+        v = sp.Symbol(variable)
+        expr = parse_math(expression)
+        computed = sp.integrate(expr, v)
+        expected = parse_math(expected_integral)
+        if sp.simplify(sp.diff(computed, v) - expr) == 0 and sp.simplify(sp.diff(expected, v) - expr) == 0:
+            return {"ok": True, "correct": True, "method": "symbolic", "feedback": "Integral verification passed."}
+        if sp.simplify(computed - expected) == 0:
+            return {"ok": True, "correct": True, "method": "symbolic", "feedback": "Integral verification passed."}
+        return {
+            "ok": True,
+            "correct": False,
+            "method": "symbolic",
+            "feedback": "Integral form does not match expected antiderivative.",
+        }
+    except Exception as ex:
+        return {"ok": False, "error": str(ex), "correct": False, "method": "text", "feedback": "Integral verification failed."}
+
+
 def check(expected: str, actual: str, variables: list[str] | None = None) -> dict[str, Any]:
     variables = variables or ["x"]
     if not actual.strip():
@@ -65,11 +105,25 @@ def check(expected: str, actual: str, variables: list[str] | None = None) -> dic
 def main():
     raw = sys.stdin.read()
     payload = json.loads(raw) if raw.strip() else {}
-    result = check(
-        payload.get("expected", ""),
-        payload.get("actual", ""),
-        payload.get("variables"),
-    )
+    op = payload.get("operation", "equivalence")
+    if op == "verify_derivative":
+        result = verify_derivative(
+            payload.get("expression", ""),
+            payload.get("expected_derivative", ""),
+            payload.get("variable", "x"),
+        )
+    elif op == "verify_integral":
+        result = verify_integral(
+            payload.get("expression", ""),
+            payload.get("expected_integral", ""),
+            payload.get("variable", "x"),
+        )
+    else:
+        result = check(
+            payload.get("expected", ""),
+            payload.get("actual", ""),
+            payload.get("variables"),
+        )
     print(json.dumps(result))
 
 

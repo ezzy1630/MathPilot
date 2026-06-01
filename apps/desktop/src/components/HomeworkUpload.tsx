@@ -18,6 +18,7 @@ export function HomeworkUpload({ text, onTextChange, onAnalyze, compact }: Homew
   const [preview, setPreview] = useState<string | undefined>()
   const [fileName, setFileName] = useState<string | undefined>()
   const [dragOver, setDragOver] = useState(false)
+  const [saveRawImage, setSaveRawImage] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const loadFile = useCallback((file: File) => {
@@ -42,10 +43,11 @@ export function HomeworkUpload({ text, onTextChange, onAnalyze, compact }: Homew
     return () => window.removeEventListener('paste', onPaste)
   }, [loadFile])
 
-  function submit(saveRaw: boolean) {
-    onAnalyze({ text, imageDataUrl: preview, imageFileName: fileName }, saveRaw)
+  function submit() {
+    onAnalyze({ text, imageDataUrl: preview, imageFileName: fileName }, saveRawImage)
     setPreview(undefined)
     setFileName(undefined)
+    setSaveRawImage(false)
   }
 
   return (
@@ -75,8 +77,8 @@ export function HomeworkUpload({ text, onTextChange, onAnalyze, compact }: Homew
       />
       {!compact && (
         <p className="muted">
-          Drop a photo, paste from clipboard, or choose a file. Raw images are deleted after analysis unless you save
-          them.
+          Drop a photo, paste from clipboard, or choose a file. Raw images are deleted after analysis unless you check
+          save below.
         </p>
       )}
       <textarea
@@ -91,17 +93,18 @@ export function HomeworkUpload({ text, onTextChange, onAnalyze, compact }: Homew
           <span>{fileName}</span>
         </div>
       )}
+      <label className="homework-save-row">
+        <input type="checkbox" checked={saveRawImage} onChange={(event) => setSaveRawImage(event.target.checked)} />
+        Save raw image after analysis
+      </label>
       <div className="action-row wrap">
         <button type="button" className="secondary" onClick={() => inputRef.current?.click()}>
           <ImagePlus size={18} />
           Choose image
         </button>
-        <button type="button" className="secondary" onClick={() => submit(false)}>
+        <button type="button" className="primary" onClick={submit}>
           <FileImage size={18} />
-          Analyze (discard image)
-        </button>
-        <button type="button" className="secondary" onClick={() => submit(true)}>
-          Analyze &amp; save image
+          Analyze homework
         </button>
       </div>
     </div>

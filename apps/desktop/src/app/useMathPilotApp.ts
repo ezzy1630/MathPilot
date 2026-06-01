@@ -4,7 +4,7 @@ import {
   createPromptPacket,
   ensureMemoryLoaded,
   invokeCodexCli,
-  logCodexCall,
+  invokeCodexForTask,
   logManualPacket,
 } from '@mathpilot/ai-adapter'
 import { loadSkillsForPrompt } from '../domain/skillLoader'
@@ -18,6 +18,7 @@ import {
 } from '../domain/diagnosticEngine'
 import { startDailySession, advanceDailySession } from '../domain/dailySessionEngine'
 import { analyzeHomeworkDeep } from '../domain/homeworkAnalysis'
+import { saveHomeworkAsWorkedExample } from '../domain/homeworkLearningBridge'
 import { feedbackForMode } from '../domain/feedbackByMode'
 import { gradeStepsAsync } from '../domain/stepGrading'
 import { resolveProblemForAction } from '../domain/sessionPlanner'
@@ -52,8 +53,17 @@ import { startActiveVideo } from '../domain/activeVideoMode'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
 import { topResourcesForSkill } from '../domain/resourceLearning'
 import { attemptModeForActivity } from '../domain/activityAttemptMode'
-import type { CourseFocus, MathPilotState } from '../domain/types'
+import type { CourseFocus, MathPilotState, Problem } from '../domain/types'
 import type { AppView, OnboardingStep } from './types'
+
+function shouldRecordConfidence(state: MathPilotState, problem: Problem): boolean {
+  const mode = state.preferences?.confidencePrompts ?? 'review_only'
+  if (mode === 'off') return false
+  if (state.diagnostic && !state.diagnostic.completed) return true
+  if (problem.mode === 'mixed_review') return true
+  if (mode === 'often') return problem.mode !== 'resource_watch'
+  return false
+}
 
 export function useMathPilotApp() {
   const [state, setState] = useState<MathPilotState | null>(null)
@@ -80,7 +90,10 @@ export function useMathPilotApp() {
   const [whyOpen, setWhyOpen] = useState(false)
   const [mapViewMode, setMapViewMode] = useState<'wheel' | 'list' | 'tree'>('wheel')
   const [codexPaste, setCodexPaste] = useState('')
+  const [codexPingStatus, setCodexPingStatus] = useState<string | null>(null)
+  const [codexPingBusy, setCodexPingBusy] = useState(false)
   const [showReport, setShowReport] = useState(false)
+  const [homeworkUploadOpen, setHomeworkUploadOpen] = useState(false)
   const [wrongEscalation, setWrongEscalation] = useState(0)
   const [skillActionId, setSkillActionId] = useState<string | undefined>()
   const mathFieldRef = useRef<MathfieldElement | null>(null)
@@ -98,6 +111,7 @@ export function useMathPilotApp() {
           reportsMode: settings.reports,
           activeVideoMode: 'sometimes',
           theme: 'system',
+          confidencePrompts: 'review_only',
         },
         syllabus: loaded.syllabus ?? defaultSyllabus(loaded.currentFocus),
         mapViewMode: loaded.mapViewMode ?? 'wheel',
@@ -198,6 +212,7 @@ export function useMathPilotApp() {
     setFeedbackTone(null)
     setFeedbackNextSteps([])
     setHintCount(0)
+    setWrongEscalation(0)
     setView('activity')
   }
 
@@ -305,7 +320,7 @@ export function useMathPilotApp() {
         mixed: activeProblem.mode === 'mixed_review' || activeProblem.mode === 'diagnostic',
         delayed: activeProblem.mode === 'mixed_review',
         mistakeTags: result.mistakeTags,
-        confidence: state.diagnostic || activeProblem.mode === 'mixed_review' ? confidence : undefined,
+        confidence: shouldRecordConfidence(clearPending, activeProblem) ? confidence : undefined,
         steps: showSteps ? steps.filter(Boolean) : undefined,
       })
     }
@@ -356,18 +371,28 @@ export function useMathPilotApp() {
     if (!state) return
     const memory = await ensureMemoryLoaded()
     const skills = await loadSkillsForPrompt(task, activeProblem?.skillIds ?? [])
-    const draft = createPromptPacket(state, task, activeProblem, answer, memory, skills)
+    const { sessionId, resume, state: sessionState } = (
+      await import('../domain/aiAdapter')
+    ).resolveCodexSession(state, task, activeProblem)
+    const draft = createPromptPacket(sessionState, task, activeProblem, answer, memory, skills, {
+      sessionId,
+      resume,
+    })
     setPacket(draft)
     if (manualOnly || state.developerModeEnabled) {
-      update(logManualPacket(state, task, draft))
+      update(logManualPacket(sessionState, task, draft))
       return
     }
     setCodexBusy(true)
-    const result = await invokeCodexCli(draft, task)
+    const { state: logged, result } = await invokeCodexForTask(sessionState, task, {
+      problem: activeProblem,
+      userAttempt: answer,
+      memoryLines: memory,
+      skillBodies: skills,
+    })
     setCodexBusy(false)
-    let next = logCodexCall(state, task, draft, result)
     const parsed = parseCodexResponse(result.stdout)
-    if (parsed) next = applyCodexResponse(next, parsed)
+    const next = parsed ? applyCodexResponse(logged, parsed) : logged
     update(next)
     if (parsed?.feedback_to_user) setFeedback(parsed.feedback_to_user)
     else if (!result.ok) {
@@ -390,6 +415,23 @@ export function useMathPilotApp() {
 
   function generatePacket(task: string) {
     void requestHelp(task, true)
+  }
+
+  async function testCodexConnection() {
+    if (!state) return
+    setCodexPingBusy(true)
+    setCodexPingStatus(null)
+    const result = await invokeCodexCli(
+      JSON.stringify({ task: 'ping', message: 'MathPilot connectivity check — reply with {"ok":true}.' }),
+      'ping',
+      'maintenance_session',
+    )
+    setCodexPingBusy(false)
+    setCodexPingStatus(
+      result.ok
+        ? `Codex CLI OK${result.stdout ? `: ${result.stdout.slice(0, 160)}` : ''}`
+        : `Codex CLI failed: ${result.stderr || 'unknown error'}`,
+    )
   }
 
   async function analyzeHomework(
@@ -467,6 +509,11 @@ export function useMathPilotApp() {
     setView('activity')
   }
 
+  function saveHomeworkWorkedExample(analysisId: string) {
+    if (!state) return
+    update(saveHomeworkAsWorkedExample(state, analysisId))
+  }
+
   function handleOverride() {
     if (!state || !gateSkillId) return
     update(logOverride(state, gateSkillId, 'User continued despite weak prerequisite'))
@@ -521,6 +568,8 @@ export function useMathPilotApp() {
     setCodexPaste,
     showReport,
     setShowReport,
+    homeworkUploadOpen,
+    setHomeworkUploadOpen,
     mathFieldRef,
     update,
     startAction,
@@ -534,6 +583,7 @@ export function useMathPilotApp() {
     beginTestOut,
     handleOverride,
     startRepairFromHomework,
+    saveHomeworkWorkedExample,
     skillActionId,
     setSkillActionId,
     dismissPostDiagnostic: () => {
@@ -541,5 +591,8 @@ export function useMathPilotApp() {
       update({ ...state, postDiagnosticPending: false })
     },
     onVideoInterrupt: (reason: string) => setFeedback(reason),
+    testCodexConnection,
+    codexPingStatus,
+    codexPingBusy,
   }
 }

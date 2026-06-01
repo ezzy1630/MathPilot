@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createInitialState } from './learningEngine'
-import { analyzeHomeworkDeep } from './homeworkAnalysis'
+import { analyzeHomeworkDeep, splitHomeworkProblems } from './homeworkAnalysis'
 import {
   applyHomeworkLearningUpdates,
   chooseRepairRecommendation,
@@ -44,6 +44,14 @@ describe('homeworkLearningBridge', () => {
 })
 
 describe('homeworkAnalysis', () => {
+  it('splits numbered homework problems from OCR text', () => {
+    const text = '1. Find the limit of x^2\n2. Differentiate sin(x)\n3. Integrate e^x'
+    const parts = splitHomeworkProblems(text)
+    expect(parts.length).toBe(3)
+    expect(parts[0].label).toBe('Problem 1')
+    expect(parts[1].problemText).toContain('Differentiate')
+  })
+
   it('analyzes text with keyword fallback when Codex unavailable', async () => {
     const state = createInitialState('Calculus 1')
     const { analysis, state: next } = await analyzeHomeworkDeep(state, {

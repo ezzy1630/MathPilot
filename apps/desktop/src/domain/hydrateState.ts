@@ -41,6 +41,8 @@ export function hydrateState(partial: Partial<MathPilotState> & { currentFocus?:
     studyPlan: partial.studyPlan,
     syllabus: partial.syllabus,
     mapViewMode: partial.mapViewMode,
+    codexSessions: partial.codexSessions,
+    sessionsSinceMaintenance: partial.sessionsSinceMaintenance,
   })
 
   return merged

@@ -110,3 +110,32 @@ export function applyHomeworkLearningUpdates(
     ],
   }
 }
+
+export function saveHomeworkAsWorkedExample(state: MathPilotState, analysisId: string): MathPilotState {
+  const analysis = state.homeworkAnalyses.find((entry) => entry.id === analysisId)
+  if (!analysis || analysis.savedAsWorkedExample) return state
+
+  const steps =
+    analysis.stepFeedback?.map((step) => `${step.step}: ${step.note}`) ??
+    (analysis.extractedWorkSummary ? [analysis.extractedWorkSummary] : [analysis.problemText])
+
+  return {
+    ...state,
+    workedExamples: {
+      ...(state.workedExamples ?? {}),
+      [`worked-${analysisId}`]: {
+        problemId: analysis.id,
+        steps,
+        source: 'homework',
+        createdAt: new Date().toISOString(),
+      },
+    },
+    homeworkAnalyses: state.homeworkAnalyses.map((entry) =>
+      entry.id === analysisId ? { ...entry, savedAsWorkedExample: true } : entry,
+    ),
+    changelog: [
+      `${new Date().toISOString()}: Saved homework analysis as worked example (${analysis.detectedTopic}).`,
+      ...state.changelog,
+    ],
+  }
+}

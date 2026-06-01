@@ -1,4 +1,5 @@
 import type { ActivityKind } from './types'
+import { SKILL_CATALOG_EXTENSION } from './skillProblemCatalogExtension'
 
 export interface ProblemSpec {
   title: string
@@ -1630,6 +1631,7 @@ export const SKILL_CATALOG: Record<string, SkillCatalogEntry> = {
       },
     ],
   },
+  ...SKILL_CATALOG_EXTENSION,
 }
 
 export function catalogSkillIds(): string[] {

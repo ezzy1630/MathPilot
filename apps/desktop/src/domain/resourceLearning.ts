@@ -50,11 +50,25 @@ export function topResourcesForSkill(state: MathPilotState, skillId: string, lim
     .slice(0, limit)
 }
 
-export function recordResourceHelpfulness(state: MathPilotState, resourceId: string, helpful: boolean): MathPilotState {
+export type ResourceHelpfulness = 'yes' | 'kind_of' | 'no'
+
+export function recordResourceHelpfulness(
+  state: MathPilotState,
+  resourceId: string,
+  helpfulness: ResourceHelpfulness | boolean,
+): MathPilotState {
   const resource = state.resources[resourceId]
   if (!resource) return state
-  const delta = helpful ? 0.04 : -0.06
+  const level: ResourceHelpfulness =
+    typeof helpfulness === 'boolean' ? (helpfulness ? 'yes' : 'no') : helpfulness
+  const delta = level === 'yes' ? 0.04 : level === 'kind_of' ? 0.01 : -0.06
   const score = Math.min(0.95, Math.max(0.15, resource.effectivenessScore + delta))
+  const notes =
+    level === 'yes'
+      ? 'Marked helpful — ranked higher for this skill.'
+      : level === 'kind_of'
+        ? 'Marked kind of helpful — slight boost.'
+        : 'Marked not helpful — demoted in suggestions.'
   return {
     ...state,
     resources: {
@@ -62,12 +76,17 @@ export function recordResourceHelpfulness(state: MathPilotState, resourceId: str
       [resourceId]: {
         ...resource,
         effectivenessScore: score,
-        notes: helpful ? 'Marked helpful — ranked higher for this skill.' : 'Marked not helpful — demoted in suggestions.',
+        notes,
       },
     },
-    resourceEvents: appendResourceEvent(state, resourceId, helpful ? 'helpful' : 'not_helpful', helpful),
+    resourceEvents: appendResourceEvent(
+      state,
+      resourceId,
+      level === 'yes' ? 'helpful' : level === 'no' ? 'not_helpful' : 'watched',
+      level === 'yes' ? true : level === 'no' ? false : undefined,
+    ),
     changelog: [
-      `${new Date().toISOString()}: Resource "${resource.title}" marked ${helpful ? 'helpful' : 'not helpful'}.`,
+      `${new Date().toISOString()}: Resource "${resource.title}" marked ${level === 'kind_of' ? 'kind of helpful' : level === 'yes' ? 'helpful' : 'not helpful'}.`,
       ...state.changelog,
     ],
   }

@@ -191,4 +191,101 @@ describe('learning engine', () => {
     expect(action.title).toContain('Homework repair')
     expect(action.reason).toContain('repeated chain rule setup')
   })
+
+  it('applies a larger mastery drop for delayed mixed misses than same-day misses', () => {
+    const base = createInitialState('Calculus 1')
+    const before = base.mastery.chain_rule.masteryScore
+
+    const sameDay = recordAttempt(base, {
+      problemId: 'guided-chain-1',
+      skillIds: ['chain_rule'],
+      answer: 'wrong',
+      correct: false,
+      mode: 'guided',
+      hintCount: 0,
+      seconds: 90,
+      mixed: false,
+      delayed: false,
+    })
+
+    const delayedMixed = recordAttempt(base, {
+      problemId: 'review-chain-mixed',
+      skillIds: ['chain_rule'],
+      answer: 'wrong',
+      correct: false,
+      mode: 'review',
+      hintCount: 0,
+      seconds: 90,
+      mixed: true,
+      delayed: true,
+    })
+
+    const sameDayDrop = before - sameDay.mastery.chain_rule.masteryScore
+    const delayedDrop = before - delayedMixed.mastery.chain_rule.masteryScore
+    expect(delayedDrop).toBeGreaterThan(sameDayDrop)
+  })
+
+  it('tracks partial credit and reduces penalty magnitude', () => {
+    const base = createInitialState('Calculus 1')
+    const before = base.mastery.chain_rule.masteryScore
+
+    const fullMiss = recordAttempt(base, {
+      problemId: 'guided-chain-1',
+      skillIds: ['chain_rule'],
+      answer: 'wrong',
+      correct: false,
+      mode: 'guided',
+      hintCount: 0,
+      seconds: 90,
+      mixed: false,
+      delayed: false,
+    })
+
+    const partial = recordAttempt(base, {
+      problemId: 'guided-chain-1',
+      skillIds: ['chain_rule'],
+      answer: 'partial',
+      correct: false,
+      mode: 'guided',
+      hintCount: 0,
+      seconds: 90,
+      mixed: false,
+      delayed: false,
+      partialCredit: 0.6,
+    })
+
+    expect(partial.attempts[0].partialCredit).toBe(0.6)
+    expect(before - partial.mastery.chain_rule.masteryScore).toBeLessThan(
+      before - fullMiss.mastery.chain_rule.masteryScore,
+    )
+  })
+
+  it('surfaces slow correct answers through lower fluency score', () => {
+    const base = createInitialState('Calculus 1')
+    const fast = recordAttempt(base, {
+      problemId: 'guided-chain-1',
+      skillIds: ['chain_rule'],
+      answer: 'ok',
+      correct: true,
+      mode: 'guided',
+      hintCount: 0,
+      seconds: 60,
+      mixed: false,
+      delayed: false,
+    })
+
+    const slow = recordAttempt(base, {
+      problemId: 'guided-chain-1',
+      skillIds: ['chain_rule'],
+      answer: 'ok',
+      correct: true,
+      mode: 'guided',
+      hintCount: 0,
+      seconds: 220,
+      mixed: false,
+      delayed: false,
+    })
+
+    expect(fast.mastery.chain_rule.fluencyScore).toBeGreaterThan(slow.mastery.chain_rule.fluencyScore)
+  })
 })

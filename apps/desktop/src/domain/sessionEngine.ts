@@ -8,6 +8,13 @@ export interface SessionPlan {
   explanationLevel: 'minimal' | 'normal' | 'high'
 }
 
+export interface PaceAdjustments {
+  difficultyBias: number
+  videoPhaseWeight: number
+  reviewIntensity: number
+  introduceNewMaterial: boolean
+}
+
 export interface PrerequisiteGate {
   blocked: boolean
   weakSkillId?: string
@@ -16,7 +23,25 @@ export interface PrerequisiteGate {
   targetSkillName?: string
 }
 
+export function paceAdjustments(pace: SessionPace = 'normal'): PaceAdjustments {
+  switch (pace) {
+    case 'short':
+      return { difficultyBias: -0.08, videoPhaseWeight: 0.5, reviewIntensity: 0.7, introduceNewMaterial: false }
+    case 'deep':
+      return { difficultyBias: 0.12, videoPhaseWeight: 1.2, reviewIntensity: 1.3, introduceNewMaterial: true }
+    case 'low_energy':
+      return { difficultyBias: -0.12, videoPhaseWeight: 1.4, reviewIntensity: 0.6, introduceNewMaterial: false }
+    case 'high_focus':
+      return { difficultyBias: 0.08, videoPhaseWeight: 0.4, reviewIntensity: 1.1, introduceNewMaterial: true }
+    case 'custom':
+      return { difficultyBias: 0, videoPhaseWeight: 1, reviewIntensity: 1, introduceNewMaterial: true }
+    default:
+      return { difficultyBias: 0, videoPhaseWeight: 1, reviewIntensity: 1, introduceNewMaterial: true }
+  }
+}
+
 export function planSession(pace: SessionPace = 'normal'): SessionPlan {
+  const adjustments = paceAdjustments(pace)
   switch (pace) {
     case 'short':
       return { phases: ['mixed_review', 'guided_practice'], problemBudget: 3, explanationLevel: 'minimal' }
@@ -27,13 +52,27 @@ export function planSession(pace: SessionPace = 'normal'): SessionPlan {
         explanationLevel: 'high',
       }
     case 'low_energy':
-      return { phases: ['resource_watch', 'guided_practice'], problemBudget: 4, explanationLevel: 'high' }
+      return {
+        phases: ['resource_watch', 'guided_practice'],
+        problemBudget: Math.max(3, Math.round(4 * adjustments.reviewIntensity)),
+        explanationLevel: 'high',
+      }
     case 'high_focus':
-      return { phases: ['independent_practice', 'mixed_review'], problemBudget: 8, explanationLevel: 'minimal' }
+      return {
+        phases: ['independent_practice', 'mixed_review'],
+        problemBudget: Math.max(6, Math.round(8 * adjustments.reviewIntensity)),
+        explanationLevel: 'minimal',
+      }
+    case 'custom':
+      return {
+        phases: ['mixed_review', 'resource_watch', 'guided_practice', 'independent_practice'],
+        problemBudget: 8,
+        explanationLevel: 'normal',
+      }
     default:
       return {
         phases: ['mixed_review', 'resource_watch', 'guided_practice', 'independent_practice', 'mixed_review'],
-        problemBudget: 8,
+        problemBudget: Math.max(6, Math.round(8 * adjustments.reviewIntensity)),
         explanationLevel: 'normal',
       }
   }

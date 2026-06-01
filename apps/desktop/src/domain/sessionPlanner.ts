@@ -1,9 +1,13 @@
-import { currentSessionPhase } from './dailySessionEngine'
+import {
+  currentSessionPhase,
+  phaseContentMode,
+  sessionDifficultyBias,
+} from './dailySessionEngine'
 import { generateProblemForSkill } from './problemGenerator'
 import { pickInterleavedProblem } from './interleavingEngine'
 import { buildReviewProblem, inferReviewType } from './reviewItemEngine'
 import { problemForSkill } from '../lib/mapHelpers'
-import type { ActivityKind, MathPilotState } from './types'
+import type { ActivityKind, MathPilotState, Problem, ResourceRecord } from './types'
 
 const PHASE_TO_MODE: Partial<Record<ActivityKind, string>> = {
   mixed_review: 'mixed_review',
@@ -11,6 +15,21 @@ const PHASE_TO_MODE: Partial<Record<ActivityKind, string>> = {
   independent_practice: 'independent_practice',
   quick_repair: 'quick_repair',
   resource_watch: 'guided_practice',
+  homework_review: 'quick_repair',
+}
+
+function difficultyMatchesBias(problem: Problem, bias: number, masteryScore: number): boolean {
+  const target = Math.min(0.95, Math.max(0.2, masteryScore + bias))
+  return Math.abs(problem.difficulty - target) <= 0.22
+}
+
+function pickResourceForSkill(state: MathPilotState, skillId: string): ResourceRecord | undefined {
+  const skill = state.skills[skillId]
+  if (!skill) return undefined
+  const candidates = skill.resources
+    .map((id) => state.resources[id])
+    .filter(Boolean) as ResourceRecord[]
+  return candidates.sort((a, b) => b.effectivenessScore - a.effectivenessScore)[0]
 }
 
 export function resolveProblemForAction(
@@ -18,7 +37,7 @@ export function resolveProblemForAction(
   skillIds: string[],
   actionKind: ActivityKind,
   explicitProblemId?: string,
-): { state: MathPilotState; problemId?: string } {
+): { state: MathPilotState; problemId?: string; resourceId?: string } {
   if (explicitProblemId && state.problems[explicitProblemId]) {
     return { state, problemId: explicitProblemId }
   }
@@ -26,8 +45,16 @@ export function resolveProblemForAction(
   const skillId = skillIds[0]
   if (!skillId) return { state }
 
-  const phase = currentSessionPhase(state) ?? actionKind
+  const phase = phaseContentMode(currentSessionPhase(state) ?? actionKind)
   const preferredMode = PHASE_TO_MODE[phase] ?? PHASE_TO_MODE[actionKind]
+  const difficultyBias = sessionDifficultyBias(state)
+  const masteryScore = state.mastery[skillId]?.masteryScore ?? 0.4
+
+  if (phase === 'resource_watch' || actionKind === 'resource_watch') {
+    const resource = pickResourceForSkill(state, skillId)
+    const problemId = problemForSkill(state, skillId, 'guided_practice')
+    return { state, problemId, resourceId: resource?.id }
+  }
 
   if (phase === 'mixed_review' || actionKind === 'mixed_review') {
     const reviewType = inferReviewType(state, skillId)
@@ -42,8 +69,25 @@ export function resolveProblemForAction(
     if (interleaved) return { state, problemId: interleaved.id }
   }
 
-  if (phase === 'resource_watch') {
-    return { state, problemId: problemForSkill(state, skillId, 'guided_practice') }
+  if (phase === 'guided_practice' || actionKind === 'guided_practice') {
+    const guided = Object.values(state.problems).find(
+      (problem) =>
+        problem.skillIds.includes(skillId) &&
+        !problem.deprecated &&
+        (problem.mode === 'guided_practice' || Boolean(problem.workedExample?.length)),
+    )
+    if (guided) return { state, problemId: guided.id }
+  }
+
+  if (phase === 'quick_repair' || actionKind === 'quick_repair' || actionKind === 'homework_review') {
+    const repairPool = Object.values(state.problems).filter(
+      (problem) =>
+        problem.skillIds.includes(skillId) &&
+        !problem.deprecated &&
+        (problem.mode === 'quick_repair' || problem.mode === 'guided_practice'),
+    )
+    const matched = repairPool.find((problem) => difficultyMatchesBias(problem, difficultyBias, masteryScore))
+    if (matched) return { state, problemId: matched.id }
   }
 
   let existing = problemForSkill(state, skillId, preferredMode)
@@ -56,4 +100,13 @@ export function resolveProblemForAction(
 
   existing = problemForSkill(state, skillId)
   return { state, problemId: existing }
+}
+
+export function resolveWorkedExampleProblem(state: MathPilotState, skillId: string): Problem | undefined {
+  return Object.values(state.problems).find(
+    (problem) =>
+      problem.skillIds.includes(skillId) &&
+      !problem.deprecated &&
+      Boolean(problem.workedExample?.length),
+  )
 }

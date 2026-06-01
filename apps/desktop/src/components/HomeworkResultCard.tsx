@@ -1,12 +1,14 @@
-import { AlertCircle, CheckCircle2, HelpCircle, Wrench } from 'lucide-react'
+import { AlertCircle, BookMarked, CheckCircle2, HelpCircle, Wrench } from 'lucide-react'
 import type { HomeworkAnalysis } from '../domain/types'
 
 export function HomeworkResultCard({
   analysis,
   onStartRepair,
+  onSaveWorkedExample,
 }: {
   analysis: HomeworkAnalysis
   onStartRepair?: (skillId: string) => void
+  onSaveWorkedExample?: (analysisId: string) => void
 }) {
   const Icon =
     analysis.correctness === 'correct'
@@ -25,6 +27,16 @@ export function HomeworkResultCard({
         </div>
       </header>
       <p className="homework-result-feedback">{analysis.feedbackSummary}</p>
+      {analysis.detectedProblems && analysis.detectedProblems.length > 1 && (
+        <ul className="homework-multi-problems">
+          {analysis.detectedProblems.map((problem) => (
+            <li key={problem.label}>
+              <strong>{problem.label}</strong>
+              <span className="muted">{problem.problemText.slice(0, 120)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
       {analysis.stepFeedback && analysis.stepFeedback.length > 0 && (
         <ul className="homework-step-feedback">
           {analysis.stepFeedback.map((step) => (
@@ -39,19 +51,28 @@ export function HomeworkResultCard({
           Patterns: {analysis.mistakeTags.join(', ')}
         </p>
       )}
-      {analysis.repairRecommendation && onStartRepair && (
-        <div className="action-row">
-          <button
-            type="button"
-            className="primary"
-            onClick={() => onStartRepair(analysis.repairRecommendation!.skillId)}
-          >
-            <Wrench size={18} />
-            Start quick repair
+      <div className="action-row wrap">
+        {analysis.repairRecommendation && onStartRepair && (
+          <>
+            <button
+              type="button"
+              className="primary"
+              onClick={() => onStartRepair(analysis.repairRecommendation!.skillId)}
+            >
+              <Wrench size={18} />
+              Start quick repair
+            </button>
+            <p className="muted">{analysis.repairRecommendation.reason}</p>
+          </>
+        )}
+        {onSaveWorkedExample && !analysis.savedAsWorkedExample && (
+          <button type="button" className="secondary" onClick={() => onSaveWorkedExample(analysis.id)}>
+            <BookMarked size={18} />
+            Save as worked example
           </button>
-          <p className="muted">{analysis.repairRecommendation.reason}</p>
-        </div>
-      )}
+        )}
+        {analysis.savedAsWorkedExample && <p className="muted">Saved as worked example.</p>}
+      </div>
       <details className="collapsible-details">
         <summary>Extracted work</summary>
         <p>{analysis.extractedWorkSummary}</p>

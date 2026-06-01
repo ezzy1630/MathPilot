@@ -2,7 +2,16 @@ import { recordAttempt } from './learningEngine'
 import { problemBankForDiagnostic } from './problemBank'
 import type { AttemptInput, MathPilotState, Problem } from './types'
 
+declare module './types' {
+  interface DiagnosticSessionState {
+    continuing?: boolean
+    triggerReason?: string
+  }
+}
+
 export const DIAGNOSTIC_TARGET_QUESTIONS = 25
+export const MINI_DIAGNOSTIC_MIN = 8
+export const MINI_DIAGNOSTIC_MAX = 12
 
 export interface DiagnosticSession {
   id: string
@@ -15,6 +24,8 @@ export interface DiagnosticSession {
   strongSkills: string[]
   completed: boolean
   summary?: DiagnosticSummary
+  continuing?: boolean
+  triggerReason?: string
 }
 
 export interface DiagnosticSummary {
@@ -22,6 +33,145 @@ export interface DiagnosticSummary {
   weak: string[]
   recommendedNext: string
   recommendedSkillIds: string[]
+}
+
+export interface ContinuingDiagnosticTrigger {
+  reason: string
+  skillIds: string[]
+  kind:
+    | 'mistake_pattern'
+    | 'hint_dependency'
+    | 'review_failure'
+    | 'homework_mistake'
+    | 'confidence_mismatch'
+}
+
+export function shouldTriggerContinuingDiagnostic(
+  state: MathPilotState,
+): ContinuingDiagnosticTrigger | undefined {
+  if (state.diagnostic && !state.diagnostic.completed) return undefined
+  if (!state.onboarded) return undefined
+
+  const recent = state.attempts.slice(0, 20)
+
+  const repeatedMistakes = Object.values(state.mistakePatterns).filter((pattern) => pattern.count >= 2)
+  if (repeatedMistakes.length) {
+    const top = repeatedMistakes.sort((a, b) => b.count - a.count)[0]
+    return {
+      kind: 'mistake_pattern',
+      reason: `Repeated mistake pattern: ${top.note}`,
+      skillIds: top.skillIds.slice(0, 3),
+    }
+  }
+
+  const hintFailures = recent.filter((a) => !a.correct && a.hintCount >= 2)
+  if (hintFailures.length >= 2) {
+    const skillIds = [...new Set(hintFailures.flatMap((a) => a.skillIds))].slice(0, 3)
+    return {
+      kind: 'hint_dependency',
+      reason: 'Multiple misses after heavy hint use — check whether the method is understood.',
+      skillIds,
+    }
+  }
+
+  const reviewFailures = recent.filter((a) => a.mode === 'review' && !a.correct)
+  if (reviewFailures.length >= 2) {
+    const skillIds = [...new Set(reviewFailures.flatMap((a) => a.skillIds))].slice(0, 3)
+    return {
+      kind: 'review_failure',
+      reason: 'Spaced review misses suggest retention gaps.',
+      skillIds,
+    }
+  }
+
+  const homework = state.homeworkAnalyses
+    .filter((analysis) => analysis.correctness !== 'correct' && analysis.skillsAffected.length)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+  if (homework?.skillsAffected.length) {
+    return {
+      kind: 'homework_mistake',
+      reason: homework.feedbackSummary || 'Homework analysis flagged skills to re-check.',
+      skillIds: homework.skillsAffected.slice(0, 3),
+    }
+  }
+
+  const confidenceMismatch = recent.filter(
+    (a) => a.confidence !== undefined && ((a.confidence >= 4 && !a.correct) || (a.confidence <= 2 && a.correct)),
+  )
+  if (confidenceMismatch.length >= 3) {
+    const skillIds = [...new Set(confidenceMismatch.flatMap((a) => a.skillIds))].slice(0, 3)
+    return {
+      kind: 'confidence_mismatch',
+      reason: 'Confidence ratings do not match recent outcomes — a short diagnostic will recalibrate.',
+      skillIds,
+    }
+  }
+
+  return undefined
+}
+
+export function startContinuingDiagnostic(
+  state: MathPilotState,
+  skillIds?: string[],
+  questionCount = MINI_DIAGNOSTIC_MIN + 2,
+): { state: MathPilotState; session: DiagnosticSession } {
+  const trigger = shouldTriggerContinuingDiagnostic(state)
+  const focusSkills = skillIds?.length ? skillIds : trigger?.skillIds
+  const targetCount = Math.min(MINI_DIAGNOSTIC_MAX, Math.max(MINI_DIAGNOSTIC_MIN, questionCount))
+  const pool = problemBankForDiagnostic(state)
+  const queue = buildMiniDiagnosticQueue(state, pool, targetCount, focusSkills)
+  const session: DiagnosticSession = {
+    id: `mini-diag-${Date.now()}`,
+    startedAt: new Date().toISOString(),
+    targetCount,
+    answeredCount: 0,
+    currentIndex: 0,
+    queue,
+    weakSkills: focusSkills ?? [],
+    strongSkills: [],
+    completed: false,
+    continuing: true,
+    triggerReason: trigger?.reason,
+  }
+  return {
+    state: { ...state, diagnostic: session },
+    session,
+  }
+}
+
+function buildMiniDiagnosticQueue(
+  state: MathPilotState,
+  pool: Problem[],
+  target: number,
+  focusSkillIds?: string[],
+): string[] {
+  const focus = new Set(focusSkillIds ?? [])
+  const prioritized = pool.filter((problem) => problem.skillIds.some((id) => focus.has(id)))
+  const source = prioritized.length >= target ? prioritized : pool
+  const orderedSkills = [...(focusSkillIds ?? Object.keys(state.skills))].sort(
+    (a, b) => (state.mastery[a]?.masteryScore ?? 0.3) - (state.mastery[b]?.masteryScore ?? 0.3),
+  )
+
+  const queue: string[] = []
+  const used = new Set<string>()
+  for (const skillId of orderedSkills) {
+    for (const problem of source) {
+      if (!problem.skillIds.includes(skillId)) continue
+      if (used.has(problem.id)) continue
+      used.add(problem.id)
+      queue.push(problem.id)
+      if (queue.length >= target) return queue
+    }
+  }
+
+  for (const problem of source) {
+    if (used.has(problem.id)) continue
+    used.add(problem.id)
+    queue.push(problem.id)
+    if (queue.length >= target) break
+  }
+
+  return queue.slice(0, target)
 }
 
 export function startDiagnostic(state: MathPilotState): { state: MathPilotState; session: DiagnosticSession } {
@@ -88,21 +238,31 @@ export function submitDiagnosticAnswer(
   const completed = answeredCount >= session.targetCount || currentIndex >= session.queue.length
 
   let queue = session.queue
-  if (!completed && answeredCount % 3 === 0) {
+  if (!completed && !session.continuing && answeredCount % 3 === 0) {
     queue = reprioritizeDiagnosticQueue(next, { ...session, weakSkills: [...weak], strongSkills: [...strong] }, currentIndex)
   }
 
   let summary = session.summary
   if (completed) {
     summary = buildDiagnosticSummary(next, [...weak], [...strong])
-    next = applyDiagnosticMasterySignals(next, weak, strong)
-    next = {
-      ...next,
-      onboarded: true,
-      changelog: [
-        `${new Date().toISOString()}: Diagnostic completed — ${summary.recommendedNext}`,
-        ...next.changelog,
-      ],
+    if (!session.continuing) {
+      next = applyDiagnosticMasterySignals(next, weak, strong)
+      next = {
+        ...next,
+        onboarded: true,
+        changelog: [
+          `${new Date().toISOString()}: Diagnostic completed — ${summary.recommendedNext}`,
+          ...next.changelog,
+        ],
+      }
+    } else {
+      next = {
+        ...next,
+        changelog: [
+          `${new Date().toISOString()}: Continuing diagnostic completed — ${summary.recommendedNext}`,
+          ...next.changelog,
+        ],
+      }
     }
   }
 

@@ -45,6 +45,10 @@ pub fn run_migrations(conn: &Connection) -> Result<(), String> {
         migration_v7(conn)?;
         record(conn, 7)?;
     }
+    if current < 8 {
+        migration_v8(conn)?;
+        record(conn, 8)?;
+    }
     Ok(())
 }
 
@@ -307,6 +311,31 @@ fn migration_v7(conn: &Connection) -> Result<(), String> {
         );
         CREATE INDEX IF NOT EXISTS idx_skill_edges_to ON skill_edges(to_skill_id);
         CREATE INDEX IF NOT EXISTS idx_resource_events_resource ON resource_events(resource_id);
+        ",
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+fn migration_v8(conn: &Connection) -> Result<(), String> {
+    conn.execute_batch(
+        "
+        CREATE TABLE IF NOT EXISTS maintenance_runs (
+          id TEXT PRIMARY KEY,
+          started_at TEXT NOT NULL,
+          ended_at TEXT NOT NULL,
+          trigger TEXT NOT NULL,
+          jobs_run_json TEXT NOT NULL,
+          changes_made_json TEXT NOT NULL,
+          backups_created_json TEXT NOT NULL,
+          skills_updated_json TEXT NOT NULL,
+          memories_updated_json TEXT NOT NULL,
+          problem_bank_changes_json TEXT NOT NULL,
+          resource_rank_changes_json TEXT NOT NULL,
+          review_schedule_changes_json TEXT NOT NULL,
+          warnings_json TEXT NOT NULL
+        );
+        ALTER TABLE ai_calls ADD COLUMN prompt_hash TEXT;
         ",
     )
     .map_err(|e| e.to_string())?;

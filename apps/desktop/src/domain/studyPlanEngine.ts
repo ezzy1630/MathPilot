@@ -19,7 +19,12 @@ export function buildStudyPlan(state: MathPilotState): StudyPlan {
   const boostIds = syllabusSkillBoost(state)
   const weak = Object.values(state.mastery)
     .filter((m) => state.skills[m.skillId] && m.masteryScore < 0.55)
-    .sort((a, b) => a.masteryScore - b.masteryScore)
+    .sort((a, b) => {
+      const fluencyGapA = a.masteryScore - a.fluencyScore
+      const fluencyGapB = b.masteryScore - b.fluencyScore
+      if (Math.abs(fluencyGapA - fluencyGapB) > 0.08) return fluencyGapB - fluencyGapA
+      return a.masteryScore - b.masteryScore
+    })
     .slice(0, 8)
 
   const due = state.reviewQueue
@@ -46,7 +51,12 @@ export function buildStudyPlan(state: MathPilotState): StudyPlan {
     ...weak.map((m, i) => ({
       skillId: m.skillId,
       skillName: state.skills[m.skillId]?.name ?? m.skillId,
-      action: m.masteryScore < 0.35 ? 'Quick repair' : 'Practice',
+      action:
+        m.masteryScore < 0.35
+          ? 'Quick repair'
+          : m.fluencyScore + 0.12 < m.masteryScore
+            ? 'Fluency drill'
+            : 'Practice',
       priority: 70 - i,
     })),
   ]

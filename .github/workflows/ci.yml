@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'feat/**']
   pull_request:
     branches: [main, master]
 
@@ -59,3 +59,32 @@ jobs:
 
       - name: E2E smoke tests
         run: pnpm test:e2e
+
+  desktop-build:
+    runs-on: macos-latest
+    needs: verify
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build desktop frontend
+        run: pnpm --filter @mathpilot/desktop build
+
+      - name: Tauri build (app)
+        run: pnpm --filter @mathpilot/desktop exec tauri build --no-bundle
+        env:
+          CI: true

@@ -7,6 +7,11 @@ export interface ParsedSyllabusLine {
   skillIds: string[]
 }
 
+export interface SyllabusExtractResult extends SyllabusAlignment {
+  extractedDates: string[]
+  extractedExams: string[]
+}
+
 const TOPIC_SKILL_MAP: Record<string, string[]> = {
   limit: ['limits_intro', 'continuity'],
   derivative: ['derivative_rules_basic', 'chain_rule'],
@@ -20,7 +25,19 @@ const TOPIC_SKILL_MAP: Record<string, string[]> = {
   volume: ['volume_of_revolution'],
 }
 
-export function parseSyllabusText(text: string, focus: CourseFocus): SyllabusAlignment {
+function extractDates(text: string): string[] {
+  const matches = [
+    ...text.matchAll(/\b(?:\d{1,2}\/\d{1,2}(?:\/\d{2,4})?|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2})\b/gi),
+  ]
+  return [...new Set(matches.map((match) => match[0]))]
+}
+
+function extractExams(text: string): string[] {
+  const matches = [...text.matchAll(/\b(?:midterm|final exam|exam \d|quiz \d|test \d)\b[^.\n]*/gi)]
+  return [...new Set(matches.map((match) => match[0].trim()))]
+}
+
+export function parseSyllabusText(text: string, focus: CourseFocus): SyllabusExtractResult {
   const lines = text.split(/\n+/).map((l) => l.trim()).filter(Boolean)
   const items: ParsedSyllabusLine[] = []
   let week = 1
@@ -41,20 +58,42 @@ export function parseSyllabusText(text: string, focus: CourseFocus): SyllabusAli
     week += 1
   }
 
-  if (!items.length) return defaultSyllabus(focus)
+  const extractedDates = extractDates(text)
+  const extractedExams = extractExams(text)
+
+  if (!items.length) {
+    const fallback = defaultSyllabus(focus)
+    return { ...fallback, extractedDates, extractedExams }
+  }
 
   return {
     course: focus,
     items: items.map(({ week, topic, skillIds }) => ({ week, topic, skillIds })),
     currentWeek: 1,
+    extractedDates,
+    extractedExams,
   }
 }
 
 export function applySyllabusUpload(state: MathPilotState, text: string): MathPilotState {
-  const syllabus = parseSyllabusText(text, state.currentFocus)
+  const parsed = parseSyllabusText(text, state.currentFocus)
+  const syllabus = {
+    course: parsed.course,
+    items: parsed.items,
+    currentWeek: parsed.currentWeek,
+    extractedDates: parsed.extractedDates,
+    extractedExams: parsed.extractedExams,
+  }
+  const syllabusMapping = parsed.items.map((item) => ({
+    topic: item.topic,
+    skillIds: item.skillIds,
+    accepted: true,
+    source: 'upload' as const,
+  }))
   return {
     ...state,
     syllabus,
+    syllabusMapping,
     changelog: [
       `${new Date().toISOString()}: Syllabus uploaded — ${syllabus.items.length} topics mapped.`,
       ...state.changelog,

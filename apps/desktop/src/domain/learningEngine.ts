@@ -2,7 +2,7 @@ import { loadAppSettings } from './configLoader'
 import { enrichNextAction } from './narrativeCopy'
 import { attachStudyPlan } from './studyPlanEngine'
 import { enrichReviewQueue } from './reviewItemEngine'
-import { nextReviewIntervalDays, reviewPriority, upsertReviewItem } from './reviewScheduler'
+import { buildReviewItemUpdate, upsertReviewItem } from './reviewScheduler'
 import { skillsForCourse } from './courseGraph'
 import { confidenceCalibrationHint, confidenceReviewBoost } from './confidenceRouting'
 import { syllabusSkillBoost } from './syllabus'
@@ -17,6 +17,15 @@ import type {
   MasteryState,
   NextAction,
 } from './types'
+
+declare module './types' {
+  interface AttemptInput {
+    partialCredit?: number
+  }
+  interface AttemptRecord {
+    partialCredit?: number
+  }
+}
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value))
@@ -259,19 +268,44 @@ function problemForSkill(state: MathPilotState, skillId: string, preferredMode?:
   )
 }
 
+function partialCreditFactor(input: AttemptInput): number {
+  if (input.correct) return 1
+  const credit = input.partialCredit ?? 0
+  if (credit <= 0) return 1
+  return Math.max(0.35, 1 - credit * 0.55)
+}
+
 export function recordAttempt(state: MathPilotState, input: AttemptInput): MathPilotState {
   const independencePenalty = input.hintCount === 0 ? 1 : input.hintCount === 1 ? 0.68 : 0.42
   const modeWeight = input.delayed && input.mixed ? 1.85 : input.mixed ? 1.35 : input.mode === 'guided' ? 0.82 : 1
-  const fluencyWeight = input.seconds < 90 ? 1 : input.seconds < 180 ? 0.72 : 0.5
+  const slowCorrect = input.correct && input.seconds >= 180
+  const fluencyWeight = input.correct
+    ? slowCorrect
+      ? 0.45
+      : input.seconds < 90
+        ? 1
+        : input.seconds < 180
+          ? 0.72
+          : 0.5
+    : input.seconds < 90
+      ? 1
+      : input.seconds < 180
+        ? 0.72
+        : 0.5
   const direction = input.correct ? 1 : -1
-  const magnitude = input.correct ? 0.075 : input.delayed ? 0.11 : 0.075
-  const masteryDelta = direction * magnitude * independencePenalty * modeWeight * fluencyWeight
+  const wrongMagnitude =
+    input.delayed && input.mixed ? 0.16 : input.delayed ? 0.11 : input.mixed ? 0.095 : 0.075
+  const magnitude = input.correct ? 0.075 : wrongMagnitude
+  const partialFactor = partialCreditFactor(input)
+  const masteryDelta =
+    direction * magnitude * independencePenalty * modeWeight * fluencyWeight * partialFactor
 
   const attempt: AttemptRecord = {
     ...input,
     id: `attempt-${Date.now()}-${state.attempts.length + 1}`,
     createdAt: new Date().toISOString(),
     masteryDelta,
+    partialCredit: input.partialCredit,
   }
 
   const nextState: MathPilotState = {
@@ -321,17 +355,31 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
     }
 
     const score = clamp(current.masteryScore + delta)
-    const fluency = clamp(current.fluencyScore + (input.correct && input.seconds < 120 ? 0.05 : -0.025))
+    const fluencyDelta = input.correct
+      ? slowCorrect
+        ? -0.04
+        : input.seconds < 90
+          ? 0.05
+          : 0.02
+      : -0.025
+    const fluency = clamp(current.fluencyScore + fluencyDelta)
     const retention = clamp(current.retentionScore + (input.delayed ? masteryDelta * 1.3 : masteryDelta * 0.45))
     const transfer = clamp(current.transferScore + (input.mixed ? masteryDelta * 1.2 : masteryDelta * 0.25))
     const delayedMixedCorrect =
       (current.delayedMixedCorrect ?? 0) + (input.correct && input.delayed && input.mixed ? 1 : 0)
-    const due = addDays(nextReviewIntervalDays(input, score))
+    const reviewItem = buildReviewItemUpdate(
+      skillId,
+      input,
+      score,
+      retention,
+      nextState.reviewQueue,
+      todayIso(),
+    )
 
     nextState.mastery[skillId] = {
       ...current,
       masteryScore: score,
-      masteryState: masteryState(score, due, { delayedMixedCorrect }),
+      masteryState: masteryState(score, reviewItem.due, { delayedMixedCorrect }),
       delayedMixedCorrect,
       fluencyScore: fluency,
       retentionScore: retention,
@@ -341,21 +389,10 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
       evidenceCount: current.evidenceCount + 1,
       recentFailures: input.correct ? Math.max(0, current.recentFailures - 1) : current.recentFailures + 1,
       lastPracticed: todayIso(),
-      reviewDue: due,
+      reviewDue: reviewItem.due,
     }
 
-    nextState.reviewQueue = upsertReviewItem(nextState.reviewQueue, {
-      id: `review-${skillId}`,
-      skillId,
-      due,
-      intervalDays: nextReviewIntervalDays(input, score),
-      priority: reviewPriority(input, score),
-      reason: input.correct
-        ? input.delayed && input.mixed
-          ? 'Delayed mixed success; schedule a longer retention check.'
-          : 'Correct, but needs spaced evidence before mastery is trusted.'
-        : 'Recent miss; schedule repair or review.',
-    })
+    nextState.reviewQueue = upsertReviewItem(nextState.reviewQueue, reviewItem)
   }
 
   for (const tag of input.mistakeTags ?? []) {

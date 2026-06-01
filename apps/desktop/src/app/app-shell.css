@@ -2537,6 +2537,106 @@ a {
   color: var(--mp-accent);
 }
 
+.external-graph-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.graph-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.graph-preset-select {
+  font-size: 0.8125rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-bg-elevated);
+}
+
+.graph-preset-note {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+}
+
+.homework-save-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  margin: 8px 0;
+}
+
+.homework-multi-problems {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.homework-multi-problems li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mp-border);
+}
+
+.today-collapsed-section {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.syllabus-mapping-panel {
+  border: 1px solid var(--mp-border);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--mp-bg-muted);
+}
+
+.syllabus-mapping-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.syllabus-mapping-list label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+
+.syllabus-extract-meta {
+  margin-top: 8px;
+}
+
+.report-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.external-tools-panel {
+  margin-bottom: 16px;
+}
+
+.resource-helpfulness-panel {
+  margin-top: 12px;
+}
+
+.inspector-graph-links {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mp-border);
+}
+
 .developer-page {
   border: 1px solid color-mix(in srgb, var(--mp-accent-2) 24%, var(--mp-border));
   border-radius: 18px;

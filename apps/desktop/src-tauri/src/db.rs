@@ -289,7 +289,14 @@ fn collect_skill_md(base: &PathBuf, dir: &PathBuf, out: &mut Vec<String>) -> Res
 }
 
 #[tauri::command]
-pub fn invoke_codex(packet: String, task: String) -> Result<CodexResult, String> {
+pub fn invoke_codex(packet: String, task: String, session_id: Option<String>) -> Result<CodexResult, String> {
+    let packet_with_session = match session_id {
+        Some(sid) if !sid.is_empty() => format!(
+            "## Codex session (CLI)\nSession-Id: {}\n\n{}",
+            sid, packet
+        ),
+        _ => packet,
+    };
     let mut child = match Command::new("codex")
         .arg("exec")
         .arg("--skip-git-repo-check")
@@ -310,7 +317,7 @@ pub fn invoke_codex(packet: String, task: String) -> Result<CodexResult, String>
     };
 
     if let Some(mut stdin) = child.stdin.take() {
-        let _ = stdin.write_all(packet.as_bytes());
+        let _ = stdin.write_all(packet_with_session.as_bytes());
     }
 
     let mut stdout = String::new();

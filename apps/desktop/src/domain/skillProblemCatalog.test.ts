@@ -63,7 +63,7 @@ describe('diagnosticTemplates', () => {
 describe('problemGenerator', () => {
   it('generates practice problems for lhopital and squeeze_theorem', () => {
     let state = createInitialState('Calculus 1')
-    for (const skillId of ['lhopital', 'squeeze_theorem', 'newtons_method', 'ftc']) {
+    for (const skillId of ['lhopital', 'squeeze_theorem', 'newtons_method', 'ftc', 'inverse_trig_derivatives', 'telescoping_series']) {
       const result = generateProblemForSkill(state, skillId, 42)
       expect(result, skillId).not.toBeNull()
       state = result!.state

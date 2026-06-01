@@ -27,7 +27,16 @@ export function graphPresetsForProblem(problem: Problem): GraphPreset[] {
     case 'ftc':
       return [
         { label: 'Integrand', expression: 'y=2*x' },
+        { label: 'Area under curve', expression: 'y=x*(4-x)' },
         { label: 'Accumulation view', expression: 'y=x^2' },
+      ]
+    case 'derivative_definition':
+    case 'derivative_rules_basic':
+    case 'chain_rule':
+      return [
+        { label: 'Function', expression: 'y=x^2' },
+        { label: 'Tangent at x=1', expression: 'y=2*x-1' },
+        { label: 'Secant (h=1)', expression: 'y=3*x-2' },
       ]
     case 'taylor_series':
     case 'taylor_polynomials':
@@ -51,4 +60,13 @@ function graphExpressionFallback(problem: Problem): string {
 
 export function primaryGraphExpression(problem: Problem): string {
   return graphPresetsForProblem(problem)[0]?.expression ?? 'y=x^2'
+}
+
+export function externalGraphUrls(expression: string) {
+  const expr = expression.replace(/^y=/, '')
+  return {
+    desmos: `https://www.desmos.com/calculator?lang=en&expressions=${encodeURIComponent(expression)}`,
+    geogebra: `https://www.geogebra.org/graphing?lang=en`,
+    wolfram: `https://www.wolframalpha.com/input?i=plot+${encodeURIComponent(expr)}`,
+  }
 }

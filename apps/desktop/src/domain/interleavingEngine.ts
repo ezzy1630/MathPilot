@@ -1,4 +1,4 @@
-import { interleaveClusterForSkill } from './interleavingPolicy'
+import { interleavePolicyForSkill } from './interleavingPolicy'
 import type { MathPilotState, Problem } from './types'
 
 /** Pick a problem that interleaves similar-looking skills (spec: interleaving). */
@@ -7,13 +7,13 @@ export function pickInterleavedProblem(state: MathPilotState, primarySkillId: st
   if (!pool.length) return undefined
 
   const recentSkillIds = new Set(state.attempts.slice(0, 6).flatMap((a) => a.skillIds))
-  const cluster = interleaveClusterForSkill(primarySkillId)
+  const { preferSkillIds } = interleavePolicyForSkill(primarySkillId, recentSkillIds)
 
-  if (cluster?.length) {
+  if (preferSkillIds.length) {
     const clusterCandidates = Object.values(state.problems).filter(
       (p) =>
         !p.deprecated &&
-        p.skillIds.some((id) => cluster.includes(id)) &&
+        p.skillIds.some((id) => preferSkillIds.includes(id)) &&
         !p.skillIds.every((id) => id === primarySkillId),
     )
     const fresh = clusterCandidates.filter((p) => !p.skillIds.some((id) => recentSkillIds.has(id)))

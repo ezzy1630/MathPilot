@@ -1,8 +1,6 @@
 import {
   BookOpen,
   CheckCircle2,
-  ChevronRight,
-  Clock3,
   ClipboardList,
   Code2,
   Download,
@@ -16,8 +14,8 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
-import { primaryGraphExpression } from '../domain/graphPresets'
+import { useEffect, useState, type ReactNode, type RefObject } from 'react'
+import { graphPresetsForProblem, primaryGraphExpression } from '../domain/graphPresets'
 import { listBackups, restoreBackupPayload } from '../domain/persistence'
 import type { MathfieldElement } from 'mathlive'
 import { HomeworkUpload } from '../components/HomeworkUpload'
@@ -41,6 +39,13 @@ import { ResourceEffectivenessPanel } from '../components/ResourceEffectivenessP
 import { chooseNextAction } from '../domain/learningEngine'
 import { recordResourceHelpfulness } from '../domain/resourceLearning'
 import { listTrustedResources, skillNamesForResource } from '../domain/resourceResolver'
+import {
+  createPromptPacket,
+  ensureMemoryLoaded,
+  wrapPacketForChatGPT,
+  wrapPacketForGemini,
+} from '../domain/aiAdapter'
+import { loadSkillsForPrompt } from '../domain/skillLoader'
 import { exportState } from '../domain/storage'
 import { currentSessionPhase, sessionPhaseLabel } from '../domain/dailySessionEngine'
 import { checkPrerequisiteGate } from '../domain/sessionEngine'
@@ -52,6 +57,31 @@ import { Button, MasteryBadge, SegmentedControl } from '../ui'
 import { Modal } from '../ui/Modal'
 import type { CourseFocus, MathPilotState, Problem } from '../domain/types'
 import type { AppView } from '../app/types'
+
+function shouldShowConfidencePrompts(state: MathPilotState, problem?: Problem): boolean {
+  const mode = state.preferences?.confidencePrompts ?? 'review_only'
+  if (mode === 'off') return false
+  if (state.diagnostic && !state.diagnostic.completed) return true
+  if (problem?.mode === 'mixed_review') return true
+  if (mode === 'often') return Boolean(problem && problem.mode !== 'resource_watch')
+  return false
+}
+
+function mergePreferences(
+  state: MathPilotState,
+  patch: Partial<NonNullable<MathPilotState['preferences']>>,
+): MathPilotState['preferences'] {
+  return {
+    tone: state.preferences?.tone ?? 'warm',
+    gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
+    notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
+    reportsMode: state.preferences?.reportsMode ?? 'on_demand_only',
+    activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
+    theme: state.preferences?.theme ?? 'system',
+    confidencePrompts: state.preferences?.confidencePrompts ?? 'review_only',
+    ...patch,
+  }
+}
 
 export function NavButton({
   active,
@@ -158,6 +188,8 @@ export function TodayView({
   diagnostic,
   onStartRepair,
   onOpenReport,
+  onSaveWorkedExample,
+  onOpenHomework,
 }: {
   state: MathPilotState
   nextAction: ReturnType<typeof chooseNextAction>
@@ -179,6 +211,8 @@ export function TodayView({
   diagnostic?: MathPilotState['diagnostic']
   onStartRepair?: (skillId: string) => void
   onOpenReport?: () => void
+  onSaveWorkedExample?: (analysisId: string) => void
+  onOpenHomework?: () => void
 }) {
   const paceLabels: Record<SessionPace, string> = {
     short: 'Short',
@@ -211,7 +245,7 @@ export function TodayView({
     `${weakCount} weak skill${weakCount === 1 ? '' : 's'}`,
     `${readinessValue}% course readiness`,
   ]
-  const homeworkSectionRef = useRef<HTMLElement>(null)
+  const areaEntries = Object.keys(groupByArea(state)).slice(0, 8)
 
   return (
     <div className="page today-page">
@@ -241,7 +275,13 @@ export function TodayView({
           <h2>{nextAction.title}</h2>
           <p className="coach-reason">{nextAction.reason}</p>
           <div className="coach-actions">
-            <Button variant="primary" size="lg" icon={<Play size={18} />} onClick={startAction}>
+            <Button
+              variant="primary"
+              size="lg"
+              icon={<Play size={18} />}
+              onClick={startAction}
+              aria-label={`Continue: ${actionLabel} — ${nextAction.title}`}
+            >
               {actionLabel}
             </Button>
             <Button variant="ghost" size="lg" icon={<Eye size={18} />} onClick={onWhy}>
@@ -269,53 +309,6 @@ export function TodayView({
         </div>
       </section>
 
-      <nav className="desk-tools-list" aria-label="Desk tools">
-        <button
-          type="button"
-          className="desk-tool-row"
-          onClick={() => homeworkSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
-        >
-          <FolderOpen size={18} aria-hidden />
-          <div className="desk-tool-row-text">
-            <strong>Homework</strong>
-            <span>Paste, drop, or type work to turn mistakes into repair.</span>
-          </div>
-          <ChevronRight size={18} className="desk-tool-row-chevron" aria-hidden />
-        </button>
-        <button type="button" className="desk-tool-row" onClick={() => setView('map')}>
-          <Map size={18} aria-hidden />
-          <div className="desk-tool-row-text">
-            <strong>Map evidence</strong>
-            <span>See where your knowledge map needs attention.</span>
-          </div>
-          <ChevronRight size={18} className="desk-tool-row-chevron" aria-hidden />
-        </button>
-        <button type="button" className="desk-tool-row" onClick={onStartFormulaRecall}>
-          <Clock3 size={18} aria-hidden />
-          <div className="desk-tool-row-text">
-            <strong>Recall</strong>
-            <span>Use formula recall when a rule is blocking the session.</span>
-          </div>
-          <ChevronRight size={18} className="desk-tool-row-chevron" aria-hidden />
-        </button>
-      </nav>
-
-      <section className="coach-secondary-stack" aria-label="Desk tools" ref={homeworkSectionRef}>
-        <HomeworkUpload
-          text={homeworkText}
-          onTextChange={setHomeworkText}
-          onAnalyze={(p, saveRaw) => void analyzeHomework(p, saveRaw)}
-          compact
-        />
-        {homeworkAnalyzing && <p className="eyebrow">Analyzing homework...</p>}
-        {state.homeworkAnalyses[0] && (
-          <HomeworkResultCard analysis={state.homeworkAnalyses[0]} onStartRepair={onStartRepair} />
-        )}
-        {showFormulaRecall && (
-          <FormulaRecallPanel state={state} onComplete={() => onFormulaRecallDone()} />
-        )}
-      </section>
-
       {diagnostic?.completed && diagnostic.summary && (
         <p className="diagnostic-summary panel" style={{ marginBottom: 16 }}>
           <strong>Map snapshot:</strong> strong in {diagnostic.summary.strong.slice(0, 3).join(', ') || '—'} · focus{' '}
@@ -324,26 +317,66 @@ export function TodayView({
       )}
 
       <details className="today-more">
-        <summary>Adjust and inspect</summary>
+        <summary>More for today</summary>
         <div className="today-more-body">
-          <button type="button" className="secondary" onClick={() => setView('map')}>
-            <Map size={18} />
-            Open knowledge map
-          </button>
+          <details className="contextual-entry">
+            <summary>Homework</summary>
+            <div className="today-collapsed-section">
+              {onOpenHomework ? (
+                <button type="button" className="secondary" onClick={onOpenHomework}>
+                  <FolderOpen size={18} />
+                  Open homework upload
+                </button>
+              ) : (
+                <>
+                  <HomeworkUpload
+                    text={homeworkText}
+                    onTextChange={setHomeworkText}
+                    onAnalyze={(p, saveRaw) => void analyzeHomework(p, saveRaw)}
+                    compact
+                  />
+                  {homeworkAnalyzing && <p className="eyebrow">Analyzing homework...</p>}
+                  {state.homeworkAnalyses[0] && (
+                    <HomeworkResultCard
+                      analysis={state.homeworkAnalyses[0]}
+                      onStartRepair={onStartRepair}
+                      onSaveWorkedExample={onSaveWorkedExample}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          </details>
+
+          <details className="contextual-entry">
+            <summary>Formula recall</summary>
+            <div className="today-collapsed-section">
+              {showFormulaRecall ? (
+                <FormulaRecallPanel state={state} onComplete={() => onFormulaRecallDone()} />
+              ) : (
+                <button type="button" className="secondary" onClick={onStartFormulaRecall}>
+                  Start formula recall
+                </button>
+              )}
+            </div>
+          </details>
 
           <details className="contextual-entry">
             <summary>Area readiness</summary>
             <div className="chip-row">
-              {Object.keys(groupByArea(state))
-                .slice(0, 8)
-                .map((area) => (
-                  <span className="area-chip" key={area}>
-                    {area}
-                    <strong>{areaReadiness(state, area)}%</strong>
-                  </span>
-                ))}
+              {areaEntries.map((area) => (
+                <span className="area-chip" key={area}>
+                  {area}
+                  <strong>{areaReadiness(state, area)}%</strong>
+                </span>
+              ))}
             </div>
           </details>
+
+          <button type="button" className="secondary" onClick={() => setView('map')}>
+            <Map size={18} />
+            Open knowledge map
+          </button>
 
           <details className="contextual-entry">
             <summary>Adjust pace</summary>
@@ -362,15 +395,6 @@ export function TodayView({
                 ))}
             </div>
           </details>
-
-          {!showFormulaRecall && (
-            <details className="contextual-entry">
-              <summary>Formula recall (optional)</summary>
-              <button type="button" className="secondary" style={{ marginTop: 8 }} onClick={onStartFormulaRecall}>
-                Start formula recall
-              </button>
-            </details>
-          )}
 
           {state.studyPlan && (
             <details className="contextual-entry" open>
@@ -524,6 +548,8 @@ export function ActivityView({
   homeworkAnalyzing?: boolean
 }) {
   const [rawInput, setRawInput] = useState(false)
+  const [graphOpen, setGraphOpen] = useState(false)
+  const [graphPresetIndex, setGraphPresetIndex] = useState(0)
   const insertSymbol = (symbol: string) => {
     const field = mathFieldRef.current
     if (field?.executeCommand) {
@@ -644,13 +670,22 @@ export function ActivityView({
       ? 'Work cleanly. Diagnostics only need enough feedback to calibrate the map.'
       : 'Use a hint if you are blocked. If the setup feels unsteady, mark that you are lost.'
   const graphExpression = primaryGraphExpression(problem)
+  const graphPresets = graphPresetsForProblem(problem)
   const showGraph = Boolean(
     graphExpression &&
       problem.skillIds.some(
-        (id) => id.includes('graph') || id.includes('derivative') || id.includes('optimization') || id.includes('area'),
+        (id) =>
+          id.includes('graph') ||
+          id.includes('derivative') ||
+          id.includes('optimization') ||
+          id.includes('area') ||
+          id.includes('integral') ||
+          id.includes('riemann'),
       ),
   )
   const showWorkRequired = requiresShowWork(state, problem)
+  const activeGraphExpression =
+    graphPresets[graphPresetIndex]?.expression ?? graphExpression
 
   const readOnly =
     quickRepair?.phase === 'example_1' ||
@@ -828,7 +863,7 @@ export function ActivityView({
                 placeholder={`Step ${index + 1}`}
               />
             ))}
-          {(state.diagnostic || problem.mode === 'mixed_review') && (
+          {shouldShowConfidencePrompts(state, problem) && (
             <div className="confidence-row" role="radiogroup" aria-label="Confidence">
               <span>Confidence</span>
               {[
@@ -853,12 +888,30 @@ export function ActivityView({
           )}
           <section className="answer-dock" aria-label="Answer actions">
             <div className="activity-primary-actions">
-              <Button variant="primary" onClick={submitAnswer}>
+              <Button variant="primary" onClick={submitAnswer} aria-label="Check answer and submit">
                 Check answer
               </Button>
               <Button variant="secondary" icon={<HelpCircle size={18} />} onClick={() => setHintCount(hintCount + 1)}>
                 {hintLabels[Math.min(hintCount, hintLabels.length - 1)]}
               </Button>
+              {showGraph && (
+                <Button variant="secondary" onClick={() => setGraphOpen(!graphOpen)}>
+                  {graphOpen ? 'Hide graph' : 'Show graph'}
+                </Button>
+              )}
+              {(feedbackTone === 'wrong' || feedbackTone === 'almost') && (
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    requestHelp(
+                      'Why is my answer wrong? Explain the likely mistake without revealing the full solution.',
+                    )
+                  }
+                  disabled={isDiagnostic}
+                >
+                  Why is my answer wrong?
+                </Button>
+              )}
               <Button variant="secondary" onClick={() => setLostOpen(true)}>
                 I&apos;m lost
               </Button>
@@ -870,25 +923,27 @@ export function ActivityView({
               <p className="muted">Pick one — MathPilot will suggest a method, not a full solution.</p>
               <div className="lost-grid">
                 {[
-                  "I don't know what method to use",
-                  "I don't know the first step",
-                  "I made progress but got stuck",
-                  "I don't understand the concept",
-                  'My answer looks right but was marked wrong',
-                  'I need a similar example',
-                  'I forgot a formula',
-                ].map((label) => (
+                  { label: "I don't know what method to use", prompt: "I'm lost: I don't know what method to use" },
+                  { label: "I don't understand the question", prompt: "I don't understand the question — explain what it is asking without solving it" },
+                  { label: "I don't know the first step", prompt: "I'm lost: I don't know the first step" },
+                  { label: "I made progress but got stuck", prompt: "I'm lost: I made progress but got stuck" },
+                  { label: "I don't understand the concept", prompt: "I'm lost: I don't understand the concept" },
+                  { label: "I'm not sure", prompt: "I'm not sure — suggest one small next thinking step only" },
+                  { label: 'My answer looks right but was marked wrong', prompt: "I'm lost: My answer looks right but was marked wrong" },
+                  { label: 'I need a similar example', prompt: 'similar_example' },
+                  { label: 'I forgot a formula', prompt: "I'm lost: I forgot a formula" },
+                ].map(({ label, prompt }) => (
                   <button
                     key={label}
                     type="button"
                     className="secondary lost-chip"
                     onClick={() => {
-                      if (label === 'I need a similar example') {
+                      if (prompt === 'similar_example') {
                         startAction(problemForSkill(state, problem.skillIds[0], problem.mode))
                         setLostOpen(false)
                         return
                       }
-                      void requestHelp(`I'm lost: ${label}`)
+                      void requestHelp(prompt)
                       setLostOpen(false)
                     }}
                   >
@@ -953,6 +1008,32 @@ export function ActivityView({
                 </Button>
               )}
             </div>
+            {showGraph && (
+              <div className="inspector-graph-links">
+                <p className="meta-label">External graph tools</p>
+                <div className="external-graph-links">
+                  <a
+                    className="desmos-link"
+                    href={`https://www.desmos.com/calculator?lang=en&expressions=${encodeURIComponent(graphExpression)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Desmos
+                  </a>
+                  <a className="desmos-link" href="https://www.geogebra.org/graphing?lang=en" target="_blank" rel="noreferrer">
+                    GeoGebra
+                  </a>
+                  <a
+                    className="desmos-link"
+                    href={`https://www.wolframalpha.com/input?i=plot+${encodeURIComponent(graphExpression.replace(/^y=/, ''))}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    WolframAlpha
+                  </a>
+                </div>
+              </div>
+            )}
             {analyzeHomework && setHomeworkText && (
               <details className="inspector-upload">
                 <summary>Upload work photo</summary>
@@ -972,7 +1053,25 @@ export function ActivityView({
               onTrySimilar={() => startAction(problemForSkill(state, problem.skillIds[0], problem.mode))}
             />
           )}
-          {showGraph && <DesmosEmbed expression={graphExpression} />}
+          {showGraph && graphOpen && (
+            <div className="graph-panel">
+              {graphPresets.length > 1 && (
+                <div className="graph-preset-row">
+                  {graphPresets.map((preset, index) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      className={`secondary ${graphPresetIndex === index ? 'active' : ''}`}
+                      onClick={() => setGraphPresetIndex(index)}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <DesmosEmbed expression={activeGraphExpression} />
+            </div>
+          )}
           {signChart && (
             <div className="mini-panel">
               <h3>Sign chart</h3>
@@ -1106,6 +1205,7 @@ export function KnowledgeMap({
                     className={`skill-row ${mastery.masteryScore < 0.4 ? 'weak' : ''} ${highlightSkillIds.includes(skill.id) ? 'weak' : ''}`}
                     key={skill.id}
                     onClick={() => handleSkill(skill.id)}
+                    aria-label={`${skill.name}, ${Math.round(mastery.masteryScore * 100)}% mastery, ${mastery.masteryState}`}
                   >
                     <span>{skill.name}</span>
                     <MasteryBadge state={mastery.masteryState} />
@@ -1155,6 +1255,20 @@ export function Resources({
           {resources.length} trusted · ranked by outcome
         </div>
       </header>
+      <section className="panel external-tools-panel">
+        <h2>External graph tools</h2>
+        <div className="external-graph-links">
+          <a className="desmos-link" href="https://www.desmos.com/calculator?lang=en" target="_blank" rel="noreferrer">
+            Desmos
+          </a>
+          <a className="desmos-link" href="https://www.geogebra.org/graphing?lang=en" target="_blank" rel="noreferrer">
+            GeoGebra
+          </a>
+          <a className="desmos-link" href="https://www.wolframalpha.com/" target="_blank" rel="noreferrer">
+            WolframAlpha
+          </a>
+        </div>
+      </section>
       {resources.length === 0 && (
         <section className="resource-empty" aria-label="No resources">
           <BookOpen size={22} />
@@ -1180,18 +1294,25 @@ export function Resources({
               </span>
             </a>
             <div className="resource-helpfulness">
-              <span className="muted">Helpful?</span>
+              <span className="muted">Was this helpful?</span>
               <button
                 type="button"
                 className="ghost small"
-                onClick={() => update(recordResourceHelpfulness(state, resource.id, true))}
+                onClick={() => update(recordResourceHelpfulness(state, resource.id, 'yes'))}
               >
                 Yes
               </button>
               <button
                 type="button"
                 className="ghost small"
-                onClick={() => update(recordResourceHelpfulness(state, resource.id, false))}
+                onClick={() => update(recordResourceHelpfulness(state, resource.id, 'kind_of'))}
+              >
+                Kind of
+              </button>
+              <button
+                type="button"
+                className="ghost small"
+                onClick={() => update(recordResourceHelpfulness(state, resource.id, 'no'))}
               >
                 No
               </button>
@@ -1241,6 +1362,45 @@ export function PrerequisiteModal({
   )
 }
 
+function ManualPacketCopyRow({
+  state,
+  label,
+  variant,
+}: {
+  state: MathPilotState
+  label: string
+  variant: 'chatgpt' | 'gemini'
+}) {
+  const [status, setStatus] = useState<string | null>(null)
+  return (
+    <div className="settings-row">
+      <span>{label}</span>
+      <button
+        type="button"
+        className="secondary"
+        onClick={() => {
+          void (async () => {
+            const memory = await ensureMemoryLoaded()
+            const skills = await loadSkillsForPrompt('manual_review', [])
+            const base = createPromptPacket(state, 'manual_review', undefined, undefined, memory, skills)
+            const text = variant === 'chatgpt' ? wrapPacketForChatGPT(base) : wrapPacketForGemini(base)
+            try {
+              await navigator.clipboard.writeText(text)
+              setStatus('Copied')
+            } catch {
+              setStatus('Copy failed')
+            }
+          })()
+        }}
+      >
+        <ClipboardList size={18} />
+        Copy
+      </button>
+      {status && <span className="muted">{status}</span>}
+    </div>
+  )
+}
+
 export function SettingsView({
   state,
   update,
@@ -1261,6 +1421,35 @@ export function SettingsView({
   onApplyCodexPaste: () => void
 }) {
   const [resetConfirm, setResetConfirm] = useState('')
+  const [syllabusDraft, setSyllabusDraft] = useState('')
+  const mapping = state.syllabusMapping ?? []
+  const syllabusDates = state.syllabus?.extractedDates ?? []
+  const syllabusExams = state.syllabus?.extractedExams ?? []
+
+  function toggleMappingTopic(topic: string, accepted: boolean) {
+    if (!state.syllabusMapping?.length) return
+    const nextMapping = state.syllabusMapping.map((entry) =>
+      entry.topic === topic ? { ...entry, accepted } : entry,
+    )
+    const acceptedItems = nextMapping
+      .filter((entry) => entry.accepted)
+      .map((entry, index) => ({
+        week: index + 1,
+        topic: entry.topic,
+        skillIds: entry.skillIds,
+      }))
+    update({
+      ...state,
+      syllabusMapping: nextMapping,
+      syllabus: state.syllabus
+        ? {
+            ...state.syllabus,
+            items: acceptedItems,
+          }
+        : state.syllabus,
+    })
+  }
+
   return (
     <div className="page">
       <header className="topbar">
@@ -1293,14 +1482,7 @@ export function SettingsView({
               onChange={(e) =>
                 update({
                   ...state,
-                  preferences: {
-                    tone: e.target.value as 'direct' | 'warm',
-                    gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
-                    notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
-                    reportsMode: state.preferences?.reportsMode ?? 'on_demand_only',
-                    activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
-                    theme: state.preferences?.theme ?? 'system',
-                  },
+                  preferences: mergePreferences(state, { tone: e.target.value as 'direct' | 'warm' }),
                 })
               }
             >
@@ -1316,14 +1498,9 @@ export function SettingsView({
               onChange={(e) =>
                 update({
                   ...state,
-                  preferences: {
-                    tone: state.preferences?.tone ?? 'warm',
+                  preferences: mergePreferences(state, {
                     gamificationLevel: e.target.value as 'minimal' | 'light',
-                    notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
-                    reportsMode: state.preferences?.reportsMode ?? 'on_demand_only',
-                    activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
-                    theme: state.preferences?.theme ?? 'system',
-                  },
+                  }),
                 })
               }
             >
@@ -1339,14 +1516,9 @@ export function SettingsView({
               onChange={(e) =>
                 update({
                   ...state,
-                  preferences: {
-                    tone: state.preferences?.tone ?? 'warm',
-                    gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
-                    notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
-                    reportsMode: state.preferences?.reportsMode ?? 'on_demand_only',
-                    theme: state.preferences?.theme ?? 'system',
+                  preferences: mergePreferences(state, {
                     activeVideoMode: e.target.value as 'never' | 'sometimes' | 'active',
-                  },
+                  }),
                 })
               }
             >
@@ -1363,14 +1535,9 @@ export function SettingsView({
               onChange={(e) =>
                 update({
                   ...state,
-                  preferences: {
-                    tone: state.preferences?.tone ?? 'warm',
-                    gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
-                    notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
-                    reportsMode: state.preferences?.reportsMode ?? 'on_demand_only',
-                    activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
+                  preferences: mergePreferences(state, {
                     theme: e.target.value as 'system' | 'light' | 'dark',
-                  },
+                  }),
                 })
               }
             >
@@ -1387,19 +1554,33 @@ export function SettingsView({
               onChange={(e) =>
                 update({
                   ...state,
-                  preferences: {
-                    tone: state.preferences?.tone ?? 'warm',
-                    gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
-                    notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
+                  preferences: mergePreferences(state, {
                     reportsMode: e.target.value as 'on_demand_only' | 'weekly',
-                    activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
-                    theme: state.preferences?.theme ?? 'system',
-                  },
+                  }),
                 })
               }
             >
               <option value="on_demand_only">On demand only</option>
               <option value="weekly">Weekly</option>
+            </select>
+          </div>
+          <div className="settings-row">
+            <label htmlFor="confidence-prompts-select">Confidence prompts</label>
+            <select
+              id="confidence-prompts-select"
+              value={state.preferences?.confidencePrompts ?? 'review_only'}
+              onChange={(e) =>
+                update({
+                  ...state,
+                  preferences: mergePreferences(state, {
+                    confidencePrompts: e.target.value as 'off' | 'review_only' | 'often',
+                  }),
+                })
+              }
+            >
+              <option value="off">Off</option>
+              <option value="review_only">Review & diagnostic only</option>
+              <option value="often">Often</option>
             </select>
           </div>
           <div className="settings-row">
@@ -1411,14 +1592,9 @@ export function SettingsView({
                 onChange={(event) =>
                   update({
                     ...state,
-                    preferences: {
-                      tone: state.preferences?.tone ?? 'warm',
-                      gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
+                    preferences: mergePreferences(state, {
                       notificationsEnabled: event.target.checked,
-                      reportsMode: state.preferences?.reportsMode ?? 'on_demand_only',
-                      activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
-                      theme: state.preferences?.theme ?? 'system',
-                    },
+                    }),
                   })
                 }
               />
@@ -1449,17 +1625,59 @@ export function SettingsView({
             <span>Upload syllabus</span>
             <textarea
               className="syllabus-upload"
-              placeholder="Paste syllabus lines (Week 1: Limits, Week 2: Derivatives…)"
+              placeholder="Paste syllabus lines (Week 1: Limits, Midterm 3/15, Week 2: Derivatives…)"
               rows={4}
-              onBlur={(e) => {
-                const text = e.target.value.trim()
+              value={syllabusDraft}
+              onChange={(e) => setSyllabusDraft(e.target.value)}
+              onBlur={() => {
+                const text = syllabusDraft.trim()
                 if (text.length > 20) update(applySyllabusUpload(state, text))
               }}
             />
           </div>
+          {mapping.length > 0 && (
+            <div className="settings-row settings-row-stack syllabus-mapping-panel">
+              <span>Review extracted syllabus</span>
+              {(syllabusDates.length > 0 || syllabusExams.length > 0) && (
+                <div className="syllabus-extract-meta">
+                  {syllabusDates.length > 0 && (
+                    <p className="muted">
+                      Dates: {syllabusDates.join(', ')}
+                    </p>
+                  )}
+                  {syllabusExams.length > 0 && (
+                    <p className="muted">
+                      Exams: {syllabusExams.join('; ')}
+                    </p>
+                  )}
+                </div>
+              )}
+              <ul className="syllabus-mapping-list">
+                {mapping.map((entry) => (
+                  <li key={entry.topic}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={entry.accepted}
+                        onChange={(event) => toggleMappingTopic(entry.topic, event.target.checked)}
+                      />
+                      <span>
+                        <strong>{entry.topic}</strong>
+                        <small className="muted">
+                          {entry.skillIds.map((id) => state.skills[id]?.name ?? id).join(', ')}
+                        </small>
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="settings-row">
             <span>Syllabus topics</span>
-            <span className="muted">{state.syllabus?.items.length ?? 0} mapped</span>
+            <span className="muted">
+              {mapping.filter((entry) => entry.accepted).length || state.syllabus?.items.length || 0} active
+            </span>
           </div>
           <div className="settings-row">
             <span>Advanced view</span>
@@ -1509,7 +1727,16 @@ export function SettingsView({
               Enable
             </button>
           </div>
-          <div className="settings-row" style={{ display: 'block' }}>
+        </div>
+
+        <div className="settings-group">
+          <h2>Manual AI packets</h2>
+          <p className="muted" style={{ marginBottom: 12 }}>
+            Copy a prompt into ChatGPT or Gemini, then paste the JSON response below (Codex paste-back).
+          </p>
+          <ManualPacketCopyRow state={state} label="ChatGPT packet" variant="chatgpt" />
+          <ManualPacketCopyRow state={state} label="Gemini packet" variant="gemini" />
+          <div className="settings-row" style={{ display: 'block', marginTop: 12 }}>
             <span>Codex paste-back</span>
             <textarea
               rows={3}
@@ -1576,6 +1803,11 @@ export function DeveloperView({
   runMaintenance,
   onGenerateProblem,
   onRestoreBackup,
+  onTestCodex,
+  codexPingStatus,
+  codexPingBusy,
+  showFullPrompts,
+  onToggleShowFullPrompts,
 }: {
   state: MathPilotState
   packet: string
@@ -1583,12 +1815,28 @@ export function DeveloperView({
   runMaintenance: () => void
   onGenerateProblem: (skillId: string) => void
   onRestoreBackup?: (payload: string) => void
+  onTestCodex?: () => void
+  codexPingStatus?: string | null
+  codexPingBusy?: boolean
+  showFullPrompts?: boolean
+  onToggleShowFullPrompts?: (enabled: boolean) => void
 }) {
   const [backups, setBackups] = useState<string[]>([])
+  const [memoryFiles, setMemoryFiles] = useState<string[]>([])
 
   useEffect(() => {
     void listBackups().then(setBackups)
   }, [state.maintenanceRuns?.length])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !(window as Window & { __TAURI__?: unknown }).__TAURI__) return
+    void import('@tauri-apps/api/core')
+      .then(({ invoke }) => invoke<string[]>('read_memory_files'))
+      .then(setMemoryFiles)
+      .catch(() => setMemoryFiles([]))
+  }, [])
+
+  const displayPacket = showFullPrompts ? packet : packet ? `${packet.slice(0, 1200)}${packet.length > 1200 ? '\n… (truncated — enable Show full prompt)' : ''}` : ''
 
   return (
     <div className="page developer-page">
@@ -1608,14 +1856,36 @@ export function DeveloperView({
           <button className="secondary" onClick={() => onGenerateProblem('chain_rule')}>
             Generate test problem
           </button>
+          {onTestCodex && (
+            <button type="button" className="secondary" disabled={codexPingBusy} onClick={onTestCodex}>
+              {codexPingBusy ? 'Pinging Codex…' : 'Test Codex CLI'}
+            </button>
+          )}
         </div>
       </header>
+      {codexPingStatus && <p className="muted developer-ping-status">{codexPingStatus}</p>}
+      <div className="settings-row" style={{ marginBottom: 16 }}>
+        <span>Show full prompt in packet viewer</span>
+        <label className="toggle">
+          <input
+            type="checkbox"
+            checked={showFullPrompts ?? false}
+            onChange={(e) => onToggleShowFullPrompts?.(e.target.checked)}
+          />
+        </label>
+      </div>
       <section className="two-column">
         <div className="panel">
           <h2>Prompt packet</h2>
-          <pre className="packet">{packet || 'No packet drafted yet.'}</pre>
+          <pre className="packet">{displayPacket || 'No packet drafted yet.'}</pre>
         </div>
         <div className="panel">
+          {memoryFiles.length > 0 && (
+            <>
+              <h2>Memory files (read-only)</h2>
+              <pre className="packet memory-viewer">{memoryFiles.join('\n\n---\n\n').slice(0, 8000)}</pre>
+            </>
+          )}
           <h2>Backups</h2>
           <ul className="log-list">
             {backups.length === 0 && <li>No backups on disk yet — run maintenance first.</li>}
@@ -1646,6 +1916,7 @@ export function DeveloperView({
             {state.aiCalls.map((call) => (
               <li key={call.id}>
                 {call.createdAt}: {call.task} ({call.status})
+                {call.promptHash ? ` · hash ${call.promptHash.slice(0, 12)}…` : ''}
               </li>
             ))}
           </ul>

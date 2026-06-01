@@ -13,6 +13,7 @@ describe('syllabusUpload', () => {
     const state = createInitialState('Calculus 1')
     const next = applySyllabusUpload(state, 'Week 3: Integration by parts')
     expect(next.syllabus?.items.length).toBeGreaterThan(0)
+    expect(next.syllabusMapping?.length).toBeGreaterThan(0)
     expect(next.changelog[0]).toContain('Syllabus uploaded')
   })
 })

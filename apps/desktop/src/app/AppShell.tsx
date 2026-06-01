@@ -9,7 +9,9 @@ import { WhyPanel } from '../components/WhyPanel'
 import { ToastStack } from '../ui'
 import { PythonStatusBanner } from '../components/PythonStatusBanner'
 import { initNativeChrome, isTauriRuntime } from '../lib/nativeChrome'
+import { HomeworkUpload } from '../components/HomeworkUpload'
 import { ProgressReport } from '../components/ProgressReport'
+import { Modal } from '../ui/Modal'
 import { completeActiveVideoPostCheck } from '../domain/activeVideoMode'
 import { startDiagnostic } from '../domain/diagnosticEngine'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
@@ -179,8 +181,13 @@ export function AppShell() {
     setMapViewMode,
     codexPaste,
     setCodexPaste,
+    testCodexConnection,
+    codexPingStatus,
+    codexPingBusy,
     showReport,
     setShowReport,
+    homeworkUploadOpen,
+    setHomeworkUploadOpen,
     mathFieldRef,
     update,
     startAction,
@@ -194,6 +201,7 @@ export function AppShell() {
     beginTestOut,
     handleOverride,
     startRepairFromHomework,
+    saveHomeworkWorkedExample,
     beginDiagnostic,
     skillActionId,
     setSkillActionId,
@@ -229,7 +237,7 @@ export function AppShell() {
 
   const paletteCommands: PaletteCommand[] = [
     { id: 'review', label: hasActiveDiagnostic ? 'Resume diagnostic' : 'Start review', group: 'Learn', icon: 'review', keywords: 'spaced diagnostic activity', run: () => startAction() },
-    { id: 'hw', label: 'Review homework', group: 'Learn', icon: 'homework', keywords: 'homework photo upload inline', run: () => navigate('today') },
+    { id: 'hw', label: 'Review homework', group: 'Learn', icon: 'homework', keywords: 'homework photo upload inline', run: () => setHomeworkUploadOpen(true) },
     { id: 'diag', label: 'Start diagnostic', group: 'Learn', icon: 'diagnostic', keywords: 'assessment', run: () => {
       update(startDiagnostic(appState).state)
       setView('activity')
@@ -333,6 +341,21 @@ export function AppShell() {
         />
       )}
 
+      {homeworkUploadOpen && (
+        <Modal title="Upload homework" onClose={() => setHomeworkUploadOpen(false)}>
+          <HomeworkUpload
+            text={homeworkText}
+            onTextChange={setHomeworkText}
+            onAnalyze={(payload, saveRaw) => {
+              void analyzeHomework(payload, saveRaw)
+              setHomeworkUploadOpen(false)
+              navigate('today')
+            }}
+          />
+          {homeworkAnalyzing && <p className="eyebrow">Analyzing homework...</p>}
+        </Modal>
+      )}
+
       {gateSkillId && (
         <PrerequisiteModal
           gate={checkPrerequisiteGate(appState, gateSkillId)}
@@ -412,6 +435,7 @@ export function AppShell() {
             diagnostic={appState.diagnostic}
             onStartRepair={startRepairFromHomework}
             onOpenReport={() => setShowReport(true)}
+            onSaveWorkedExample={saveHomeworkWorkedExample}
           />
         )}
         {renderActivity && (
@@ -509,6 +533,25 @@ export function AppShell() {
                   update(pushToast(appState, 'Invalid backup file', 'warning'))
                 }
               }}
+              onTestCodex={() => void testCodexConnection()}
+              codexPingStatus={codexPingStatus}
+              codexPingBusy={codexPingBusy}
+              showFullPrompts={appState.preferences?.developerShowFullPrompts ?? false}
+              onToggleShowFullPrompts={(enabled) =>
+                update({
+                  ...appState,
+                  preferences: {
+                    tone: appState.preferences?.tone ?? 'warm',
+                    gamificationLevel: appState.preferences?.gamificationLevel ?? 'minimal',
+                    notificationsEnabled: appState.preferences?.notificationsEnabled ?? false,
+                    reportsMode: appState.preferences?.reportsMode ?? 'on_demand_only',
+                    activeVideoMode: appState.preferences?.activeVideoMode ?? 'sometimes',
+                    theme: appState.preferences?.theme ?? 'system',
+                    confidencePrompts: appState.preferences?.confidencePrompts ?? 'review_only',
+                    developerShowFullPrompts: enabled,
+                  },
+                })
+              }
             />
           </div>
         )}

@@ -13,17 +13,20 @@ export function feedbackForMode(
   nextEscalation: number
   nextSteps: string[]
 } {
+  if (mode === 'diagnostic') {
+    return {
+      message: result.correct ? 'Correct.' : 'Incorrect.',
+      tone: result.correct ? 'correct' : 'wrong',
+      nextEscalation: 0,
+      nextSteps: result.correct
+        ? ['Continue to the next diagnostic question.']
+        : ['Continue — weak areas will be scheduled for repair.'],
+    }
+  }
+
   const nextSteps: string[] = []
 
   if (result.correct) {
-    if (mode === 'diagnostic') {
-      return {
-        message: 'Recorded for your map. Keep going.',
-        tone: 'correct',
-        nextEscalation: 0,
-        nextSteps: ['Continue to the next diagnostic question.'],
-      }
-    }
     if (mode === 'review' && hintCount === 0) {
       return {
         message: 'Strong retrieval — review interval extended.',
@@ -59,15 +62,6 @@ export function feedbackForMode(
       tone: 'almost',
       nextEscalation: 2,
       nextSteps,
-    }
-  }
-
-  if (mode === 'diagnostic') {
-    return {
-      message: 'Noted for your map — we will revisit this skill.',
-      tone: 'wrong',
-      nextEscalation: 2,
-      nextSteps: ['Continue the diagnostic; repair will be scheduled for weak areas.'],
     }
   }
 

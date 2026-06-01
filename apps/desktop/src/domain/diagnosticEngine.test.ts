@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { DIAGNOSTIC_TARGET_QUESTIONS, startDiagnostic, submitDiagnosticAnswer } from './diagnosticEngine'
+import {
+  MINI_DIAGNOSTIC_MAX,
+  MINI_DIAGNOSTIC_MIN,
+  shouldTriggerContinuingDiagnostic,
+  startContinuingDiagnostic,
+  DIAGNOSTIC_TARGET_QUESTIONS,
+  startDiagnostic,
+  submitDiagnosticAnswer,
+} from './diagnosticEngine'
 import { createInitialState } from './learningEngine'
 
 describe('diagnostic engine', () => {
@@ -41,5 +49,47 @@ describe('diagnostic engine', () => {
     expect(state.diagnostic?.completed).toBe(true)
     expect(state.diagnostic?.summary?.recommendedNext).toBeTruthy()
     expect(state.diagnostic?.summary?.weak.length).toBeGreaterThanOrEqual(0)
+  })
+
+  it('triggers continuing diagnostic on repeated mistake patterns', () => {
+    const state = createInitialState('Calculus 1')
+    const trigger = shouldTriggerContinuingDiagnostic({
+      ...state,
+      onboarded: true,
+      mistakePatterns: {
+        'chain_rule:missing_inner_derivative': {
+          tag: 'chain_rule:missing_inner_derivative',
+          skillIds: ['chain_rule'],
+          count: 3,
+          lastSeen: '2026-06-01',
+          note: 'Missing inner derivative',
+        },
+      },
+    })
+    expect(trigger?.kind).toBe('mistake_pattern')
+    expect(trigger?.skillIds).toContain('chain_rule')
+  })
+
+  it('starts a mini continuing diagnostic with 8-12 questions', () => {
+    const state = createInitialState('Calculus 1')
+    const { session } = startContinuingDiagnostic(
+      {
+        ...state,
+        onboarded: true,
+        mistakePatterns: {
+          'chain_rule:missing_inner_derivative': {
+            tag: 'chain_rule:missing_inner_derivative',
+            skillIds: ['chain_rule'],
+            count: 2,
+            lastSeen: '2026-06-01',
+            note: 'Missing inner derivative',
+          },
+        },
+      },
+      ['chain_rule'],
+    )
+    expect(session.continuing).toBe(true)
+    expect(session.queue.length).toBeGreaterThanOrEqual(MINI_DIAGNOSTIC_MIN)
+    expect(session.queue.length).toBeLessThanOrEqual(MINI_DIAGNOSTIC_MAX)
   })
 })

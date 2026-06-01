@@ -2,8 +2,34 @@
 
 ## Current Source Of Truth
 
-**Updated:** 2026-05-31  
+**Updated:** 2026-06-01  
 **Use this section first.** Older unchecked items in this file are retained as historical audit notes and can be stale. Before repeating a gap, verify the current code paths and this section.
+
+### 2026-06-01 spec completion pass (branch `feat/spec-completion-2026`)
+
+- [x] Full spec §6.3 prerequisite/C2 skill nodes in `skills_extension.json` (~82 graph skills)
+- [x] `skillProblemCatalogExtension.ts` — catalog coverage for all extension skills
+- [x] `formulaRecallCatalog` expanded to 40+ prompts
+- [x] FSRS-inspired adaptive `reviewScheduler` (stability index, retention-aware intervals)
+- [x] Continuing diagnostics API + triggers; minimal diagnostic feedback
+- [x] Session pace affects difficulty/review/video via `dailySessionEngine`
+- [x] Codex task-specific sessions, prompt hashing, ChatGPT/Gemini packet labels, test Codex button
+- [x] Maintenance: skill audit, consistency fixes, auto-trigger after 3 sessions, migration v8 `maintenance_runs`
+- [x] Homework: multi-problem parse, worked-example save, step feedback; lost-flow branches; syllabus mapping UI
+- [x] UX: Today collapse, confidence setting, graph presets, GeoGebra/Wolfram links, expanded ProgressReport
+- [x] `codeSelfImprovement` approval workflow (§19 scaffold); SymPy derivative/integral verify in `math_check.py`
+- [x] CI: `feat/**` branches + macOS desktop build job
+- [x] 91 unit tests passing; lint + build green
+
+### Still not at literal 100% spec (honest)
+
+- [ ] Production-scale problem bank (thousands of curated items)
+- [ ] True FSRS library / full package extraction from `apps/desktop/src/domain`
+- [ ] Codex code self-apply with diff apply + rollback (approval scaffold only)
+- [ ] HealthKit / Bevel integrations (optional in spec)
+- [ ] Full built-in graphing suite (Taylor overlays, slope fields, etc.)
+- [ ] Accessibility audit + broad visual regression harness
+- [ ] Rust/Tauri integration tests in CI
 
 ### 2026-05-31 implementation pass
 
