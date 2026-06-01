@@ -199,6 +199,8 @@ export function TodayView({
   onFormulaRecallDone,
   onStartFormulaRecall,
   onWhy,
+  onRefreshCoachInsight,
+  coachInsightRefreshing,
   setPace,
   setCustomPace,
   sessionPace,
@@ -224,6 +226,8 @@ export function TodayView({
   onFormulaRecallDone: () => void
   onStartFormulaRecall: () => void
   onWhy: () => void
+  onRefreshCoachInsight?: () => void
+  coachInsightRefreshing?: boolean
   setPace: (pace: SessionPace) => void
   setCustomPace: (adjustments: NonNullable<MathPilotState['customPaceAdjustments']>) => void
   sessionPace: SessionPace
@@ -261,6 +265,7 @@ export function TodayView({
   const primarySkill = nextAction.skillIds[0] ? state.skills[nextAction.skillIds[0]] : undefined
   const readinessValue = readiness(state)
   const narrative =
+    state.coachInsight?.narrative ??
     state.studyPlan?.summary ??
     (primarySkill
       ? `${primarySkill.name} is the current constraint.`
@@ -327,6 +332,17 @@ export function TodayView({
             <Button variant="ghost" size="lg" icon={<Eye size={18} />} onClick={onWhy}>
               Why this now
             </Button>
+            {onRefreshCoachInsight && (
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={onRefreshCoachInsight}
+                disabled={coachInsightRefreshing}
+                data-testid="refresh-coach-insight"
+              >
+                {coachInsightRefreshing ? 'Refreshing…' : 'Refresh coach insight'}
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="lg"

@@ -16,7 +16,14 @@ export interface CodexStateUpdates {
   [skillId: string]: unknown
 }
 
-export function parseCodexResponse(stdout: string): CodexResponsePayload | null {
+export interface DiagnosticCuratorPayload {
+  knowledge_gaps?: string[]
+  coach_narrative?: string
+  learning_model_bullets?: string[]
+  map_highlight_skill_ids?: string[]
+}
+
+function extractJsonObject(stdout: string): Record<string, unknown> | null {
   const trimmed = stdout.trim()
   if (!trimmed) return null
 
@@ -24,9 +31,41 @@ export function parseCodexResponse(stdout: string): CodexResponsePayload | null 
   if (!jsonMatch) return null
 
   try {
-    return JSON.parse(jsonMatch[0]) as CodexResponsePayload
+    return JSON.parse(jsonMatch[0]) as Record<string, unknown>
   } catch {
     return null
+  }
+}
+
+export function parseCodexResponse(stdout: string): CodexResponsePayload | null {
+  const parsed = extractJsonObject(stdout)
+  if (!parsed) return null
+  return parsed as CodexResponsePayload
+}
+
+export function parseDiagnosticCuratorResponse(stdout: string): DiagnosticCuratorPayload | null {
+  const parsed = extractJsonObject(stdout)
+  if (!parsed) return null
+
+  const knowledge_gaps = Array.isArray(parsed.knowledge_gaps)
+    ? parsed.knowledge_gaps.filter((v): v is string => typeof v === 'string')
+    : undefined
+  const learning_model_bullets = Array.isArray(parsed.learning_model_bullets)
+    ? parsed.learning_model_bullets.filter((v): v is string => typeof v === 'string')
+    : undefined
+  const map_highlight_skill_ids = Array.isArray(parsed.map_highlight_skill_ids)
+    ? parsed.map_highlight_skill_ids.filter((v): v is string => typeof v === 'string')
+    : undefined
+  const coach_narrative =
+    typeof parsed.coach_narrative === 'string' ? parsed.coach_narrative : undefined
+
+  if (!coach_narrative?.trim() && !knowledge_gaps?.length) return null
+
+  return {
+    knowledge_gaps,
+    coach_narrative,
+    learning_model_bullets,
+    map_highlight_skill_ids,
   }
 }
 
@@ -110,9 +149,14 @@ export function applyCodexResponse(state: MathPilotState, payload: CodexResponse
     }
   }
 
+  const hintReason =
+    payload.recommended_next_action?.reason ??
+    payload.feedback_to_user?.slice(0, 280) ??
+    next.codexHint?.reason
+
   return {
     ...next,
-    codexHint: payload.recommended_next_action ?? next.codexHint,
+    codexHint: hintReason ? { reason: hintReason } : next.codexHint,
     pendingCodexAnswer:
       typeof payload.answer_is_correct === 'boolean'
         ? { correct: payload.answer_is_correct, feedback: payload.feedback_to_user }

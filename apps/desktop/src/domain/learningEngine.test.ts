@@ -2,6 +2,28 @@ import { describe, expect, it } from 'vitest'
 import { chooseNextAction, createInitialState, masteryState, recordAttempt } from './learningEngine'
 
 describe('learning engine', () => {
+  it('does not let codexHint override next action routing', () => {
+    const state = createInitialState('Calculus 1')
+    state.mastery.function_composition.masteryScore = 0.18
+    state.mastery.function_composition.masteryState = 'Weak'
+    state.mastery.chain_rule.masteryScore = 0.54
+    state.mastery.chain_rule.masteryState = 'Learning'
+
+    const action = chooseNextAction({
+      ...state,
+      codexHint: {
+        kind: 'guided_practice',
+        title: 'Codex override',
+        skillIds: ['limits_intro'],
+        reason: 'Codex narrative only — limits next.',
+      },
+    })
+
+    expect(action.kind).toBe('quick_repair')
+    expect(action.skillIds).toContain('function_composition')
+    expect(action.reason).toContain('Codex narrative only')
+  })
+
   it('recommends prerequisite repair before a blocked calculus skill', () => {
     const state = createInitialState('Calculus 1')
     const weakPrereq = state.mastery.function_composition

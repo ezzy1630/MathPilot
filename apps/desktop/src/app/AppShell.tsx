@@ -217,6 +217,8 @@ export function AppShell() {
     skillActionId,
     setSkillActionId,
     dismissPostDiagnostic,
+    refreshCoachInsight,
+    coachInsightRefreshing,
   } = app
 
   const themeClass =
@@ -355,6 +357,9 @@ export function AppShell() {
         <WhyPanel
           action={action}
           studyPlan={appState.studyPlan}
+          coachInsight={appState.coachInsight}
+          onRefreshCoachInsight={refreshCoachInsight}
+          coachInsightRefreshing={coachInsightRefreshing}
           onClose={() => setWhyOpen(false)}
           onOpenMap={() => {
             setWhyOpen(false)
@@ -512,6 +517,8 @@ export function AppShell() {
             onFormulaRecallDone={() => setShowFormulaRecall(false)}
             onStartFormulaRecall={() => setShowFormulaRecall(true)}
             onWhy={() => setWhyOpen(true)}
+            onRefreshCoachInsight={refreshCoachInsight}
+            coachInsightRefreshing={coachInsightRefreshing}
             setPace={setPace}
             setCustomPace={setCustomPace}
             sessionPace={appState.sessionPace ?? 'normal'}

@@ -375,7 +375,7 @@ function buildAdaptiveQueue(state: MathPilotState, pool: Problem[], target: numb
   return queue.slice(0, target)
 }
 
-function buildDiagnosticSummary(
+export function buildDiagnosticSummary(
   state: MathPilotState,
   weakIds: string[],
   strongIds: string[],

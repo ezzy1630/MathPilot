@@ -165,6 +165,14 @@ export interface NextAction {
   cta: string
 }
 
+export interface CoachInsight {
+  updatedAt: string
+  narrative: string
+  gapBullets: string[]
+  mapHighlightSkillIds: string[]
+  source: 'deterministic' | 'codex'
+}
+
 export interface AiCallLog {
   id: string
   createdAt: string
@@ -300,6 +308,7 @@ export interface MathPilotState {
   }
   testOutResult?: 'passed' | 'failed'
   lastHomeworkSummary?: string
+  coachInsight?: CoachInsight
   codexHint?: Partial<NextAction>
   pendingCodexAnswer?: { correct: boolean; feedback?: string }
   postDiagnosticPending?: boolean

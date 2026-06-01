@@ -55,6 +55,7 @@ import { parseResourceImport, mergeImportedResources } from '../domain/resourceR
 import { startActiveVideo } from '../domain/activeVideoMode'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
 import { clearContinuingDiagnosticPending, evaluateContinuingDiagnostic } from '../domain/continuingDiagnostics'
+import { refreshCoachInsight, runDiagnosticCurator } from '../domain/diagnosticCurator'
 import { topResourcesForSkill } from '../domain/resourceLearning'
 import { attemptModeForActivity } from '../domain/activityAttemptMode'
 import type { CourseFocus, MathPilotState, Problem } from '../domain/types'
@@ -93,6 +94,7 @@ export function useMathPilotApp() {
   const [homeworkAnalyzing, setHomeworkAnalyzing] = useState(false)
   const [showFormulaRecall, setShowFormulaRecall] = useState(false)
   const [whyOpen, setWhyOpen] = useState(false)
+  const [coachInsightRefreshing, setCoachInsightRefreshing] = useState(false)
   const [mapViewMode, setMapViewMode] = useState<'wheel' | 'list' | 'tree'>('wheel')
   const [codexPaste, setCodexPaste] = useState('')
   const [codexPingStatus, setCodexPingStatus] = useState<string | null>(null)
@@ -367,25 +369,19 @@ export function useMathPilotApp() {
     void syncSkillMasteryNotes(merged, activeProblem.skillIds)
 
     if (next.diagnostic?.completed && next.diagnostic.summary) {
-      if (next.diagnostic.continuing) {
-        update(
-          pushToast(
-            clearContinuingDiagnosticPending({ ...next }),
-            'Continuing diagnostic complete',
-            'success',
-          ),
-        )
-        setView('today')
-        return
-      }
+      const afterDiagnostic = next.diagnostic.continuing
+        ? clearContinuingDiagnosticPending({ ...next })
+        : { ...next, postDiagnosticPending: true, onboarded: true }
+
       update(
         pushToast(
-          { ...next, postDiagnosticPending: true, onboarded: true },
-          'Initial knowledge map created',
+          afterDiagnostic,
+          next.diagnostic.continuing ? 'Continuing diagnostic complete' : 'Initial knowledge map created',
           'success',
         ),
       )
       setView('today')
+      void runDiagnosticCurator(afterDiagnostic).then((curated) => update(curated))
       return
     }
   }
@@ -653,6 +649,16 @@ export function useMathPilotApp() {
       if (!state) return
       update({ ...state, postDiagnosticPending: false })
     },
+    refreshCoachInsight: () => {
+      if (!state || coachInsightRefreshing) return
+      setCoachInsightRefreshing(true)
+      void refreshCoachInsight(state)
+        .then((curated) => {
+          update(pushToast(curated, 'Coach insight updated', 'success'))
+        })
+        .finally(() => setCoachInsightRefreshing(false))
+    },
+    coachInsightRefreshing,
     onVideoInterrupt: (reason: string) => setFeedback(reason),
     testCodexConnection,
     codexPingStatus,

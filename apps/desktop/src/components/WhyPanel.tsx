@@ -1,21 +1,40 @@
 import { Map } from 'lucide-react'
 import { AccessibleModal } from './AccessibleModal'
-import type { NextAction } from '../domain/types'
+import type { CoachInsight, NextAction } from '../domain/types'
 import type { StudyPlan } from '../domain/studyPlanEngine'
 
 export function WhyPanel({
   action,
   studyPlan,
+  coachInsight,
+  onRefreshCoachInsight,
+  coachInsightRefreshing,
   onClose,
   onOpenMap,
 }: {
   action: NextAction
   studyPlan?: StudyPlan
+  coachInsight?: CoachInsight
+  onRefreshCoachInsight?: () => void
+  coachInsightRefreshing?: boolean
   onClose: () => void
   onOpenMap?: () => void
 }) {
   return (
     <AccessibleModal title="Why this step?" onClose={onClose}>
+      {coachInsight && (
+        <>
+          <p className="eyebrow">Coach insight</p>
+          <p className="why-lead">{coachInsight.narrative}</p>
+          {coachInsight.gapBullets.length > 0 && (
+            <ul className="why-steps">
+              {coachInsight.gapBullets.map((bullet) => (
+                <li key={bullet}>{bullet}</li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
       <p className="why-lead">{action.reason}</p>
       <div className="why-card">
         <p className="eyebrow">Recommended</p>
@@ -38,6 +57,17 @@ export function WhyPanel({
         </>
       )}
       <div className="action-row" style={{ marginTop: 20 }}>
+        {onRefreshCoachInsight && (
+          <button
+            type="button"
+            className="secondary"
+            onClick={onRefreshCoachInsight}
+            disabled={coachInsightRefreshing}
+            data-testid="why-refresh-coach-insight"
+          >
+            {coachInsightRefreshing ? 'Refreshing…' : 'Refresh coach insight'}
+          </button>
+        )}
         {onOpenMap && action.skillIds.length > 0 && (
           <button type="button" className="secondary" onClick={onOpenMap}>
             <Map size={18} />

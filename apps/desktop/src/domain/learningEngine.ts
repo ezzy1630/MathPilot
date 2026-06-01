@@ -124,21 +124,15 @@ export function addDays(days: number): string {
   return date.toISOString().slice(0, 10)
 }
 
+function applyCodexHintNarrative(action: NextAction, hint?: Partial<NextAction>): NextAction {
+  if (!hint?.reason) return action
+  return { ...action, reason: hint.reason }
+}
+
 export function chooseNextAction(state: MathPilotState): NextAction {
-  if (state.codexHint?.title && state.codexHint.skillIds?.length) {
-    const hint = state.codexHint
-    const skillId = hint.skillIds![0]
-    return enrichNextAction(state, {
-      kind: hint.kind ?? 'guided_practice',
-      title: hint.title!,
-      reason: hint.reason ?? 'Suggested from your last help session.',
-      skillIds: hint.skillIds!,
-      problemId: skillId ? problemForSkill(state, skillId, hint.kind) : undefined,
-      cta: hint.cta ?? 'Continue',
-    })
-  }
   const base = chooseNextActionCore(state)
-  return enrichNextAction(state, base)
+  const enriched = enrichNextAction(state, base)
+  return applyCodexHintNarrative(enriched, state.codexHint)
 }
 
 function chooseNextActionCore(state: MathPilotState): NextAction {
