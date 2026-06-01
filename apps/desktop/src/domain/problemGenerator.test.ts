@@ -1,8 +1,37 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { FORMULA_CATALOG } from './formulaRecallCatalog'
 import { createInitialState } from './learningEngine'
-import { generateProblemForSkill, verifyGeneratedProblem, verifyGeneratedProblemAsync } from './problemGenerator'
+import {
+  generateProblemForSkill,
+  generateProblemViaCodexAsync,
+  parseCodexProblemPayload,
+  verifyGeneratedProblem,
+  verifyGeneratedProblemAsync,
+} from './problemGenerator'
+import {
+  activeProblems,
+  markProblemDeprecated,
+  markProblemUnverifiedUsed,
+  promoteProblemToVerified,
+  verifiedProblems,
+} from './problemBank'
 import { verifyCalculusSymbolic } from './symbolicCheck'
+
+vi.mock('./aiAdapter', () => ({
+  invokeCodexForTask: vi.fn(async (state: ReturnType<typeof createInitialState>) => ({
+    state,
+    result: {
+      ok: true,
+      stdout: JSON.stringify({
+        prompt: 'Differentiate x^3',
+        expectedAnswer: '3*x^2',
+        difficulty: 0.45,
+      }),
+      stderr: '',
+      mode: 'codex_cli',
+    },
+  })),
+}))
 
 describe('problemGenerator', () => {
   it('verifies template answers against themselves', () => {
@@ -55,6 +84,50 @@ describe('problemGenerator', () => {
   })
 
   it('formula recall catalog meets spec minimum', () => {
-    expect(FORMULA_CATALOG.length).toBeGreaterThanOrEqual(40)
+    expect(FORMULA_CATALOG.length).toBeGreaterThanOrEqual(60)
+  })
+
+  it('parses codex JSON payloads', () => {
+    const payload = parseCodexProblemPayload(
+      '{"prompt":"Differentiate x^2","expected_answer":"2*x","difficulty":0.4}',
+    )
+    expect(payload?.prompt).toContain('Differentiate')
+    expect(payload?.expectedAnswer).toBe('2*x')
+  })
+
+  it('generateProblemViaCodexAsync saves verified codex output when developer mode on', async () => {
+    let state = createInitialState('Calculus 1')
+    state = { ...state, developerModeEnabled: true }
+    const result = await generateProblemViaCodexAsync(state, 'chain_rule', 7)
+    expect(result).not.toBeNull()
+    expect(result!.record.problem.source).toBe('codex_generated')
+    expect(result!.record.codexMetadata?.source).toBe('codex_generated')
+    expect(result!.state.problems[result!.record.problem.id]).toBeTruthy()
+  })
+
+  it('skips codex generation without developer mode', async () => {
+    const state = createInitialState('Calculus 1')
+    const result = await generateProblemViaCodexAsync(state, 'chain_rule', 1)
+    expect(result).toBeNull()
+  })
+
+  it('promote and deprecate problem bank workflow', () => {
+    let state = createInitialState('Calculus 1')
+    const generated = generateProblemForSkill(state, 'chain_rule', 99)
+    expect(generated).not.toBeNull()
+    state = generated!.state
+    const id = generated!.record.problem.id
+
+    state = promoteProblemToVerified(state, id)
+    expect(state.problems[id].verificationStatus).toBe('verified')
+    expect(verifiedProblems(state).some((p) => p.id === id)).toBe(true)
+
+    state = markProblemUnverifiedUsed(state, id)
+    expect(state.problems[id].verificationStatus).toBe('unverified_used')
+
+    state = markProblemDeprecated(state, id, 'bad answer key')
+    expect(state.problems[id].deprecated).toBe(true)
+    expect(state.problems[id].verificationStatus).toBe('deprecated')
+    expect(activeProblems(state).some((p) => p.id === id)).toBe(false)
   })
 })

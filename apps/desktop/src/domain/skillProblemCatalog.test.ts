@@ -6,6 +6,7 @@ import { skillsForCourse } from './courseGraph'
 import { diagnosticProblemForSkill, expandDiagnosticProblemsForSkills } from './diagnosticTemplates'
 import { generateProblemForSkill } from './problemGenerator'
 import { catalogSkillIds, hasCatalogEntry, SKILL_CATALOG } from './skillProblemCatalog'
+import { SKILL_CATALOG_EXTENSION } from './skillProblemCatalogExtension'
 import { expandDiagnosticProblems } from './seedData'
 import { createInitialState } from './learningEngine'
 
@@ -31,6 +32,16 @@ describe('skillProblemCatalog', () => {
         expect(spec.expectedAnswer).not.toBe('concept')
         expect(spec.expectedAnswer).not.toBe('ready')
         expect(spec.prompt.length).toBeGreaterThan(10)
+      }
+    }
+  })
+
+  it('extension skills include at least three practice variants', () => {
+    for (const entry of Object.values(SKILL_CATALOG_EXTENSION)) {
+      expect(entry.practice.length, entry.skillId).toBeGreaterThanOrEqual(3)
+      for (const spec of entry.practice) {
+        expect(spec.difficulty).toBeGreaterThanOrEqual(0.2)
+        expect(spec.difficulty).toBeLessThanOrEqual(0.8)
       }
     }
   })

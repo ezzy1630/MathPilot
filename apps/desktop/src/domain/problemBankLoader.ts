@@ -1,23 +1,26 @@
 import calc1Curated from '@config/problem_bank/calculus_1_curated.json'
 import calc2Curated from '@config/problem_bank/calculus_2_curated.json'
+import { skillsForCourse } from './courseGraph'
 import { SKILL_CATALOG } from './skillProblemCatalog'
 import { SKILL_CATALOG_EXTENSION } from './skillProblemCatalogExtension'
 import type { ActivityKind, CourseFocus, Problem } from './types'
 
+export interface CuratedBankProblem {
+  id: string
+  title: string
+  prompt: string
+  skillIds: string[]
+  difficulty: number
+  mode: ActivityKind
+  answerType: Problem['answerType']
+  expectedAnswer: string
+  hintSequence?: string[]
+  verificationStatus?: Problem['verificationStatus']
+  requiresShowWork?: boolean
+}
+
 interface CuratedFile {
-  problems: Array<{
-    id: string
-    title: string
-    prompt: string
-    skillIds: string[]
-    difficulty: number
-    mode: ActivityKind
-    answerType: Problem['answerType']
-    expectedAnswer: string
-    hintSequence?: string[]
-    verificationStatus?: Problem['verificationStatus']
-    requiresShowWork?: boolean
-  }>
+  problems: CuratedBankProblem[]
 }
 
 const MODES: ActivityKind[] = ['guided_practice', 'independent_practice', 'mixed_review']
@@ -56,6 +59,43 @@ function catalogToProblems(): Problem[] {
       }
     })
   }
+  return out
+}
+
+/** Build curated JSON entries from merged skill catalog (used by generate_problem_bank.ts). */
+export function buildCuratedBankFromCatalog(course: CourseFocus): CuratedBankProblem[] {
+  const skillIds = new Set(skillsForCourse(course).map((skill) => skill.id))
+  const catalog = { ...SKILL_CATALOG, ...SKILL_CATALOG_EXTENSION }
+  const prefix = course === 'Calculus 2' ? 'c2' : 'c1'
+  const out: CuratedBankProblem[] = []
+
+  for (const entry of Object.values(catalog)) {
+    if (!skillIds.has(entry.skillId)) continue
+    const specs = [...entry.diagnostics, ...entry.practice]
+    specs.forEach((spec, specIndex) => {
+      const baseMode = 'mode' in spec && spec.mode ? spec.mode : 'diagnostic'
+      for (let variant = 0; variant < 3; variant += 1) {
+        const mode =
+          baseMode === 'diagnostic'
+            ? 'diagnostic'
+            : (MODES[variant % MODES.length] as ActivityKind)
+        out.push({
+          id: `cur-${prefix}-${entry.skillId}-${specIndex}-v${variant}`,
+          title: variant === 0 ? spec.title : `${spec.title} (v${variant + 1})`,
+          prompt: spec.prompt,
+          skillIds: [entry.skillId],
+          difficulty: Math.min(0.8, Math.max(0.2, spec.difficulty + variant * 0.04)),
+          mode,
+          answerType: spec.answerType,
+          expectedAnswer: spec.expectedAnswer,
+          hintSequence: spec.hintSequence,
+          verificationStatus: variant === 0 ? 'verified' : 'unverified_used',
+          requiresShowWork: spec.difficulty >= 0.42,
+        })
+      }
+    })
+  }
+
   return out
 }
 

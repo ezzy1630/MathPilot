@@ -245,3 +245,122 @@ export function pickGeneratedProblem(state: MathPilotState, skillId: string): Pr
     (p) => p.skillIds.includes(skillId) && p.source === 'template_engine' && !p.deprecated,
   )
 }
+
+export interface CodexProblemPayload {
+  title?: string
+  prompt: string
+  expectedAnswer: string
+  answerType?: 'expression' | 'text'
+  difficulty?: number
+  hintSequence?: string[]
+  variables?: string[]
+}
+
+export function parseCodexProblemPayload(stdout: string): CodexProblemPayload | null {
+  const jsonMatch = stdout.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) return null
+  try {
+    const raw = JSON.parse(jsonMatch[0]) as Record<string, unknown>
+    const prompt = String(raw.prompt ?? raw.problem ?? '')
+    const expectedAnswer = String(raw.expectedAnswer ?? raw.expected_answer ?? '')
+    if (!prompt || !expectedAnswer) return null
+    return {
+      title: raw.title ? String(raw.title) : undefined,
+      prompt,
+      expectedAnswer,
+      answerType: raw.answerType === 'text' || raw.answer_type === 'text' ? 'text' : 'expression',
+      difficulty: typeof raw.difficulty === 'number' ? raw.difficulty : 0.5,
+      hintSequence: Array.isArray(raw.hintSequence)
+        ? raw.hintSequence.map(String)
+        : Array.isArray(raw.hints)
+          ? raw.hints.map(String)
+          : ['Review the relevant skill.'],
+      variables: Array.isArray(raw.variables) ? raw.variables.map(String) : ['x'],
+    }
+  } catch {
+    return null
+  }
+}
+
+/** Codex generation path (spec §9.2) — active only when developer mode is enabled. */
+export async function generateProblemViaCodexAsync(
+  state: MathPilotState,
+  skillId: string,
+  seed = Date.now(),
+): Promise<{ state: MathPilotState; record: GeneratedProblemRecord } | null> {
+  if (!state.developerModeEnabled) return null
+
+  const { invokeCodexForTask } = await import('./aiAdapter')
+  const stubProblem: Problem = {
+    id: `codex-stub-${skillId}`,
+    title: `Generate for ${skillId}`,
+    prompt: '',
+    skillIds: [skillId],
+    difficulty: 0.5,
+    mode: 'guided_practice',
+    answerType: 'expression',
+    expectedAnswer: '',
+    hintSequence: [],
+    source: 'codex_generated',
+  }
+
+  const task = `generate_problem skill=${skillId} seed=${seed}`
+  const { state: withCall, result } = await invokeCodexForTask(state, task, { problem: stubProblem })
+
+  if (!result.ok) return null
+
+  const payload = parseCodexProblemPayload(result.stdout)
+  if (!payload) return null
+
+  const spec: TemplateSpec = {
+    skillId,
+    title: payload.title ?? `Codex ${skillId}`,
+    prompt: payload.prompt,
+    expectedAnswer: payload.expectedAnswer,
+    mode: 'guided_practice',
+    difficulty: payload.difficulty ?? 0.5,
+    answerType: payload.answerType ?? 'expression',
+    hintSequence: payload.hintSequence ?? ['Review the relevant skill.'],
+    variables: payload.variables,
+    requiresShowWork: inferRequiresShowWork(payload.prompt, payload.answerType ?? 'expression'),
+    ...inferCalculusVerify(payload.prompt),
+  }
+
+  const verification = await verifyGeneratedProblemAsync(spec)
+  const status = verification.symbolic === 'passed' ? 'verified' : 'unverified_used'
+  const id = `codex-${skillId}-${seed}`
+
+  const problem: Problem = {
+    id,
+    title: spec.title,
+    prompt: spec.prompt,
+    skillIds: [skillId],
+    difficulty: spec.difficulty,
+    mode: spec.mode,
+    answerType: spec.answerType,
+    expectedAnswer: spec.expectedAnswer,
+    hintSequence: spec.hintSequence,
+    verificationStatus: status,
+    source: 'codex_generated',
+    attemptCount: 0,
+    requiresShowWork: spec.requiresShowWork,
+  }
+
+  const record: GeneratedProblemRecord = {
+    problem,
+    verification,
+    codexMetadata: toCodexMetadata(problem, verification),
+  }
+
+  return {
+    state: {
+      ...withCall,
+      problems: { ...withCall.problems, [id]: problem },
+      changelog: [
+        `${new Date().toISOString()}: Codex generated ${id} (${status}, symbolic=${verification.symbolic}).`,
+        ...withCall.changelog,
+      ],
+    },
+    record,
+  }
+}
