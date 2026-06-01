@@ -21,6 +21,15 @@ const TASK_SKILL_KEYS: Record<string, string[]> = {
     '../../../../skills/maintenance/compress_attempt_history.md',
     '../../../../skills/maintenance/audit_problem_bank.md',
   ],
+  maintenance_curator: [
+    '../../../../skills/maintenance/run_safe_maintenance.md',
+    '../../../../skills/maintenance/compress_attempt_history.md',
+  ],
+  continuing_diagnostic_curator: ['../../../../skills/planning/choose_next_action.md'],
+  homework_cluster: [
+    '../../../../skills/grading/classify_mistake.md',
+    '../../../../skills/planning/generate_quick_repair.md',
+  ],
   resources: [
     '../../../../skills/resources/rank_video_for_skill.md',
     '../../../../skills/resources/select_video_resource.md',

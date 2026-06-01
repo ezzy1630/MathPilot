@@ -248,6 +248,8 @@ export interface MaintenanceRunRecord {
   resourceRankChanges: string[]
   reviewScheduleChanges: string[]
   warnings: string[]
+  /** Codex maintenance_curator summary when curator ran successfully or fell back. */
+  codexSummary?: string
 }
 
 export interface MathPilotState {
@@ -319,6 +321,8 @@ export interface MathPilotState {
     notificationsEnabled: boolean
     reportsMode: 'on_demand_only'
     enableCodexProblemGen?: boolean
+    /** When true (default), run Codex maintenance_curator after deterministic maintenance. */
+    enableMaintenanceCurator?: boolean
     activeVideoMode: 'never' | 'sometimes' | 'active'
     theme: 'system' | 'light' | 'dark'
     confidencePrompts: 'off' | 'review_only' | 'often'
@@ -355,6 +359,10 @@ export interface MathPilotState {
   sessionsSinceMaintenance?: number
   workedExamples?: Record<string, { problemId: string; steps: string[]; source: string; createdAt: string }>
   continuingDiagnosticPending?: boolean
+  /** Set after continuing-diagnostic curator runs for the current pending episode. */
+  continuingDiagnosticCuratorRan?: boolean
+  /** ISO timestamp of last homework cluster curator Codex pass. */
+  homeworkClusterLastRun?: string
   activeVideo?: {
     resourceId: string
     skillIds: string[]

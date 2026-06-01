@@ -19,7 +19,6 @@ import { completeActiveVideoPostCheck } from '../domain/activeVideoMode'
 import { startContinuingDiagnostic, startDiagnostic } from '../domain/diagnosticEngine'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
 import { generateProblemForSkill } from '../domain/problemGenerator'
-import { runMaintenance } from '../domain/maintenance'
 import { batchVerifyProblemBank } from '../domain/problemBank'
 import { applyApprovedCodeChange, rollbackCodeChange } from '../domain/codeSelfImprovement'
 import { checkPrerequisiteGate } from '../domain/sessionEngine'
@@ -259,7 +258,7 @@ export function AppShell() {
     { id: 'weak', label: 'Weak skills', group: 'Navigate', icon: 'map', keywords: 'repair', run: () => navigate('map') },
     { id: 'res', label: 'Resources', group: 'Navigate', icon: 'resources', keywords: 'video khan', run: () => navigate('resources') },
     { id: 'settings', label: 'Settings', group: 'Navigate', icon: 'settings', keywords: 'preferences', run: () => navigate('settings') },
-    { id: 'maint', label: 'Run maintenance', group: 'Maintain', icon: 'maintain', keywords: 'backup', run: () => update(runMaintenance(appState)) },
+    { id: 'maint', label: 'Run maintenance', group: 'Maintain', icon: 'maintain', keywords: 'backup', run: () => app.runMaintenanceAction('manual') },
     { id: 'report', label: 'Progress report', group: 'Maintain', icon: 'report', keywords: 'analytics', run: () => setShowReport(true) },
     {
       id: 'history',
@@ -615,7 +614,7 @@ export function AppShell() {
               state={appState}
               packet={packet}
               generatePacket={generatePacket}
-              runMaintenance={() => update(runMaintenance(appState, 'developer'))}
+              runMaintenance={() => app.runMaintenanceAction('developer')}
               onGenerateProblem={(skillId) => {
                 const result = generateProblemForSkill(appState, skillId)
                 if (result) update(result.state)

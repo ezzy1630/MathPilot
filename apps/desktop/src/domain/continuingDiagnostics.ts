@@ -193,5 +193,9 @@ export function evaluateContinuingDiagnostic(
 
 export function clearContinuingDiagnosticPending(state: MathPilotState): MathPilotState {
   if (!state.continuingDiagnosticPending) return state
-  return { ...state, continuingDiagnosticPending: false }
+  return {
+    ...state,
+    continuingDiagnosticPending: false,
+    continuingDiagnosticCuratorRan: false,
+  }
 }

@@ -20,6 +20,7 @@ export interface MaintenanceRun {
   resourceRankChanges: string[]
   reviewScheduleChanges: string[]
   warnings: string[]
+  codexSummary?: string
 }
 
 const AUTO_MAINTENANCE_SESSION_THRESHOLD = 3

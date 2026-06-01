@@ -23,6 +23,32 @@ export interface DiagnosticCuratorPayload {
   map_highlight_skill_ids?: string[]
 }
 
+export interface MaintenanceCuratorPayload {
+  changelog_summary?: string
+  learning_model_bullets?: string[]
+  durable_notes_bullets?: string[]
+  warnings?: string[]
+}
+
+export interface ContinuingDiagnosticCuratorPayload {
+  gap_label?: string
+  coach_narrative?: string
+}
+
+export interface HomeworkClusterPayload {
+  clustered_patterns?: Array<{
+    tag: string
+    skill_ids?: string[]
+    note?: string
+    count?: number
+  }>
+  repair_recommendations?: Array<{
+    analysis_id?: string
+    skill_id: string
+    reason: string
+  }>
+}
+
 function extractJsonObject(stdout: string): Record<string, unknown> | null {
   const trimmed = stdout.trim()
   if (!trimmed) return null
@@ -67,6 +93,92 @@ export function parseDiagnosticCuratorResponse(stdout: string): DiagnosticCurato
     learning_model_bullets,
     map_highlight_skill_ids,
   }
+}
+
+function stringArrayField(parsed: Record<string, unknown>, key: string): string[] | undefined {
+  const raw = parsed[key]
+  if (!Array.isArray(raw)) return undefined
+  return raw.filter((v): v is string => typeof v === 'string')
+}
+
+export function parseMaintenanceCuratorResponse(stdout: string): MaintenanceCuratorPayload | null {
+  const parsed = extractJsonObject(stdout)
+  if (!parsed) return null
+
+  const changelog_summary =
+    typeof parsed.changelog_summary === 'string' ? parsed.changelog_summary : undefined
+  const learning_model_bullets = stringArrayField(parsed, 'learning_model_bullets')
+  const durable_notes_bullets = stringArrayField(parsed, 'durable_notes_bullets')
+  const warnings = stringArrayField(parsed, 'warnings')
+
+  if (
+    !changelog_summary?.trim() &&
+    !learning_model_bullets?.length &&
+    !durable_notes_bullets?.length &&
+    !warnings?.length
+  ) {
+    return null
+  }
+
+  return { changelog_summary, learning_model_bullets, durable_notes_bullets, warnings }
+}
+
+export function parseContinuingDiagnosticCuratorResponse(
+  stdout: string,
+): ContinuingDiagnosticCuratorPayload | null {
+  const parsed = extractJsonObject(stdout)
+  if (!parsed) return null
+
+  const gap_label = typeof parsed.gap_label === 'string' ? parsed.gap_label : undefined
+  const coach_narrative =
+    typeof parsed.coach_narrative === 'string'
+      ? parsed.coach_narrative
+      : typeof parsed.narrative === 'string'
+        ? parsed.narrative
+        : undefined
+
+  if (!gap_label?.trim() && !coach_narrative?.trim()) return null
+
+  return { gap_label, coach_narrative }
+}
+
+export function parseHomeworkClusterResponse(stdout: string): HomeworkClusterPayload | null {
+  const parsed = extractJsonObject(stdout)
+  if (!parsed) return null
+
+  const clustered_patterns = Array.isArray(parsed.clustered_patterns)
+    ? parsed.clustered_patterns
+        .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object')
+        .map((entry) => ({
+          tag: typeof entry.tag === 'string' ? entry.tag : '',
+          skill_ids: Array.isArray(entry.skill_ids)
+            ? entry.skill_ids.filter((v): v is string => typeof v === 'string')
+            : undefined,
+          note: typeof entry.note === 'string' ? entry.note : undefined,
+          count: typeof entry.count === 'number' ? entry.count : undefined,
+        }))
+        .filter((p) => p.tag.trim())
+    : undefined
+
+  const repair_recommendations = Array.isArray(parsed.repair_recommendations)
+    ? parsed.repair_recommendations
+        .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object')
+        .map((entry) => ({
+          analysis_id: typeof entry.analysis_id === 'string' ? entry.analysis_id : undefined,
+          skill_id:
+            typeof entry.skill_id === 'string'
+              ? entry.skill_id
+              : typeof entry.skillId === 'string'
+                ? entry.skillId
+                : '',
+          reason: typeof entry.reason === 'string' ? entry.reason : '',
+        }))
+        .filter((r) => r.skill_id.trim() && r.reason.trim())
+    : undefined
+
+  if (!clustered_patterns?.length && !repair_recommendations?.length) return null
+
+  return { clustered_patterns, repair_recommendations }
 }
 
 export function applyCodexResponse(state: MathPilotState, payload: CodexResponsePayload): MathPilotState {

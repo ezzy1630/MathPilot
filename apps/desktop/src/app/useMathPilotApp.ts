@@ -55,7 +55,15 @@ import { parseResourceImport, mergeImportedResources } from '../domain/resourceR
 import { startActiveVideo } from '../domain/activeVideoMode'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
 import { clearContinuingDiagnosticPending, evaluateContinuingDiagnostic } from '../domain/continuingDiagnostics'
+import {
+  markContinuingDiagnosticCuratorScheduled,
+  runContinuingDiagnosticCurator,
+  shouldScheduleContinuingDiagnosticCurator,
+} from '../domain/continuingDiagnosticCurator'
 import { refreshCoachInsight, runDiagnosticCurator } from '../domain/diagnosticCurator'
+import { runHomeworkClusterCurator, shouldRunHomeworkClusterCurator } from '../domain/homeworkClusterCurator'
+import { runMaintenance } from '../domain/maintenance'
+import { runMaintenanceCurator, shouldRunMaintenanceCurator } from '../domain/maintenanceCurator'
 import { topResourcesForSkill } from '../domain/resourceLearning'
 import { attemptModeForActivity } from '../domain/activityAttemptMode'
 import type { CourseFocus, MathPilotState, Problem } from '../domain/types'
@@ -104,6 +112,16 @@ export function useMathPilotApp() {
   const [wrongEscalation, setWrongEscalation] = useState(0)
   const [skillActionId, setSkillActionId] = useState<string | undefined>()
   const mathFieldRef = useRef<MathfieldElement | null>(null)
+  const lastMaintenanceRunIdRef = useRef<string | undefined>()
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as Window & { __TAURI__?: unknown }).__TAURI__) {
+      void import('@tauri-apps/api/core').then(({ invoke }) => {
+        void invoke('runtime_self_test').catch(() => {})
+        void invoke('warm_symbolic_checker').catch(() => {})
+      })
+    }
+  }, [])
 
   useEffect(() => {
     void Promise.all([loadPersistedState(), loadAppSettings(), ensureMemoryLoaded()]).then(([loaded, settings]) => {
@@ -119,6 +137,7 @@ export function useMathPilotApp() {
           activeVideoMode: 'sometimes',
           theme: 'system',
           confidencePrompts: 'review_only',
+          enableMaintenanceCurator: true,
         },
         syllabus: loaded.syllabus ?? defaultSyllabus(loaded.currentFocus),
         mapViewMode: loaded.mapViewMode ?? 'wheel',
@@ -140,6 +159,22 @@ export function useMathPilotApp() {
     void maybeNotifyStudyBlock(state)
     void maybeNotifyPlannedStudy(state)
   }, [state])
+
+  useEffect(() => {
+    if (!state?.maintenanceRuns?.[0]) return
+    const runId = state.maintenanceRuns[0].id
+    if (runId === lastMaintenanceRunIdRef.current) return
+    lastMaintenanceRunIdRef.current = runId
+    if (!shouldRunMaintenanceCurator(state)) return
+    void runMaintenanceCurator(state).then((curated) => update(curated))
+  }, [state?.maintenanceRuns?.[0]?.id])
+
+  function scheduleContinuingDiagnosticCurator(prev: MathPilotState, next: MathPilotState) {
+    if (!shouldScheduleContinuingDiagnosticCurator(prev, next)) return next
+    const flagged = markContinuingDiagnosticCuratorScheduled(next)
+    void runContinuingDiagnosticCurator(flagged).then((curated) => update(curated))
+    return flagged
+  }
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -344,9 +379,11 @@ export function useMathPilotApp() {
     if (state.dailySession) {
       merged = advanceDailySession(merged)
     }
+    const beforeContinuing = merged
     const lastAttempt = merged.attempts[0]
     if (lastAttempt) {
       merged = evaluateContinuingDiagnostic(merged, lastAttempt)
+      merged = scheduleContinuingDiagnosticCurator(beforeContinuing, merged)
     }
     const mode = attemptModeForActivity(activeProblem.mode)
     const styled = feedbackForMode(mode, result, hintCount, wrongEscalation)
@@ -508,6 +545,9 @@ export function useMathPilotApp() {
         }
       }
       update(pushToast(merged, 'Homework analyzed', 'success'))
+      if (shouldRunHomeworkClusterCurator(merged)) {
+        void runHomeworkClusterCurator(merged).then((clustered) => update(clustered))
+      }
       setHomeworkText('')
     } finally {
       setHomeworkAnalyzing(false)
@@ -663,5 +703,10 @@ export function useMathPilotApp() {
     testCodexConnection,
     codexPingStatus,
     codexPingBusy,
+    runMaintenanceAction: (trigger = 'manual') => {
+      if (!state) return
+      const next = runMaintenance(state, trigger)
+      update(next)
+    },
   }
 }
