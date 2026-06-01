@@ -102,10 +102,22 @@ def check(expected: str, actual: str, variables: list[str] | None = None) -> dic
         return {"ok": False, "error": str(ex), "correct": False, "method": "text", "feedback": "Could not parse expression."}
 
 
+def resolve_operation(payload: dict[str, Any]) -> str:
+    op = payload.get("operation")
+    if op:
+        return str(op)
+    verify_mode = payload.get("verify_mode")
+    if verify_mode == "derivative":
+        return "verify_derivative"
+    if verify_mode == "integral":
+        return "verify_integral"
+    return "equivalence"
+
+
 def main():
     raw = sys.stdin.read()
     payload = json.loads(raw) if raw.strip() else {}
-    op = payload.get("operation", "equivalence")
+    op = resolve_operation(payload)
     if op == "verify_derivative":
         result = verify_derivative(
             payload.get("expression", ""),

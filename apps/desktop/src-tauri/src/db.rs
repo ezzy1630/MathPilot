@@ -593,11 +593,112 @@ pub struct CodexResult {
     pub cancelled: bool,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Default)]
 pub struct MathCheckInput {
+    #[serde(default)]
     expected: String,
+    #[serde(default)]
     actual: String,
     variables: Option<Vec<String>>,
+    operation: Option<String>,
+    expression: Option<String>,
+    verify_mode: Option<String>,
+    expected_derivative: Option<String>,
+    expected_integral: Option<String>,
+    variable: Option<String>,
+}
+
+fn resolved_math_check_operation(input: &MathCheckInput) -> Option<String> {
+    if let Some(op) = input.operation.as_ref().filter(|s| !s.is_empty()) {
+        return Some(op.clone());
+    }
+    input.verify_mode.as_ref().map(|mode| match mode.as_str() {
+        "derivative" => "verify_derivative".to_string(),
+        "integral" => "verify_integral".to_string(),
+        other => other.to_string(),
+    })
+}
+
+fn math_check_payload(input: &MathCheckInput) -> serde_json::Value {
+    let mut obj = serde_json::Map::new();
+    let calculus = resolved_math_check_operation(input).is_some();
+
+    if let Some(op) = resolved_math_check_operation(input) {
+        obj.insert("operation".to_string(), serde_json::Value::String(op));
+    }
+    if let Some(expr) = input.expression.as_ref().filter(|s| !s.is_empty()) {
+        obj.insert("expression".to_string(), serde_json::Value::String(expr.clone()));
+    }
+    if !input.expected.is_empty() {
+        obj.insert("expected".to_string(), serde_json::Value::String(input.expected.clone()));
+    }
+    if !input.actual.is_empty() {
+        obj.insert("actual".to_string(), serde_json::Value::String(input.actual.clone()));
+    }
+    if let Some(vars) = &input.variables {
+        obj.insert("variables".to_string(), serde_json::to_value(vars).unwrap_or_default());
+    } else if !calculus {
+        obj.insert(
+            "variables".to_string(),
+            serde_json::json!(["x"]),
+        );
+    }
+    if let Some(v) = &input.expected_derivative {
+        obj.insert(
+            "expected_derivative".to_string(),
+            serde_json::Value::String(v.clone()),
+        );
+    }
+    if let Some(v) = &input.expected_integral {
+        obj.insert(
+            "expected_integral".to_string(),
+            serde_json::Value::String(v.clone()),
+        );
+    }
+    if let Some(v) = &input.variable {
+        obj.insert("variable".to_string(), serde_json::Value::String(v.clone()));
+    } else if calculus {
+        obj.insert("variable".to_string(), serde_json::Value::String("x".to_string()));
+    }
+    if let Some(v) = &input.verify_mode {
+        obj.insert("verify_mode".to_string(), serde_json::Value::String(v.clone()));
+    }
+    serde_json::Value::Object(obj)
+}
+
+fn run_math_check_script(app: &AppHandle, payload: serde_json::Value) -> Result<String, String> {
+    let script = script_path("math_check.py");
+    if !script.exists() {
+        return Ok(serde_json::json!({
+            "ok": false,
+            "error": "math_check_script_missing",
+            "correct": false,
+            "method": "text",
+            "feedback": "SymPy checker unavailable."
+        })
+        .to_string());
+    }
+
+    let python = bundled_python(Some(app));
+    let mut child = Command::new(&python)
+        .arg(&script)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    let body = payload.to_string();
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = stdin.write_all(body.as_bytes());
+    }
+
+    let output = child.wait_with_output().map_err(|e| e.to_string())?;
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    if stdout.trim().is_empty() {
+        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+    }
+    Ok(stdout.trim().to_string())
 }
 
 #[tauri::command]
@@ -624,45 +725,23 @@ pub fn runtime_self_test(app: AppHandle) -> Result<RuntimeSelfTest, String> {
     })
 }
 
+/// Pre-warm SymPy in the bundled Python runtime (silent; errors ignored).
+#[tauri::command]
+pub fn warm_symbolic_checker(app: AppHandle) -> Result<(), String> {
+    let _ = run_math_check_script(
+        &app,
+        serde_json::json!({
+            "expected": "2*x",
+            "actual": "x+x",
+            "variables": ["x"],
+        }),
+    );
+    Ok(())
+}
+
 #[tauri::command]
 pub fn check_math_symbolic(app: AppHandle, input: MathCheckInput) -> Result<String, String> {
-    let script = script_path("math_check.py");
-    if !script.exists() {
-        return Ok(serde_json::json!({
-            "ok": false,
-            "error": "math_check_script_missing",
-            "correct": false,
-            "method": "text",
-            "feedback": "SymPy checker unavailable."
-        })
-        .to_string());
-    }
-
-    let payload = serde_json::json!({
-        "expected": input.expected,
-        "actual": input.actual,
-        "variables": input.variables.unwrap_or_else(|| vec!["x".to_string()]),
-    });
-
-    let python = bundled_python(Some(&app));
-    let mut child = Command::new(&python)
-        .arg(&script)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .map_err(|e| e.to_string())?;
-
-    if let Some(mut stdin) = child.stdin.take() {
-        let _ = stdin.write_all(payload.to_string().as_bytes());
-    }
-
-    let output = child.wait_with_output().map_err(|e| e.to_string())?;
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    if stdout.trim().is_empty() {
-        return Err(String::from_utf8_lossy(&output.stderr).to_string());
-    }
-    Ok(stdout.trim().to_string())
+    run_math_check_script(&app, math_check_payload(&input))
 }
 
 #[tauri::command]
@@ -705,7 +784,7 @@ fn ocr_homework_image_python(app: &AppHandle, image_path: String) -> Result<Stri
 }
 
 #[tauri::command]
-pub fn ocr_homework_image(_app: AppHandle, image_path: String) -> Result<String, String> {
+pub fn ocr_homework_image(app: AppHandle, image_path: String) -> Result<String, String> {
     #[cfg(all(target_os = "macos", not(debug_assertions)))]
     {
         return crate::ocr_macos::recognize_text(&image_path);
@@ -909,4 +988,42 @@ pub fn rollback_code_patches(backup_id: String) -> Result<Vec<String>, String> {
         restored.push(rel);
     }
     Ok(restored)
+}
+
+#[cfg(test)]
+mod math_check_tests {
+    use super::{math_check_payload, resolved_math_check_operation, MathCheckInput};
+
+    #[test]
+    fn equivalence_payload_includes_expected_and_actual() {
+        let input = MathCheckInput {
+            expected: "2*x".into(),
+            actual: "x+x".into(),
+            variables: Some(vec!["x".into()]),
+            ..Default::default()
+        };
+        let payload = math_check_payload(&input);
+        assert_eq!(payload["expected"], "2*x");
+        assert_eq!(payload["actual"], "x+x");
+        assert!(payload.get("operation").is_none());
+    }
+
+    #[test]
+    fn calculus_payload_from_verify_mode() {
+        let input = MathCheckInput {
+            verify_mode: Some("derivative".into()),
+            expression: Some("x^3".into()),
+            expected_derivative: Some("3*x^2".into()),
+            variable: Some("x".into()),
+            ..Default::default()
+        };
+        assert_eq!(
+            resolved_math_check_operation(&input).as_deref(),
+            Some("verify_derivative")
+        );
+        let payload = math_check_payload(&input);
+        assert_eq!(payload["operation"], "verify_derivative");
+        assert_eq!(payload["expression"], "x^3");
+        assert_eq!(payload["expected_derivative"], "3*x^2");
+    }
 }

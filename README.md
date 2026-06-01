@@ -128,12 +128,16 @@ Or use the install script (builds if needed, prompts for sudo when replacing `/A
 
 **First-run setup**
 
+No `pip install` or Python setup is required for normal use. Release builds ship a **bundled Python + SymPy runtime** for symbolic answer checking and problem verification.
+
 | Step | Action |
 |------|--------|
 | 1 | Choose **Calculus 1** or **Calculus 2**, complete the short diagnostic |
-| 2 | Symbolic answer checking works out of the box when the app was built with the bundled Python runtime |
-| 3 | Optional: install and sign in to **Codex CLI** for richer AI help |
+| 2 | Symbolic checking is ready immediately when you install a release build (bundled runtime included) |
+| 3 | **Optional:** install and sign in to **Codex CLI** if you want AI coach help, homework analysis, and Codex-generated problems — the app works without it |
 | 4 | Homework OCR uses the native Vision helper on macOS release builds |
+
+Developers building from source run `./scripts/build-macos-python-runtime.sh` before `desktop:build` to embed the same runtime; a local `.venv` is only for repo development, not end users.
 
 Local data is stored at:
 
@@ -225,6 +229,7 @@ Release hygiene: [docs/RELEASE_HYGIENE.md](docs/RELEASE_HYGIENE.md)
 | [MathPilot_spec.md](MathPilot_spec.md) | Full product specification |
 | [docs/GAP_AUDIT.md](docs/GAP_AUDIT.md) | §0–§30 implementation checklist |
 | [docs/MANUAL_QA_CHECKLIST.md](docs/MANUAL_QA_CHECKLIST.md) | Tauri manual test pass |
+| [docs/PRE_REAL_USE.md](docs/PRE_REAL_USE.md) | Author checklist before daily use |
 | [PRODUCT.md](PRODUCT.md) | Brand and UX principles |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes |
 

@@ -35,6 +35,7 @@ pub fn run() {
             db::invoke_codex,
             db::cancel_codex,
             db::runtime_self_test,
+            db::warm_symbolic_checker,
             db::check_math_symbolic,
             db::write_backup,
             db::ocr_homework_image,

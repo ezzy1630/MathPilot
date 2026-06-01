@@ -7,6 +7,19 @@ export interface CalculusVerifyInput {
   variables?: string[]
 }
 
+/** Payload for Tauri `check_math_symbolic` calculus verification. */
+export function buildCalculusCheckInput(input: CalculusVerifyInput): Record<string, unknown> {
+  const primaryVar = input.variables?.[0] ?? 'x'
+  return {
+    verify_mode: input.mode,
+    expression: input.expression,
+    ...(input.mode === 'derivative'
+      ? { expected_derivative: input.expected }
+      : { expected_integral: input.expected }),
+    variable: primaryVar,
+  }
+}
+
 export async function checkAnswerSymbolic(
   expected: string,
   actual: string,
@@ -60,23 +73,9 @@ async function invokeCalculusCheck(input: CalculusVerifyInput): Promise<'passed'
   }
   try {
     const { invoke } = await import('@tauri-apps/api/core')
-    const primaryVar = input.variables?.[0] ?? 'x'
-    const operation = input.mode === 'derivative' ? 'verify_derivative' : 'verify_integral'
-    const payload =
-      input.mode === 'derivative'
-        ? {
-            operation,
-            expression: input.expression,
-            expected_derivative: input.expected,
-            variable: primaryVar,
-          }
-        : {
-            operation,
-            expression: input.expression,
-            expected_integral: input.expected,
-            variable: primaryVar,
-          }
-    const raw = await invoke<string>('check_math_symbolic', { input: payload })
+    const raw = await invoke<string>('check_math_symbolic', {
+      input: buildCalculusCheckInput(input),
+    })
     const parsed = JSON.parse(raw) as { ok?: boolean; correct?: boolean }
     if (parsed.correct !== undefined) {
       return parsed.correct ? 'passed' : 'failed'
