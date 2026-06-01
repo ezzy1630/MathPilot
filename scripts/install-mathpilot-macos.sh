@@ -29,11 +29,20 @@ if [[ ! -d "$APP_SRC" ]]; then
 fi
 
 echo "Installing MathPilot to $APP_DEST"
-echo "You may be prompted for your password (sudo) to replace an existing app."
 
-if [[ -d "$APP_DEST" ]]; then
+install_app() {
+  if [[ -d "$APP_DEST" ]]; then
+    rm -rf "$APP_DEST"
+  fi
+  cp -R "$APP_SRC" "$APP_DEST"
+}
+
+if install_app 2>/dev/null; then
+  :
+else
+  echo "Need administrator rights to replace $APP_DEST — you may be prompted for your password."
   sudo rm -rf "$APP_DEST"
+  sudo cp -R "$APP_SRC" "$APP_DEST"
 fi
-sudo cp -R "$APP_SRC" "$APP_DEST"
 
 echo "Done. Launch with: open -a MathPilot"
