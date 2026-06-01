@@ -57,6 +57,10 @@ pub fn run_migrations(conn: &Connection) -> Result<(), String> {
         migration_v10(conn)?;
         record(conn, 10)?;
     }
+    if current < 11 {
+        migration_v11(conn)?;
+        record(conn, 11)?;
+    }
     Ok(())
 }
 
@@ -378,6 +382,18 @@ fn migration_v10(conn: &Connection) -> Result<(), String> {
     Ok(())
 }
 
+fn migration_v11(conn: &Connection) -> Result<(), String> {
+    conn.execute_batch(
+        "
+        ALTER TABLE diagnostics ADD COLUMN skill_probes_json TEXT DEFAULT '{}';
+        ALTER TABLE diagnostics ADD COLUMN continuing INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE diagnostics ADD COLUMN trigger_reason TEXT;
+        ",
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -430,7 +446,7 @@ mod tests {
         let version: i64 = conn
             .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| row.get(0))
             .expect("version");
-        assert_eq!(version, 10);
+        assert_eq!(version, 11);
         let migration_rows: i64 = conn
             .query_row("SELECT COUNT(*) FROM schema_migrations WHERE version = 10", [], |row| {
                 row.get(0)

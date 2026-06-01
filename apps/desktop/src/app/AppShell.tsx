@@ -231,7 +231,7 @@ export function AppShell() {
   const showMain = appState.onboarded || appState.diagnostic?.completed
 
   function navigate(nextView: AppView) {
-    if (hasActiveDiagnostic && !showMain && nextView !== 'activity') {
+    if (hasActiveDiagnostic && !showMain && nextView !== 'activity' && nextView !== 'today') {
       setView('activity')
       return
     }
@@ -487,6 +487,21 @@ export function AppShell() {
             step={onboardingStep}
             setStep={setOnboardingStep}
           />
+        )}
+        {hasActiveDiagnostic && !showMain && view === 'today' && (
+          <section className="panel diagnostic-resume-panel" aria-label="Diagnostic in progress">
+            <p className="eyebrow">Adaptive diagnostic</p>
+            <h2>Pick up where you left off</h2>
+            <p className="muted">
+              Question {Math.min(appState.diagnostic!.answeredCount + 1, appState.diagnostic!.targetCount)} of{' '}
+              {appState.diagnostic!.targetCount}. Progress is saved automatically.
+            </p>
+            <div className="action-row">
+              <button type="button" className="primary" onClick={() => setView('activity')}>
+                Resume diagnostic
+              </button>
+            </div>
+          </section>
         )}
         {appState.postDiagnosticPending && view === 'today' && (
           <PostDiagnosticScreen

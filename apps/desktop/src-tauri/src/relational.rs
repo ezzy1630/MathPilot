@@ -82,6 +82,16 @@ fn save_settings(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
         "codexSessions",
         "sessionsSinceMaintenance",
         "preferences",
+        "coachInsight",
+        "studyPlan",
+        "codexHint",
+        "postDiagnosticPending",
+        "continuingDiagnosticPending",
+        "continuingDiagnosticCuratorRan",
+        "homeworkClusterLastRun",
+        "mapHighlightSkillIds",
+        "syllabus",
+        "syllabusMapping",
     ] {
         if let Some(val) = obj.get(key) {
             conn.execute(
@@ -372,8 +382,9 @@ fn save_diagnostic(conn: &Connection, obj: &Map<String, Value>) -> Result<(), St
         conn.execute(
             "INSERT INTO diagnostics (
               id, started_at, target_count, answered_count, current_index,
-              queue_json, weak_skills_json, strong_skills_json, completed, summary_json
-            ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
+              queue_json, weak_skills_json, strong_skills_json, completed, summary_json,
+              skill_probes_json, continuing, trigger_reason
+            ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)",
             params![
                 d.get("id").and_then(|v| v.as_str()).unwrap_or("diag"),
                 d.get("startedAt").and_then(|v| v.as_str()).unwrap_or(""),
@@ -398,6 +409,15 @@ fn save_diagnostic(conn: &Connection, obj: &Map<String, Value>) -> Result<(), St
                     0
                 },
                 d.get("summary").map(|v| v.to_string()),
+                d.get("skillProbes")
+                    .map(|v| v.to_string())
+                    .unwrap_or_else(|| "{}".into()),
+                if d.get("continuing").and_then(|v| v.as_bool()).unwrap_or(false) {
+                    1
+                } else {
+                    0
+                },
+                d.get("triggerReason").and_then(|v| v.as_str()),
             ],
         )
         .map_err(|e| e.to_string())?;
@@ -409,7 +429,8 @@ fn load_diagnostic(conn: &Connection, obj: &mut Map<String, Value>) -> Result<()
     let mut stmt = conn
         .prepare(
             "SELECT id, started_at, target_count, answered_count, current_index,
-                    queue_json, weak_skills_json, strong_skills_json, completed, summary_json
+                    queue_json, weak_skills_json, strong_skills_json, completed, summary_json,
+                    skill_probes_json, continuing, trigger_reason
              FROM diagnostics ORDER BY started_at DESC LIMIT 1",
         )
         .map_err(|e| e.to_string())?;
@@ -419,6 +440,9 @@ fn load_diagnostic(conn: &Connection, obj: &mut Map<String, Value>) -> Result<()
         None => return Ok(()),
     };
     let summary: Option<String> = row.get(9).map_err(|e| e.to_string())?;
+    let skill_probes_raw: Option<String> = row.get(10).ok();
+    let continuing: i64 = row.get(11).unwrap_or(0);
+    let trigger_reason: Option<String> = row.get(12).ok();
     obj.insert(
         "diagnostic".into(),
         json!({
@@ -432,6 +456,11 @@ fn load_diagnostic(conn: &Connection, obj: &mut Map<String, Value>) -> Result<()
             "strongSkills": serde_json::from_str::<Value>(&row.get::<_, String>(7).map_err(|e| e.to_string())?).unwrap_or(Value::Array(vec![])),
             "completed": row.get::<_, i64>(8).map_err(|e| e.to_string())? == 1,
             "summary": summary.and_then(|s| serde_json::from_str::<Value>(&s).ok()),
+            "skillProbes": skill_probes_raw
+                .and_then(|s| serde_json::from_str::<Value>(&s).ok())
+                .unwrap_or(Value::Object(Map::new())),
+            "continuing": continuing == 1,
+            "triggerReason": trigger_reason,
         }),
     );
     Ok(())

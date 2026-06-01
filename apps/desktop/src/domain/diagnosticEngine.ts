@@ -209,6 +209,8 @@ export function submitDiagnosticAnswer(
   if (!session || session.completed) return state
 
   const problem = state.problems[problemId]
+  if (!problem) return state
+
   const attemptInput: AttemptInput = {
     problemId,
     skillIds: problem.skillIds,
