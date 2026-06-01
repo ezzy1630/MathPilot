@@ -24,12 +24,13 @@ export function ProgressReport({
   const nextAction = chooseNextAction(state)
   const today = new Date().toISOString().slice(0, 10)
   const dueReviews = state.reviewQueue.filter((item) => item.due <= today)
-  const repeatedMistakes = Object.values(state.mistakePatterns)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6)
-  const topResources = Object.values(state.resources)
-    .sort((a, b) => b.effectivenessScore - a.effectivenessScore)
-    .slice(0, 5)
+  const trend = analytics.masteryImprovementTrend
+  const trendLabel =
+    trend.direction === 'up'
+      ? `+${trend.deltaPct} pts vs prior week`
+      : trend.direction === 'down'
+        ? `${trend.deltaPct} pts vs prior week`
+        : 'Flat vs prior week'
 
   return (
     <div className="page progress-report">
@@ -94,14 +95,14 @@ export function ProgressReport({
       <section className="panel">
         <h2>Most repeated mistakes</h2>
         <ul className="signal-list">
-          {repeatedMistakes.map((pattern) => (
+          {analytics.mistakePatternTop.map((pattern) => (
             <li key={pattern.tag}>
               <span>
                 {pattern.tag.replaceAll('_', ' ')} ×{pattern.count}
               </span>
             </li>
           ))}
-          {!repeatedMistakes.length && <li className="muted">No repeated patterns yet.</li>}
+          {!analytics.mistakePatternTop.length && <li className="muted">No repeated patterns yet.</li>}
         </ul>
       </section>
 
@@ -122,17 +123,67 @@ export function ProgressReport({
       <section className="panel">
         <h2>Resource effectiveness</h2>
         <ul className="resource-rank-list">
-          {topResources.map((resource) => (
+          {analytics.resourceEffectivenessTop.map((resource) => (
             <li key={resource.id}>
               <div className="resource-rank-row">
                 <span>{resource.title}</span>
-                <span className="effectiveness-pill">{Math.round(resource.effectivenessScore * 100)}%</span>
+                <span className="effectiveness-pill">{resource.score}%</span>
               </div>
               <p className="muted">{resource.source}</p>
             </li>
           ))}
         </ul>
       </section>
+
+      {state.advancedMode && (
+        <section className="panel report-advanced">
+          <h2>Advanced analytics</h2>
+          <div className="analytics-grid">
+            <div className="analytics-stat">
+              <p className="eyebrow">Last 7 days avg mastery</p>
+              <p className="stat-value">{trend.recent7dAvg}%</p>
+            </div>
+            <div className="analytics-stat">
+              <p className="eyebrow">Prior 7 days</p>
+              <p className="stat-value">{trend.prior7dAvg}%</p>
+            </div>
+            <div className="analytics-stat">
+              <p className="eyebrow">Trend</p>
+              <p className="stat-value">{trendLabel}</p>
+            </div>
+          </div>
+          {analytics.mistakePatternTop.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <h3>Top mistake patterns</h3>
+              <ul className="signal-list">
+                {analytics.mistakePatternTop.map((pattern) => (
+                  <li key={pattern.tag}>
+                    <span>
+                      {pattern.tag.replaceAll('_', ' ')} ×{pattern.count}
+                      {pattern.note ? ` — ${pattern.note}` : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {analytics.resourceEffectivenessTop.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <h3>Top resources</h3>
+              <ul className="resource-rank-list">
+                {analytics.resourceEffectivenessTop.map((resource) => (
+                  <li key={resource.id}>
+                    <div className="resource-rank-row">
+                      <span>{resource.title}</span>
+                      <span className="effectiveness-pill">{resource.score}%</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
 
       {state.studyPlan && (
         <section className="panel">

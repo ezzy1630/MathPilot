@@ -423,6 +423,35 @@ mod tests {
     }
 
     #[test]
+    fn migration_v10_idempotent() {
+        let conn = Connection::open_in_memory().expect("in-memory db");
+        run_migrations(&conn).expect("first run");
+        run_migrations(&conn).expect("second run idempotent");
+        let version: i64 = conn
+            .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| row.get(0))
+            .expect("version");
+        assert_eq!(version, 10);
+        let migration_rows: i64 = conn
+            .query_row("SELECT COUNT(*) FROM schema_migrations WHERE version = 10", [], |row| {
+                row.get(0)
+            })
+            .expect("count");
+        assert_eq!(migration_rows, 1);
+        for col in ["response_preview", "stderr_preview", "session_id"] {
+            let present: i64 = conn
+                .query_row(
+                    &format!(
+                        "SELECT COUNT(*) FROM pragma_table_info('ai_calls') WHERE name='{col}'"
+                    ),
+                    [],
+                    |row| row.get(0),
+                )
+                .expect("col");
+            assert_eq!(present, 1, "missing ai_calls.{col}");
+        }
+    }
+
+    #[test]
     fn v10_ai_calls_and_mistake_patterns_round_trip() {
         let conn = Connection::open_in_memory().expect("in-memory db");
         run_migrations(&conn).expect("migrations");

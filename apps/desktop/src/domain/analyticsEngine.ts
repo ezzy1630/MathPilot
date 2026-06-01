@@ -12,6 +12,26 @@ export interface SkillBar {
   score: number
 }
 
+export interface ResourceEffectivenessEntry {
+  id: string
+  title: string
+  source: string
+  score: number
+}
+
+export interface MistakePatternEntry {
+  tag: string
+  count: number
+  note: string
+}
+
+export interface MasteryImprovementTrend {
+  recent7dAvg: number
+  prior7dAvg: number
+  deltaPct: number
+  direction: 'up' | 'down' | 'flat'
+}
+
 export interface AnalyticsSnapshot {
   masteryTrend: MasteryTrendPoint[]
   weakestSkills: SkillBar[]
@@ -19,6 +39,9 @@ export interface AnalyticsSnapshot {
   reviewBacklog: number
   attemptAccuracy: number
   diagnosticCount: number
+  resourceEffectivenessTop: ResourceEffectivenessEntry[]
+  mistakePatternTop: MistakePatternEntry[]
+  masteryImprovementTrend: MasteryImprovementTrend
 }
 
 export function buildAnalyticsSnapshot(state: MathPilotState): AnalyticsSnapshot {
@@ -59,6 +82,27 @@ export function buildAnalyticsSnapshot(state: MathPilotState): AnalyticsSnapshot
   const reviewBacklog = state.reviewQueue.filter((r) => r.due <= today).length
   const diagnosticCount = state.attempts.filter((a) => a.mode === 'diagnostic').length
 
+  const resourceEffectivenessTop = Object.values(state.resources)
+    .sort((a, b) => b.effectivenessScore - a.effectivenessScore)
+    .slice(0, 5)
+    .map((r) => ({
+      id: r.id,
+      title: r.title,
+      source: r.source,
+      score: Math.round(r.effectivenessScore * 100),
+    }))
+
+  const mistakePatternTop = Object.values(state.mistakePatterns)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6)
+    .map((p) => ({
+      tag: p.tag,
+      count: p.count,
+      note: p.note,
+    }))
+
+  const masteryImprovementTrend = computeMasteryImprovementTrend(state)
+
   return {
     masteryTrend,
     weakestSkills: skillBars.slice(0, 6),
@@ -66,5 +110,39 @@ export function buildAnalyticsSnapshot(state: MathPilotState): AnalyticsSnapshot
     reviewBacklog,
     attemptAccuracy,
     diagnosticCount,
+    resourceEffectivenessTop,
+    mistakePatternTop,
+    masteryImprovementTrend,
   }
+}
+
+function attemptAvgMastery(state: MathPilotState, attempt: (typeof state.attempts)[number]): number {
+  const scores = attempt.skillIds.map((id) => state.mastery[id]?.masteryScore ?? 0)
+  return scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
+}
+
+function computeMasteryImprovementTrend(state: MathPilotState): MasteryImprovementTrend {
+  const now = new Date()
+  const dayMs = 86_400_000
+  const recentStart = new Date(now.getTime() - 7 * dayMs)
+  const priorStart = new Date(now.getTime() - 14 * dayMs)
+
+  const recent: number[] = []
+  const prior: number[] = []
+
+  for (const attempt of state.attempts) {
+    const at = new Date(attempt.createdAt)
+    if (Number.isNaN(at.getTime())) continue
+    const avg = attemptAvgMastery(state, attempt)
+    if (at >= recentStart) recent.push(avg)
+    else if (at >= priorStart && at < recentStart) prior.push(avg)
+  }
+
+  const recent7dAvg = recent.length ? Math.round((recent.reduce((a, b) => a + b, 0) / recent.length) * 100) : 0
+  const prior7dAvg = prior.length ? Math.round((prior.reduce((a, b) => a + b, 0) / prior.length) * 100) : 0
+  const deltaPct = recent7dAvg - prior7dAvg
+  const direction: MasteryImprovementTrend['direction'] =
+    Math.abs(deltaPct) < 2 ? 'flat' : deltaPct > 0 ? 'up' : 'down'
+
+  return { recent7dAvg, prior7dAvg, deltaPct, direction }
 }

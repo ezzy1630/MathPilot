@@ -19,5 +19,17 @@ describe('analyticsEngine', () => {
     const snap = buildAnalyticsSnapshot(state)
     expect(snap.weakestSkills.length).toBeGreaterThan(0)
     expect(snap.attemptAccuracy).toBe(0)
+    expect(snap.masteryImprovementTrend).toMatchObject({
+      recent7dAvg: expect.any(Number),
+      prior7dAvg: expect.any(Number),
+      direction: expect.stringMatching(/^(up|down|flat)$/),
+    })
+  })
+
+  it('ranks resources and mistake patterns', () => {
+    const state = createInitialState('Calculus 1')
+    const snap = buildAnalyticsSnapshot(state)
+    expect(Array.isArray(snap.resourceEffectivenessTop)).toBe(true)
+    expect(Array.isArray(snap.mistakePatternTop)).toBe(true)
   })
 })

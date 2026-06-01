@@ -1787,6 +1787,63 @@ math-field {
   background: color-mix(in srgb, var(--mp-mastery-weak) 16%, var(--mp-bg-elevated));
 }
 
+.skill-row-advanced {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+}
+
+.skill-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mastery-dimension-bars {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.mastery-dimension-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 2rem;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.6875rem;
+}
+
+.mastery-dimension-label {
+  color: var(--mp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mastery-dimension-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--mp-border);
+  overflow: hidden;
+}
+
+.mastery-dimension-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--mp-accent);
+}
+
+.mastery-dimension-pct {
+  text-align: right;
+  color: var(--mp-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.report-advanced h3 {
+  font-size: 0.875rem;
+  margin: 0 0 8px;
+}
+
 /* —— Onboarding —— */
 
 .onboarding {

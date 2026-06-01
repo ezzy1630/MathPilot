@@ -119,6 +119,12 @@ cp -R apps/desktop/src-tauri/target/release/bundle/macos/MathPilot.app /Applicat
 open -a MathPilot
 ```
 
+Or use the install script (builds if needed, prompts for sudo when replacing `/Applications/MathPilot.app`):
+
+```bash
+./scripts/install-mathpilot-macos.sh
+```
+
 **First-run setup**
 
 | Step | Action |

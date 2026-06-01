@@ -21,4 +21,11 @@ describe('feedbackByMode', () => {
     expect(wrong.message).toBe('Incorrect.')
     expect(wrong.message).not.toContain('Missing inner derivative')
   })
+
+  it('consolidates wrong-answer feedback into a single next move', () => {
+    const wrong = feedbackForMode('guided', stubResult(false, 'Check the chain rule factor.'), 0, 0)
+    expect(wrong.nextMove).toContain('Check the chain rule factor.')
+    expect(wrong.nextMove).toContain('Name the method you chose')
+    expect(wrong.nextMove).not.toContain('\n\n')
+  })
 })
