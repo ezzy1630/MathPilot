@@ -112,7 +112,7 @@ export function useMathPilotApp() {
   const [wrongEscalation, setWrongEscalation] = useState(0)
   const [skillActionId, setSkillActionId] = useState<string | undefined>()
   const mathFieldRef = useRef<MathfieldElement | null>(null)
-  const lastMaintenanceRunIdRef = useRef<string | undefined>()
+  const lastMaintenanceRunIdRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as Window & { __TAURI__?: unknown }).__TAURI__) {
