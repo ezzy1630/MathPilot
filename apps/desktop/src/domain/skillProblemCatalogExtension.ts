@@ -7,12 +7,13 @@ const diag = (
   difficulty: number,
   hints: string[],
   variables?: string[],
-) => [{ title, prompt, expectedAnswer, answerType: 'expression' as const, difficulty, hintSequence: hints, variables }]
+  tags?: string[],
+) => [{ title, prompt, expectedAnswer, answerType: 'expression' as const, difficulty, hintSequence: hints, variables, tags }]
 
-type PracticeTuple = [string, string, string, number, string[], string[]?]
+type PracticeTuple = [string, string, string, number, string[], string[]?, string[]?]
 
 function practiceSet(...items: PracticeTuple[]): PracticeSpec[] {
-  return items.map(([title, prompt, expectedAnswer, difficulty, hints, variables]) => ({
+  return items.map(([title, prompt, expectedAnswer, difficulty, hints, variables, tags]) => ({
     title,
     prompt,
     expectedAnswer,
@@ -21,6 +22,7 @@ function practiceSet(...items: PracticeTuple[]): PracticeSpec[] {
     mode: 'guided_practice' as const,
     hintSequence: hints,
     variables,
+    tags,
   }))
 }
 
@@ -30,63 +32,63 @@ export const SKILL_CATALOG_EXTENSION: Record<string, SkillCatalogEntry> = {
     skillId: 'exponents_radicals',
     diagnostics: diag('Exponents checkpoint', 'Simplify x^(3/2) · x^(1/2).', 'x^2', 0.3, ['Add exponents when bases match.'], ['x']),
     practice: practiceSet(
-      ['Exponent rule', 'Simplify (x^2)^3.', 'x^6', 0.28, ['Multiply exponents.'], ['x']],
-      ['Radical to power', 'Write sqrt(x) as a power of x.', 'x^(1/2)', 0.32, ['Square root is exponent 1/2.'], ['x']],
-      ['Negative exponent', 'Simplify x^(-2) · x^5.', 'x^3', 0.36, ['Add exponents; -2 + 5 = 3.'], ['x']],
+      ['Exponent rule', 'Simplify (x^2)^3.', 'x^6', 0.28, ['Multiply exponents.'], ['x'], ['transfer']],
+      ['Radical to power', 'Write sqrt(x) as a power of x.', 'x^(1/2)', 0.32, ['Square root is exponent 1/2.'], ['x'], ['transfer']],
+      ['Negative exponent', 'Simplify x^(-2) · x^5.', 'x^3', 0.36, ['Add exponents; -2 + 5 = 3.'], ['x'], ['misconception:negative_exponent']],
     ),
   },
   logarithms: {
     skillId: 'logarithms',
     diagnostics: diag('Log checkpoint', 'Solve for x: ln(x) = 2.', 'exp(2)', 0.32, ['Exponentiate both sides.'], ['x']),
     practice: practiceSet(
-      ['Log property', 'Write ln(a) + ln(b) as a single log.', 'ln(a*b)', 0.3, ['Use ln(ab) = ln a + ln b.']],
-      ['Change of base', 'log_2(8) equals?', '3', 0.34, ['2^3 = 8.']],
-      ['Solve log equation', 'If log(x) = 1, then x = ?', '10', 0.28, ['Definition of common log.'], ['x']],
+      ['Log property', 'Write ln(a) + ln(b) as a single log.', 'ln(a*b)', 0.3, ['Use ln(ab) = ln a + ln b.'], undefined, ['misconception:log_of_sum']],
+      ['Change of base', 'log_2(8) equals?', '3', 0.34, ['2^3 = 8.'], undefined, ['transfer']],
+      ['Solve log equation', 'If log(x) = 1, then x = ?', '10', 0.28, ['Definition of common log.'], ['x'], ['transfer']],
     ),
   },
   exponential_functions: {
     skillId: 'exponential_functions',
     diagnostics: diag('Exponential checkpoint', 'f(x) = 3·2^x. Find f(2).', '12', 0.28, ['Substitute x = 2.'], ['x']),
     practice: practiceSet(
-      ['Growth factor', 'A population doubles every hour from 100. After 3 hours?', '800', 0.3, ['Multiply by 2^3.']],
-      ['Half-life decay', '500 mg decays by factor 1/2 each day. After 2 days?', '125', 0.38, ['Multiply by (1/2)^2.']],
-      ['Exponential equation', 'Solve 3^x = 81.', '4', 0.42, ['81 = 3^4.'], ['x']],
+      ['Growth factor', 'A population doubles every hour from 100. After 3 hours?', '800', 0.3, ['Multiply by 2^3.'], undefined, ['transfer']],
+      ['Half-life decay', '500 mg decays by factor 1/2 each day. After 2 days?', '125', 0.38, ['Multiply by (1/2)^2.'], undefined, ['transfer']],
+      ['Exponential equation', 'Solve 3^x = 81.', '4', 0.42, ['81 = 3^4.'], ['x'], ['misconception:base_confusion']],
     ),
   },
   inverse_functions: {
     skillId: 'inverse_functions',
     diagnostics: diag('Inverse checkpoint', 'If f(x) = 2x + 4, find f⁻¹(x).', 'x/2-2', 0.35, ['Swap x and y, solve for y.'], ['x']),
     practice: practiceSet(
-      ['Composition', 'If f(x)=x+1, is f(f⁻¹(x)) equal to x?', 'x', 0.3, ['Inverse undoes f.'], ['x']],
-      ['Domain swap', 'If f(x)=x^2 for x≥0, f⁻¹(x)=?', 'sqrt(x)', 0.4, ['Restrict domain before inverting.'], ['x']],
-      ['Verify inverse', 'For f(x)=3x-6, f⁻¹(9) equals?', '5', 0.36, ['Solve 3x-6=9 or use inverse rule.'], ['x']],
+      ['Composition', 'If f(x)=x+1, is f(f⁻¹(x)) equal to x?', 'x', 0.3, ['Inverse undoes f.'], ['x'], ['transfer']],
+      ['Domain swap', 'If f(x)=x^2 for x≥0, f⁻¹(x)=?', 'sqrt(x)', 0.4, ['Restrict domain before inverting.'], ['x'], ['misconception:inverse_domain']],
+      ['Verify inverse', 'For f(x)=3x-6, f⁻¹(9) equals?', '5', 0.36, ['Solve 3x-6=9 or use inverse rule.'], ['x'], ['transfer']],
     ),
   },
   graph_interpretation: {
     skillId: 'graph_interpretation',
     diagnostics: diag('Graph checkpoint', "A graph rises left to right. Sign of f' on that interval?", 'positive', 0.25, ['Rising ⟹ positive slope.']),
     practice: practiceSet(
-      ['Intercept', 'Graph crosses x-axis at x=2. What is a zero of f?', '2', 0.26, ['Zero at x-intercept.']],
-      ['Increasing interval', "Where graph is steepest upward, |f'| is?", 'largest', 0.34, ['Slope magnitude is steepness.']],
-      ['Value read', 'Graph passes through (0, -1). f(0) = ?', '-1', 0.22, ['Read y at x=0.']],
+      ['Intercept', 'Graph crosses x-axis at x=2. What is a zero of f?', '2', 0.26, ['Zero at x-intercept.'], undefined, ['transfer']],
+      ['Increasing interval', "Where graph is steepest upward, |f'| is?", 'largest', 0.34, ['Slope magnitude is steepness.'], undefined, ['misconception:value_vs_rate']],
+      ['Value read', 'Graph passes through (0, -1). f(0) = ?', '-1', 0.22, ['Read y at x=0.'], undefined, ['transfer']],
     ),
   },
   transformations: {
     skillId: 'transformations',
     diagnostics: diag('Transform checkpoint', 'f(x)=x^2 shifted right 3 units: g(x)=?', '(x-3)^2', 0.32, ['Replace x with x-3.'], ['x']),
     practice: practiceSet(
-      ['Reflection', 'Reflect y=x^2 across x-axis: h(x)=?', '-x^2', 0.3, ['Multiply output by -1.'], ['x']],
-      ['Vertical stretch', 'Graph y=3f(x) stretches vertically by factor?', '3', 0.28, ['Coefficient multiplies outputs.']],
-      ['Horizontal shift', 'f(x+5) shifts the graph of f which direction?', 'left 5', 0.35, ['x+5 inside ⟹ left.'], ['x']],
+      ['Reflection', 'Reflect y=x^2 across x-axis: h(x)=?', '-x^2', 0.3, ['Multiply output by -1.'], ['x'], ['misconception:reflection_order']],
+      ['Vertical stretch', 'Graph y=3f(x) stretches vertically by factor?', '3', 0.28, ['Coefficient multiplies outputs.'], undefined, ['transfer']],
+      ['Horizontal shift', 'f(x+5) shifts the graph of f which direction?', 'left 5', 0.35, ['x+5 inside ⟹ left.'], ['x'], ['misconception:horizontal_shift']],
     ),
   },
   trig_identities_calc: {
     skillId: 'trig_identities_calc',
     diagnostics: diag('Trig identity checkpoint', 'Simplify sin²x + cos²x.', '1', 0.28, ['Pythagorean identity.'], ['x']),
     practice: practiceSet(
-      ['Double angle', 'cos(2x) in terms of cos x only (no +).', '2*cos(x)^2-1', 0.35, ['Use cos(2x)=2cos²x-1.'], ['x']],
-      ['Tan identity', 'tan(x) in terms of sin and cos.', 'sin(x)/cos(x)', 0.32, ['Definition of tangent.'], ['x']],
-      ['Cofunction', 'sin(pi/2 - x) equals?', 'cos(x)', 0.38, ['Cofunction identity.'], ['x']],
+      ['Double angle', 'cos(2x) in terms of cos x only (no +).', '2*cos(x)^2-1', 0.35, ['Use cos(2x)=2cos²x-1.'], ['x'], ['transfer']],
+      ['Tan identity', 'tan(x) in terms of sin and cos.', 'sin(x)/cos(x)', 0.32, ['Definition of tangent.'], ['x'], ['transfer']],
+      ['Cofunction', 'sin(pi/2 - x) equals?', 'cos(x)', 0.38, ['Cofunction identity.'], ['x'], ['misconception:pythagorean_misuse']],
     ),
   },
   word_problem_translation: {
@@ -109,11 +111,27 @@ export const SKILL_CATALOG_EXTENSION: Record<string, SkillCatalogEntry> = {
   },
   inverse_trig_derivatives: {
     skillId: 'inverse_trig_derivatives',
-    diagnostics: diag('Inverse trig deriv checkpoint', 'd/dx arcsin(x) = ?', '1/sqrt(1-x^2)', 0.42, ['Standard inverse trig derivative.'], ['x']),
+    diagnostics: diag(
+      'Inverse trig deriv checkpoint',
+      'd/dx arcsin(x) = ?',
+      '1/sqrt(1-x^2)',
+      0.42,
+      ['Standard inverse trig derivative.'],
+      ['x'],
+      ['misconception:chain_rule_inner'],
+    ),
     practice: practiceSet(
-      ['Chain with arcsin', 'd/dx arcsin(2x) leading factor?', '2/sqrt(1-(2*x)^2)', 0.45, ['Chain rule on inner 2x.'], ['x']],
-      ['Arctan derivative', 'd/dx arctan(x) = ?', '1/(1+x^2)', 0.4, ['Standard arctan derivative.'], ['x']],
-      ['Arccos derivative', 'd/dx arccos(x) = ?', '-1/sqrt(1-x^2)', 0.44, ['Negative arcsin derivative.'], ['x']],
+      [
+        'Chain with arcsin',
+        'd/dx arcsin(2x) leading factor?',
+        '2/sqrt(1-(2*x)^2)',
+        0.45,
+        ['Chain rule on inner 2x.'],
+        ['x'],
+        ['misconception:chain_rule_inner'],
+      ],
+      ['Arctan derivative', 'd/dx arctan(x) = ?', '1/(1+x^2)', 0.4, ['Standard arctan derivative.'], ['x'], ['transfer']],
+      ['Arccos derivative', 'd/dx arccos(x) = ?', '-1/sqrt(1-x^2)', 0.44, ['Negative arcsin derivative.'], ['x'], ['transfer']],
     ),
   },
   first_derivative_test: {
@@ -208,11 +226,11 @@ export const SKILL_CATALOG_EXTENSION: Record<string, SkillCatalogEntry> = {
   },
   polar_arc_length: {
     skillId: 'polar_arc_length',
-    diagnostics: diag('Polar arc length checkpoint', 'Polar arc length uses integrand sqrt(r^2 + (dr/dθ)^2) dθ?', 'yes', 0.4, ['Polar arc element.']),
+    diagnostics: diag('Polar arc length checkpoint', 'Polar arc length uses integrand sqrt(r^2 + (dr/dθ)^2) dθ?', 'yes', 0.4, ['Polar arc element.'], undefined, ['transfer']),
     practice: practiceSet(
-      ['Circle arc', 'For r = 5, from θ=0 to π/2, arc length integrand at each θ uses r = ?', '5', 0.38, ['Constant radius in integrand.']],
-      ['Derivative term', 'If r = 2θ, dr/dθ equals?', '2', 0.42, ['Differentiate with respect to θ.'], ['θ']],
-      ['Bounds', 'Full circle in polar from θ=0 to θ=2π traces arc length equal to?', 'circumference', 0.36, ['Closed curve length.']],
+      ['Circle arc', 'For r = 5, from θ=0 to π/2, arc length integrand at each θ uses r = ?', '5', 0.38, ['Constant radius in integrand.'], undefined, ['transfer']],
+      ['Derivative term', 'If r = 2θ, dr/dθ equals?', '2', 0.42, ['Differentiate with respect to θ.'], ['θ'], ['misconception:polar_ds']],
+      ['Bounds', 'Full circle in polar from θ=0 to θ=2π traces arc length equal to?', 'circumference', 0.36, ['Closed curve length.'], undefined, ['transfer']],
     ),
   },
 }

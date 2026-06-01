@@ -128,7 +128,7 @@ export async function batchVerifyProblemBank(
   state: MathPilotState,
   limit = 40,
 ): Promise<{ state: MathPilotState; result: BatchVerifyResult }> {
-  const { verifyGeneratedProblemAsync } = await import('./problemGenerator')
+  const { validateProblemAnswer } = await import('./problemValidation')
   const candidates = activeProblems(state)
     .filter((p) => p.verificationStatus !== 'verified' && p.verificationStatus !== 'deprecated')
     .slice(0, limit)
@@ -149,20 +149,9 @@ export async function batchVerifyProblemBank(
     }
     result.checked += 1
     result.problemIds.push(problem.id)
-    const spec = {
-      skillId: problem.skillIds[0] ?? 'chain_rule',
-      title: problem.title,
-      prompt: problem.prompt,
-      expectedAnswer: problem.expectedAnswer,
-      mode: problem.mode,
-      difficulty: problem.difficulty,
-      answerType: (problem.answerType === 'text' ? 'text' : 'expression') as 'text' | 'expression',
-      hintSequence: problem.hintSequence,
-      variables: ['x'] as string[],
-    }
     try {
-      const verification = await verifyGeneratedProblemAsync(spec)
-      if (verification.symbolic === 'passed' || verification.numeric === 'passed') {
+      const verification = await validateProblemAnswer(problem)
+      if (verification.ok) {
         next = promoteProblemToVerified(next, problem.id)
         result.promoted += 1
       } else {

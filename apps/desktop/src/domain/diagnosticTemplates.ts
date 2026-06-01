@@ -18,6 +18,7 @@ export function diagnosticProblemForSkill(skillId: string, variant: number): Pro
     mode: 'diagnostic',
     verificationStatus: 'verified',
     source: 'diagnostic_template',
+    tags: spec.tags,
   }
 }
 

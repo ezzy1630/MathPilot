@@ -9,12 +9,20 @@ declare module './types' {
   interface DiagnosticSessionState {
     continuing?: boolean
     triggerReason?: string
+    skillProbes?: Record<string, SkillProbeCounts>
   }
 }
 
 export const DIAGNOSTIC_TARGET_QUESTIONS = 25
 export const MINI_DIAGNOSTIC_MIN = 8
 export const MINI_DIAGNOSTIC_MAX = 12
+export const DIAGNOSTIC_CONFIDENCE_MIN_SKILLS = 5
+export const DIAGNOSTIC_CONFIDENCE_MIN_ATTEMPTS_PER_SKILL = 2
+
+export interface SkillProbeCounts {
+  correct: number
+  attempts: number
+}
 
 export interface DiagnosticSession {
   id: string
@@ -25,6 +33,7 @@ export interface DiagnosticSession {
   queue: string[]
   weakSkills: string[]
   strongSkills: string[]
+  skillProbes: Record<string, SkillProbeCounts>
   completed: boolean
   summary?: DiagnosticSummary
   continuing?: boolean
@@ -57,6 +66,7 @@ export function startContinuingDiagnostic(
     queue,
     weakSkills: focusSkills ?? [],
     strongSkills: [],
+    skillProbes: {},
     completed: false,
     continuing: true,
     triggerReason: trigger?.reason,
@@ -114,12 +124,72 @@ export function startDiagnostic(state: MathPilotState): { state: MathPilotState;
     queue,
     weakSkills: [],
     strongSkills: [],
+    skillProbes: {},
     completed: false,
   }
   return {
     state: { ...state, diagnostic: session },
     session,
   }
+}
+
+export function diagnosticConfidenceMet(session: DiagnosticSession): boolean {
+  const probed = Object.values(session.skillProbes ?? {}).filter(
+    (counts) => counts.attempts >= DIAGNOSTIC_CONFIDENCE_MIN_ATTEMPTS_PER_SKILL,
+  )
+  return probed.length >= DIAGNOSTIC_CONFIDENCE_MIN_SKILLS
+}
+
+/** Higher weight → prefer sooner in adaptive queue. */
+export function skillSelectionWeight(
+  state: MathPilotState,
+  skillId: string,
+  session: Pick<DiagnosticSession, 'weakSkills' | 'strongSkills' | 'skillProbes'>,
+): number {
+  const probes = session.skillProbes?.[skillId]
+  let weight = 1
+
+  if (probes && probes.correct >= 2) weight *= 0.35
+  if (session.weakSkills.includes(skillId)) weight *= 1.5
+
+  for (const weakId of session.weakSkills) {
+    const weakSkill = state.skills[weakId]
+    if (weakSkill?.prerequisites.includes(skillId)) weight *= 1.65
+  }
+
+  if (session.strongSkills.includes(skillId) && !session.weakSkills.includes(skillId)) {
+    weight *= 0.85
+  }
+
+  return weight
+}
+
+function recordSkillProbes(
+  probes: Record<string, SkillProbeCounts>,
+  skillIds: string[],
+  correct: boolean,
+): Record<string, SkillProbeCounts> {
+  const next = { ...probes }
+  for (const skillId of skillIds) {
+    const current = next[skillId] ?? { correct: 0, attempts: 0 }
+    next[skillId] = {
+      attempts: current.attempts + 1,
+      correct: current.correct + (correct ? 1 : 0),
+    }
+  }
+  return next
+}
+
+function sortSkillsByDiagnosticWeight(
+  state: MathPilotState,
+  skillIds: string[],
+  session: Pick<DiagnosticSession, 'weakSkills' | 'strongSkills' | 'skillProbes'>,
+): string[] {
+  return [...skillIds].sort((a, b) => {
+    const weightDiff = skillSelectionWeight(state, b, session) - skillSelectionWeight(state, a, session)
+    if (weightDiff !== 0) return weightDiff
+    return (state.mastery[a]?.masteryScore ?? 0.3) - (state.mastery[b]?.masteryScore ?? 0.3)
+  })
 }
 
 export function currentDiagnosticProblem(state: MathPilotState): Problem | undefined {
@@ -161,13 +231,29 @@ export function submitDiagnosticAnswer(
     else weak.add(skillId)
   }
 
+  const skillProbes = recordSkillProbes(session.skillProbes ?? {}, problem.skillIds, correct)
+  const sessionSnapshot = {
+    ...session,
+    weakSkills: [...weak],
+    strongSkills: [...strong],
+    skillProbes,
+  }
+
   const answeredCount = session.answeredCount + 1
   const currentIndex = session.currentIndex + 1
-  const completed = answeredCount >= session.targetCount || currentIndex >= session.queue.length
+  const confidenceStop = !session.continuing && diagnosticConfidenceMet(sessionSnapshot)
+  const completed =
+    answeredCount >= session.targetCount ||
+    currentIndex >= session.queue.length ||
+    confidenceStop
 
   let queue = session.queue
-  if (!completed && !session.continuing && answeredCount % 3 === 0) {
-    queue = reprioritizeDiagnosticQueue(next, { ...session, weakSkills: [...weak], strongSkills: [...strong] }, currentIndex)
+  const shouldReprioritize =
+    !completed &&
+    !session.continuing &&
+    (!correct || answeredCount % 3 === 0)
+  if (shouldReprioritize) {
+    queue = reprioritizeDiagnosticQueue(next, sessionSnapshot, currentIndex)
   }
 
   let summary = session.summary
@@ -203,6 +289,7 @@ export function submitDiagnosticAnswer(
       queue,
       weakSkills: [...weak],
       strongSkills: [...strong],
+      skillProbes,
       completed,
       summary,
     },
@@ -214,8 +301,6 @@ function reprioritizeDiagnosticQueue(
   session: DiagnosticSession,
   answeredThroughIndex: number,
 ): string[] {
-  const weak = new Set(session.weakSkills)
-  const strong = new Set(session.strongSkills)
   const prefix = session.queue.slice(0, answeredThroughIndex)
   const prefixIds = new Set(prefix)
 
@@ -229,12 +314,7 @@ function reprioritizeDiagnosticQueue(
     }
   }
 
-  const orderedSkills = Object.keys(state.skills).sort((a, b) => {
-    const aRank = weak.has(a) ? 0 : strong.has(a) ? 2 : 1
-    const bRank = weak.has(b) ? 0 : strong.has(b) ? 2 : 1
-    if (aRank !== bRank) return aRank - bRank
-    return (state.mastery[a]?.masteryScore ?? 0.3) - (state.mastery[b]?.masteryScore ?? 0.3)
-  })
+  const orderedSkills = sortSkillsByDiagnosticWeight(state, Object.keys(state.skills), session)
 
   const rebuilt = [...prefix]
   const used = new Set(prefixIds)
@@ -268,12 +348,8 @@ function buildAdaptiveQueue(state: MathPilotState, pool: Problem[], target: numb
     }
   }
 
-  const skillIds = Object.keys(state.skills)
-  const ordered = [...skillIds].sort((a, b) => {
-    const ma = state.mastery[a]?.masteryScore ?? 0.3
-    const mb = state.mastery[b]?.masteryScore ?? 0.3
-    return ma - mb
-  })
+  const emptySession = { weakSkills: [] as string[], strongSkills: [] as string[], skillProbes: {} }
+  const ordered = sortSkillsByDiagnosticWeight(state, Object.keys(state.skills), emptySession)
 
   const queue: string[] = []
   const used = new Set<string>()

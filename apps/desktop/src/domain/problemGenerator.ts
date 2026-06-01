@@ -329,8 +329,21 @@ export async function generateProblemViaCodexAsync(
     ...inferCalculusVerify(payload.prompt),
   }
 
-  const verification = await verifyGeneratedProblemAsync(spec)
-  const status = verification.symbolic === 'passed' ? 'verified' : 'unverified_used'
+  const templateVerification = await verifyGeneratedProblemAsync(spec)
+  const { validateProblemAnswer } = await import('./problemValidation')
+  const independent = await validateProblemAnswer({
+    id: `codex-pending-${skillId}`,
+    title: spec.title,
+    prompt: spec.prompt,
+    skillIds: [skillId],
+    difficulty: spec.difficulty,
+    mode: spec.mode,
+    answerType: spec.answerType,
+    expectedAnswer: spec.expectedAnswer,
+    hintSequence: spec.hintSequence,
+  })
+  const status =
+    independent.ok || templateVerification.symbolic === 'passed' ? 'verified' : 'unverified_used'
   const id = `codex-${skillId}-${seed}`
 
   const problem: Problem = {
@@ -351,8 +364,8 @@ export async function generateProblemViaCodexAsync(
 
   const record: GeneratedProblemRecord = {
     problem,
-    verification,
-    codexMetadata: toCodexMetadata(problem, verification),
+    verification: templateVerification,
+    codexMetadata: toCodexMetadata(problem, templateVerification),
   }
 
   return {
@@ -360,7 +373,7 @@ export async function generateProblemViaCodexAsync(
       ...withCall,
       problems: { ...withCall.problems, [id]: problem },
       changelog: [
-        `${new Date().toISOString()}: Codex generated ${id} (${status}, symbolic=${verification.symbolic}).`,
+        `${new Date().toISOString()}: Codex generated ${id} (${status}, symbolic=${templateVerification.symbolic}, independent=${independent.ok}).`,
         ...withCall.changelog,
       ],
     },

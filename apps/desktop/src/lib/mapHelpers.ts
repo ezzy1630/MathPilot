@@ -1,3 +1,4 @@
+import { filterProblemsByCourseFocus } from '../domain/courseFocusFilter'
 import type { MathPilotState } from '../domain/types'
 
 export function readiness(state: MathPilotState): number {
@@ -29,8 +30,17 @@ export function groupByArea(state: MathPilotState) {
   return groups
 }
 
-export function problemForSkill(state: MathPilotState, skillId: string, preferredMode?: string) {
-  const pool = Object.values(state.problems).filter((p) => p.skillIds.includes(skillId) && !p.deprecated)
+export function problemForSkill(
+  state: MathPilotState,
+  skillId: string,
+  preferredMode?: string,
+  options?: { prerequisiteRepair?: boolean },
+) {
+  const pool = filterProblemsByCourseFocus(
+    state,
+    Object.values(state.problems).filter((p) => p.skillIds.includes(skillId) && !p.deprecated),
+    { repairSkillId: skillId, prerequisiteRepair: options?.prerequisiteRepair },
+  )
   return (
     pool.find((p) => p.mode === preferredMode)?.id ??
     pool[0]?.id ??

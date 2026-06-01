@@ -27,7 +27,7 @@ describe('diagnostic engine', () => {
     for (let i = 0; i < 3; i += 1) {
       const problemId = state.diagnostic!.queue[i]
       const problem = state.problems[problemId]
-      state = submitDiagnosticAnswer(state, problemId, problem?.expectedAnswer ?? '', false)
+      state = submitDiagnosticAnswer(state, problemId, problem?.expectedAnswer ?? '', true)
     }
 
     expect(state.diagnostic?.queue.slice(0, 3)).toEqual(initialQueue.slice(0, 3))

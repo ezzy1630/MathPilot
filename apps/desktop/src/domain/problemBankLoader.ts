@@ -55,6 +55,7 @@ function catalogToProblems(): Problem[] {
           verificationStatus: variant === 0 ? 'verified' : 'unverified_used',
           source: 'catalog_bank',
           requiresShowWork: spec.difficulty >= 0.45,
+          tags: spec.tags,
         })
       }
     })

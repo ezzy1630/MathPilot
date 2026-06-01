@@ -7,6 +7,7 @@ import { buildFormulaRecallProblem } from './formulaRecall'
 import { generateProblemForSkill, generateProblemViaCodexAsync } from './problemGenerator'
 import { pickInterleavedProblem } from './interleavingEngine'
 import { buildReviewProblem, inferReviewType } from './reviewItemEngine'
+import { filterProblemsByCourseFocus } from './courseFocusFilter'
 import { problemForSkill } from '../lib/mapHelpers'
 import type { ActivityKind, MathPilotState, Problem, ResourceRecord } from './types'
 
@@ -143,25 +144,38 @@ function resolveProblemForActionCore(
   }
 
   if (phase === 'quick_repair' || actionKind === 'quick_repair' || actionKind === 'homework_review') {
-    const repairPool = Object.values(state.problems).filter(
-      (problem) =>
-        problem.skillIds.includes(skillId) &&
-        !problem.deprecated &&
-        (problem.mode === 'quick_repair' || problem.mode === 'guided_practice'),
+    const repairPool = filterProblemsByCourseFocus(
+      state,
+      Object.values(state.problems).filter(
+        (problem) =>
+          problem.skillIds.includes(skillId) &&
+          !problem.deprecated &&
+          (problem.mode === 'quick_repair' || problem.mode === 'guided_practice'),
+      ),
+      { repairSkillId: skillId, prerequisiteRepair: true },
     )
     const matched = repairPool.find((problem) => difficultyMatchesBias(problem, difficultyBias, masteryScore))
     if (matched) return { state, problemId: matched.id }
   }
 
-  const skillPool = Object.values(state.problems).filter(
-    (problem) => problem.skillIds.includes(skillId) && !problem.deprecated,
+  const skillPool = filterProblemsByCourseFocus(
+    state,
+    Object.values(state.problems).filter(
+      (problem) => problem.skillIds.includes(skillId) && !problem.deprecated,
+    ),
+    {
+      repairSkillId: skillId,
+      prerequisiteRepair: phase === 'quick_repair' || actionKind === 'quick_repair',
+    },
   )
   const existing =
     skillPool.find((problem) => problem.mode === preferredMode)?.id ?? skillPool[0]?.id
   if (existing) return { state, problemId: existing }
 
   if (!options?.deferGeneration) {
-    const fallback = problemForSkill(state, skillId, preferredMode)
+    const fallback = problemForSkill(state, skillId, preferredMode, {
+      prerequisiteRepair: phase === 'quick_repair' || actionKind === 'quick_repair',
+    })
     if (fallback) return { state, problemId: fallback }
   }
 

@@ -9,6 +9,7 @@ export interface ProblemSpec {
   difficulty: number
   hintSequence: string[]
   variables?: string[]
+  tags?: string[]
 }
 
 export interface PracticeSpec extends ProblemSpec {
@@ -481,6 +482,7 @@ export const SKILL_CATALOG: Record<string, SkillCatalogEntry> = {
         difficulty: 0.52,
         hintSequence: ['Outer: sin, inner: 5x^2.'],
         variables: ['x'],
+        tags: ['misconception:chain_rule_inner'],
       },
     ],
     practice: [
@@ -493,6 +495,7 @@ export const SKILL_CATALOG: Record<string, SkillCatalogEntry> = {
         mode: 'guided_practice',
         hintSequence: ['Identify the outer and inner structure.'],
         variables: ['x'],
+        tags: ['misconception:chain_rule_inner'],
       },
       {
         title: 'Chain rule: trig composition',
