@@ -23,6 +23,11 @@ if [[ ! -d "$APP_SRC" ]]; then
   pnpm --filter @mathpilot/desktop desktop:build
 fi
 
+DMG_SRC="$ROOT/apps/desktop/src-tauri/target/release/bundle/dmg/MathPilot_"*".dmg"
+if compgen -G "$DMG_SRC" >/dev/null; then
+  echo "Release DMG: $(ls -1 $DMG_SRC 2>/dev/null | tail -1)"
+fi
+
 if [[ ! -d "$APP_SRC" ]]; then
   echo "Error: expected bundle at $APP_SRC" >&2
   exit 1
