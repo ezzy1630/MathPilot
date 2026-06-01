@@ -705,7 +705,7 @@ fn ocr_homework_image_python(app: &AppHandle, image_path: String) -> Result<Stri
 }
 
 #[tauri::command]
-pub fn ocr_homework_image(app: AppHandle, image_path: String) -> Result<String, String> {
+pub fn ocr_homework_image(_app: AppHandle, image_path: String) -> Result<String, String> {
     #[cfg(all(target_os = "macos", not(debug_assertions)))]
     {
         return crate::ocr_macos::recognize_text(&image_path);
