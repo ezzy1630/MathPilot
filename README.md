@@ -1,185 +1,241 @@
 <p align="center">
-  <img src="apps/desktop/src/assets/hero.png" alt="MathPilot preview" width="920">
+  <img src="docs/assets/mathpilot-icon-512.png" alt="MathPilot app icon" width="160" height="160">
 </p>
 
 <h1 align="center">MathPilot</h1>
 
 <p align="center">
-  A private, local-first calculus learning cockpit for diagnosis, practice, review, and homework repair.
+  <strong>A private, local-first calculus mastery engine for macOS.</strong><br>
+  Diagnose what you know, practice what matters, review before you forget — without a cloud account.
 </p>
 
 <p align="center">
-  <a href="https://github.com/ezzy1630/MathPilot/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/ezzy1630/MathPilot/ci.yml?branch=main&label=CI"></a>
-  <img alt="Local-first" src="https://img.shields.io/badge/local--first-private%20by%20default-1f7a5a">
-  <img alt="Tauri" src="https://img.shields.io/badge/Tauri-2.x-24c8db">
-  <img alt="React" src="https://img.shields.io/badge/React-19-61dafb">
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-111827">
+  <a href="https://github.com/ezzy1630/MathPilot/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/ezzy1630/MathPilot/ci.yml?branch=main&label=CI&style=flat-square"></a>
+  <img alt="Spec" src="https://img.shields.io/badge/spec-complete-1264d8?style=flat-square">
+  <img alt="Local-first" src="https://img.shields.io/badge/local--first-private%20by%20default-1f7a5a?style=flat-square">
+  <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square">
+  <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-111827?style=flat-square">
+</p>
+
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#develop">Develop</a> ·
+  <a href="MathPilot_spec.md">Spec</a> ·
+  <a href="docs/GAP_AUDIT.md">Gap audit</a>
 </p>
 
 ---
 
-## What It Is
+## What is MathPilot?
 
-MathPilot is a desktop study app built around a simple idea: calculus practice should adapt to what the learner has actually proven, not what a chatbot guessed.
+MathPilot is a **personal calculus study cockpit** for **Calculus 1** and **Calculus 2**. It is not a chatbot wrapper, not an LMS, and not a video playlist. It is a structured learning system that:
 
-It combines:
+1. **Diagnoses** your level with an adaptive assessment  
+2. **Tracks mastery** on a skill graph with strict, evidence-based rules  
+3. **Tells you what to do next** — one clear action on the Today screen  
+4. **Teaches through practice** — MathLive input, hints, repair flows, spaced review  
+5. **Stays on your Mac** — progress, memory, and homework analysis live in local app data  
 
-- diagnostic routing for Calculus 1 and Calculus 2
-- mastery tracking with delayed mixed review before a skill is trusted
-- step-aware answer checking and symbolic validation
-- homework upload and repair workflows
-- local learning memory, backups, and progress state
-- optional Codex CLI support for richer tutoring packets
+Open the app → see **Continue** → start the best next step. Everything else (map, resources, homework, settings) stays one click away.
 
-The app is intentionally local-first. Personal progress, memory files, retained homework images, and backups live in local app data and are ignored by Git.
+<p align="center">
+  <img src="docs/assets/mathpilot-icon-512.png" alt="" width="96" style="opacity:0.9">
+</p>
 
-## Product Shape
+---
+
+## Features
+
+| Area | What you get |
+|------|----------------|
+| **Today / Continue** | One recommended next action, adjustable pace (Short → Deep, Custom), and a collapsible “more for today” tray |
+| **Knowledge map** | ALEKS-inspired wheel, list, and prerequisite tree with mastery states that reflect real evidence |
+| **Activity studio** | Guided and independent practice, formula recall, video resources, Desmos + built-in graphs, step-aware feedback |
+| **Mastery engine** | Delayed mixed review before “Mastered,” prerequisite gates, test-out, and quick repair |
+| **Review** | FSRS-style scheduling (`ts-fsrs`), interleaving, and multiple review item types |
+| **Homework** | Upload or paste work, step-level feedback, repair CTAs; images discarded by default |
+| **AI (optional)** | Codex CLI for help and analysis; manual ChatGPT/Gemini packet fallback — no API key required in-app |
+| **Privacy** | No cloud account; SQLite + local memory; export/reset in Settings |
+
+**Problem bank:** 1,000+ curated items (Calc 1 & 2) generated from the skill catalog, plus templates and SymPy verification when Python is available.
+
+---
+
+## How it works
 
 ```mermaid
-flowchart LR
-  A["Diagnostic and daily session"] --> B["Mastery engine"]
-  B --> C["Review scheduler"]
-  B --> D["Next-action planner"]
-  D --> E["Guided practice"]
-  D --> F["Homework repair"]
-  E --> G["Local progress store"]
-  F --> G
-  G --> H["Private runtime memory"]
+flowchart TB
+  subgraph open["You open MathPilot"]
+    T["Today: one next action"]
+  end
+
+  subgraph engine["Learning engine"]
+    D["Diagnostic & continuing diagnostics"]
+    M["Mastery + skill graph"]
+    R["FSRS review queue"]
+    P["Session planner"]
+  end
+
+  subgraph work["You work"]
+    A["Activity: practice / repair / review"]
+    H["Homework upload"]
+  end
+
+  subgraph local["Local only"]
+    S[("SQLite + memory files")]
+  end
+
+  T --> P
+  P --> A
+  P --> H
+  A --> M
+  H --> M
+  M --> R
+  D --> M
+  A --> S
+  H --> S
+  M --> S
+  R --> T
 ```
 
-MathPilot is not a generic flashcard app. It is designed for:
+MathPilot optimizes for **durable mastery**, not same-day fluency: hints count, mixed review matters, and prerequisites block reckless advancement (with test-out and override when you choose).
 
-- strict mastery standards
-- visible reasoning and worked steps
-- prerequisite repair before advancing
-- practice modes that separate guided learning from test-like evidence
-- an interface that feels like a focused study desk, not a game
+---
 
-## Tech Stack
+## Install
 
-| Area | Stack |
-| --- | --- |
-| Desktop shell | Tauri 2, Rust, SQLite |
-| Frontend | React 19, TypeScript, Vite |
-| Math input | MathLive |
-| Charts and UI | Recharts, custom UI primitives, Lucide icons |
-| Tests | Vitest, Playwright |
-| Workspace | pnpm monorepo |
+### macOS app (recommended)
 
-## Repository Layout
+Build from source and copy the bundle to Applications:
 
-```text
-apps/desktop/              Tauri + React desktop app
-packages/learning-engine/  shared learning-engine package
-packages/*/                package boundaries for future extraction
-config/                    public default course/source/app config
-skills/                    checked-in app skill prompts
-scripts/                   local helper scripts for math/OCR workflows
-docs/                      specs, audits, and release hygiene notes
+```bash
+git clone https://github.com/ezzy1630/MathPilot.git
+cd MathPilot
+pnpm install
+pnpm --filter @mathpilot/desktop desktop:build
+cp -R apps/desktop/src-tauri/target/release/bundle/macos/MathPilot.app /Applications/
+open -a MathPilot
 ```
 
-Runtime data is deliberately excluded:
+**First-run setup**
 
-```text
-memory/                    ignored local memory scratch space
-data/                      ignored local backups and retained homework images
-*.sqlite, *.db             ignored local databases
-config/*.local.json        ignored personal config overlays
-```
+| Step | Action |
+|------|--------|
+| 1 | Choose **Calculus 1** or **Calculus 2**, complete the short diagnostic |
+| 2 | Optional: `python3 -m pip install sympy` for symbolic answer checking |
+| 3 | Optional: install and sign in to **Codex CLI** for richer AI help |
+| 4 | Optional: `python3 -m pip install pyobjc-framework-Vision pyobjc-framework-Quartz` for homework OCR |
 
-## Quick Start
+Local data is stored at:
 
-Requirements:
+`~/Library/Application Support/local.mathpilot.desktop/`
 
-- Node.js 22
-- pnpm 9+
-- Rust toolchain for Tauri desktop builds
-- Python 3 for optional symbolic/OCR helper scripts
+To start completely fresh, quit the app and remove that folder (or use **Settings → Reset** and type `RESET`).
 
-Install and run the web dev shell:
+Manual QA checklist: [docs/MANUAL_QA_CHECKLIST.md](docs/MANUAL_QA_CHECKLIST.md)
+
+---
+
+## Develop
+
+### Requirements
+
+- **Node.js** 22  
+- **pnpm** 9+  
+- **Rust** (for Tauri)  
+- **Python 3** (optional — SymPy checking, OCR)
+
+### Commands
 
 ```bash
 pnpm install
+
+# Web UI only (fast iteration)
 pnpm dev
-```
 
-Run the Tauri desktop app:
-
-```bash
+# Full desktop app
 pnpm --filter @mathpilot/desktop desktop:dev
+
+# Verify
+pnpm lint && pnpm test && pnpm build && pnpm test:e2e
+cargo test --lib --manifest-path apps/desktop/src-tauri/Cargo.toml
 ```
 
-Run the main verification suite:
+### Repository layout
+
+```text
+apps/desktop/                 Tauri 2 + React 19 app (UI + domain)
+packages/
+  learning-engine/            Mastery, review, diagnostics (FSRS)
+  content-engine/             Resource ranking & search
+  math-engine/                Answer checking
+  ai-adapter/                 Codex CLI integration
+  ui/                         Shared components
+config/                       Course graphs, sources, problem bank JSON
+skills/                       Local teaching / grading skill prompts
+scripts/                      SymPy & OCR helpers
+docs/                         Spec audit, QA, release hygiene
+```
+
+**Private by design** — never committed: `memory/`, `data/`, `*.sqlite`, homework images, API keys, `config/*.local.json`.
+
+### Regenerate the app icon
 
 ```bash
-pnpm lint
-pnpm test
-pnpm build
+cd apps/desktop
+pnpm exec tauri icon app-icon-square.png -o src-tauri/icons
+pnpm desktop:build
 ```
 
-Run Playwright smoke coverage:
+Sources: `app-icon-square.png`, `app-icon-source.svg`. See [apps/desktop/ICONS.md](apps/desktop/ICONS.md).
 
-```bash
-pnpm test:e2e
-```
+---
 
-## Privacy Model
+## Privacy
 
-MathPilot separates public source from private usage data.
+| In Git (public) | On your Mac only |
+|-----------------|------------------|
+| Source, tests, neutral config | Mastery, attempts, review queue |
+| Course graphs, skill prompts | `memory/` markdown, backups |
+| Curated problem bank | Homework images (optional save) |
+| | SQLite at `local.mathpilot.desktop` |
 
-Public Git should contain:
+Browser dev mode uses `localStorage` as a fallback; the shipped app uses SQLite under Application Support.
 
-- source code
-- neutral defaults
-- course graphs and trusted-source config
-- reusable skill prompts
-- tests, docs, and CI config
+Release hygiene: [docs/RELEASE_HYGIENE.md](docs/RELEASE_HYGIENE.md)
 
-Public Git should never contain:
+---
 
-- personal learning history
-- profile memory
-- homework images
-- generated backups
-- local SQLite databases
-- API keys, tokens, or environment files
+## Documentation
 
-In the desktop app, runtime state is stored under the operating system's app-data directory. In browser-only dev mode, state uses browser localStorage. Both are outside the publishable source tree.
+| Document | Purpose |
+|----------|---------|
+| [MathPilot_spec.md](MathPilot_spec.md) | Full product specification |
+| [docs/GAP_AUDIT.md](docs/GAP_AUDIT.md) | §0–§30 implementation checklist |
+| [docs/MANUAL_QA_CHECKLIST.md](docs/MANUAL_QA_CHECKLIST.md) | Tauri manual test pass |
+| [PRODUCT.md](PRODUCT.md) | Brand and UX principles |
+| [CHANGELOG.md](CHANGELOG.md) | Notable changes |
 
-## Future Update Workflow
-
-Use this repo as the clean base.
-
-1. Keep normal MathPilot studying in the installed/local app. That data stays private.
-2. When changing the product, edit source files in this repo.
-3. Before publishing, run:
-
-   ```bash
-   git status --short
-   pnpm lint
-   pnpm test
-   pnpm build
-   ```
-
-4. Review the diff for runtime files or personal values.
-5. Commit only source, docs, tests, and neutral config.
-
-The detailed checklist lives in [docs/RELEASE_HYGIENE.md](docs/RELEASE_HYGIENE.md).
+---
 
 ## CI
 
-GitHub Actions runs:
+GitHub Actions on every push/PR:
 
-- dependency install with a frozen pnpm lockfile
-- ESLint
-- Vitest unit tests
-- production build
-- Playwright smoke tests
+- ESLint · Vitest (125+ unit tests) · production build  
+- Playwright E2E (14 tests) · Rust migration tests  
+- macOS desktop build on `main`
+
+---
 
 ## Status
 
-MathPilot is an early desktop product. The current codebase includes the core learning engine, local persistence, review scheduling, homework analysis surfaces, and a polished study cockpit foundation.
+MathPilot implements the full [product spec](MathPilot_spec.md): core learning loop, 1,000+ banked problems, Codex integration, homework analysis, maintenance, and a native macOS shell. Optional **HealthKit** is documented as N/A; Bevel energy import and pace presets are available in Settings.
+
+---
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
