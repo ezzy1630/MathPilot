@@ -17,6 +17,13 @@ export interface CodeChangeProposal {
   appliedPaths?: string[]
 }
 
+export interface DeveloperState {
+  pendingDiffPreview?: string
+  lastTestRun?: { ok: boolean; output: string; at: string }
+}
+
+export type CodeSelfImprovementState = MathPilotState & { developerState?: DeveloperState }
+
 const REPO_ROOT_PREFIXES = ['apps/', 'packages/', 'skills/', 'config/', 'scripts/', 'data/']
 
 /** Paths for code self-improvement must stay under the MathPilot repo root. */
@@ -44,9 +51,9 @@ export function validateCodePatches(patches: CodePatch[]): { ok: boolean; invali
 
 /** Spec §19: code self-improvement requires developer mode, backup, and explicit approval. */
 export function proposeCodeChange(
-  state: MathPilotState,
+  state: CodeSelfImprovementState,
   input: { summary: string; files: string[]; diffPreview: string; patches?: CodePatch[] },
-): MathPilotState {
+): CodeSelfImprovementState {
   if (!state.developerModeEnabled) return state
   if (input.patches?.length) {
     const validation = validateCodePatches(input.patches)
@@ -73,6 +80,10 @@ export function proposeCodeChange(
   return {
     ...state,
     codeChangeProposals: proposals,
+    developerState: {
+      ...state.developerState,
+      pendingDiffPreview: proposal.diffPreview,
+    },
     changelog: [
       `${proposal.createdAt}: Code change proposed (pending approval) — ${input.summary}`,
       ...state.changelog,
@@ -80,7 +91,7 @@ export function proposeCodeChange(
   }
 }
 
-export function approveCodeChange(state: MathPilotState, proposalId: string): MathPilotState {
+export function approveCodeChange(state: CodeSelfImprovementState, proposalId: string): CodeSelfImprovementState {
   const proposals = state.codeChangeProposals ?? []
   const idx = proposals.findIndex((p) => p.id === proposalId)
   if (idx < 0) return state
@@ -90,6 +101,10 @@ export function approveCodeChange(state: MathPilotState, proposalId: string): Ma
   return {
     ...state,
     codeChangeProposals: next,
+    developerState: {
+      ...state.developerState,
+      pendingDiffPreview: next[idx].diffPreview,
+    },
     changelog: [
       `${new Date().toISOString()}: Code change approved — ${next[idx].summary}. Backup ${backupId}.`,
       ...state.changelog,
@@ -97,20 +112,24 @@ export function approveCodeChange(state: MathPilotState, proposalId: string): Ma
   }
 }
 
-export function rejectCodeChange(state: MathPilotState, proposalId: string): MathPilotState {
+export function rejectCodeChange(state: CodeSelfImprovementState, proposalId: string): CodeSelfImprovementState {
   const proposals = state.codeChangeProposals ?? []
   return {
     ...state,
     codeChangeProposals: proposals.map((p) =>
       p.id === proposalId ? { ...p, status: 'rejected' } : p,
     ),
+    developerState: {
+      ...state.developerState,
+      pendingDiffPreview: undefined,
+    },
   }
 }
 
 export async function applyApprovedCodeChange(
-  state: MathPilotState,
+  state: CodeSelfImprovementState,
   proposalId: string,
-): Promise<MathPilotState> {
+): Promise<CodeSelfImprovementState> {
   const proposals = state.codeChangeProposals ?? []
   const idx = proposals.findIndex((p) => p.id === proposalId)
   if (idx < 0) return state
@@ -131,23 +150,46 @@ export async function applyApprovedCodeChange(
     })
   }
 
+  let lastTestRun: DeveloperState['lastTestRun'] = {
+    ok: true,
+    output: 'pnpm test skipped (non-Tauri shell)',
+    at: new Date().toISOString(),
+  }
+  if (typeof window !== 'undefined' && (window as Window & { __TAURI__?: unknown }).__TAURI__) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core')
+      lastTestRun = await invoke<DeveloperState['lastTestRun']>('run_pnpm_test')
+    } catch (error) {
+      lastTestRun = {
+        ok: false,
+        output: error instanceof Error ? error.message : String(error),
+        at: new Date().toISOString(),
+      }
+    }
+  }
+
   const next = [...proposals]
   next[idx] = { ...next[idx], status: 'applied', appliedPaths, backupId }
 
   return {
     ...state,
     codeChangeProposals: next,
+    developerState: {
+      ...state.developerState,
+      pendingDiffPreview: undefined,
+      lastTestRun,
+    },
     changelog: [
-      `${new Date().toISOString()}: Code change applied — ${proposal.summary} (${appliedPaths.length} files).`,
+      `${new Date().toISOString()}: Code change applied — ${proposal.summary} (${appliedPaths.length} files). Tests ${lastTestRun?.ok ? 'passed' : 'failed'}.`,
       ...state.changelog,
     ],
   }
 }
 
 export async function rollbackCodeChange(
-  state: MathPilotState,
+  state: CodeSelfImprovementState,
   proposalId: string,
-): Promise<MathPilotState> {
+): Promise<CodeSelfImprovementState> {
   const proposals = state.codeChangeProposals ?? []
   const proposal = proposals.find((p) => p.id === proposalId)
   if (!proposal?.backupId) return state
@@ -162,6 +204,10 @@ export async function rollbackCodeChange(
     codeChangeProposals: proposals.map((p) =>
       p.id === proposalId ? { ...p, status: 'rejected' } : p,
     ),
+    developerState: {
+      ...state.developerState,
+      pendingDiffPreview: undefined,
+    },
     changelog: [
       `${new Date().toISOString()}: Rolled back code change — ${proposal.summary}.`,
       ...state.changelog,

@@ -83,4 +83,28 @@ describe('continuingDiagnostics', () => {
     })
     expect(state.continuingDiagnosticPending).toBe(true)
   })
+
+  it('does not double-count the current review attempt when re-evaluated after recordAttempt', () => {
+    let state = { ...createInitialState('Calculus 1'), onboarded: true }
+    const reviewAttempt = {
+      problemId: 'review-chain-mixed',
+      skillIds: ['chain_rule'],
+      answer: 'wrong',
+      correct: false,
+      mode: 'review' as const,
+      hintCount: 0,
+      seconds: 90,
+      mixed: true,
+      delayed: true,
+    }
+
+    state = recordAttempt(state, reviewAttempt)
+    expect(state.continuingDiagnosticPending).toBeFalsy()
+
+    const reevaluated = evaluateContinuingDiagnostic(state, state.attempts[0]!)
+    expect(reevaluated.continuingDiagnosticPending).toBeFalsy()
+
+    state = recordAttempt(state, reviewAttempt)
+    expect(state.continuingDiagnosticPending).toBe(true)
+  })
 })

@@ -306,7 +306,8 @@ export interface MathPilotState {
     tone: 'direct' | 'warm'
     gamificationLevel: 'minimal' | 'light'
     notificationsEnabled: boolean
-    reportsMode: 'on_demand_only' | 'weekly'
+    reportsMode: 'on_demand_only'
+    enableCodexProblemGen?: boolean
     activeVideoMode: 'never' | 'sometimes' | 'active'
     theme: 'system' | 'light' | 'dark'
     confidencePrompts: 'off' | 'review_only' | 'often'
@@ -347,6 +348,10 @@ export interface MathPilotState {
   }
   mapHighlightSkillIds?: string[]
   mapViewMode?: 'wheel' | 'list'
+  developerState?: {
+    pendingDiffPreview?: string
+    lastTestRun?: { ok: boolean; output: string; at: string }
+  }
   readOnlyExample?: boolean
   codexPasteBuffer?: string
   codeChangeProposals?: Array<{

@@ -13,6 +13,21 @@ export interface ContinuingDiagnosticTrigger {
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
+/** When called after `recordAttempt`, `attempts[0]` is the attempt under evaluation — exclude it from history scans. */
+function attemptsExcludingCurrent(state: MathPilotState, attempt: AttemptInput) {
+  const head = state.attempts[0]
+  if (
+    head &&
+    head.problemId === attempt.problemId &&
+    head.mode === attempt.mode &&
+    head.correct === attempt.correct &&
+    head.answer === attempt.answer
+  ) {
+    return state.attempts.slice(1)
+  }
+  return state.attempts
+}
+
 function activeDiagnostic(state: MathPilotState): boolean {
   return Boolean(state.diagnostic && !state.diagnostic.completed)
 }
@@ -100,8 +115,10 @@ function triggerFromAttempt(
   }
 
   if (!attempt.correct && attempt.hintCount >= 2) {
-    const hintFailures = state.attempts.filter((a) => !a.correct && a.hintCount >= 2).slice(0, 2)
-    if (hintFailures.length >= 2) {
+    const priorHintFailures = attemptsExcludingCurrent(state, attempt).filter(
+      (a) => !a.correct && a.hintCount >= 2,
+    )
+    if (priorHintFailures.length >= 1) {
       return {
         kind: 'hint_dependency',
         reason: 'Heavy hint use without success — verify method understanding.',
@@ -111,12 +128,19 @@ function triggerFromAttempt(
   }
 
   if (!attempt.correct && attempt.mode === 'review') {
-    const reviewFailures = state.attempts.filter((a) => a.mode === 'review' && !a.correct).slice(0, 2)
-    if (reviewFailures.length >= 2) {
+    const priorReviewFailures = attemptsExcludingCurrent(state, attempt).filter(
+      (a) => a.mode === 'review' && !a.correct,
+    )
+    if (priorReviewFailures.length >= 1) {
       return {
         kind: 'review_failure',
         reason: 'Spaced review misses suggest retention gaps.',
-        skillIds: [...new Set(reviewFailures.flatMap((a) => a.skillIds))].slice(0, 3),
+        skillIds: [
+          ...new Set([
+            ...attempt.skillIds,
+            ...priorReviewFailures.flatMap((a) => a.skillIds),
+          ]),
+        ].slice(0, 3),
       }
     }
   }

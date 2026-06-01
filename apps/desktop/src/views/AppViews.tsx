@@ -17,6 +17,7 @@ import {
 import { useEffect, useState, type ReactNode, type RefObject } from 'react'
 import {
   builtInGraphKindForSkill,
+  builtInGraphPropsForProblem,
   graphPresetsForProblem,
   primaryGraphExpression,
 } from '../domain/graphPresets'
@@ -57,12 +58,12 @@ import { currentSessionPhase, sessionPhaseLabel } from '../domain/dailySessionEn
 import { checkPrerequisiteGate } from '../domain/sessionEngine'
 import type { SessionPace } from '../domain/sessionEngine'
 import { quickRepairExplanation, repairProgress } from '../domain/quickRepairEngine'
-import { rankResourcesForSkill } from '@mathpilot/content-engine'
+import { rankResourcesForSkill, searchResources, type ResourceSearchResult } from '@mathpilot/content-engine'
 import { energyPaceHint, parseBevelImport } from '../domain/healthIntegrations'
 import { markProblemDeprecated } from '../domain/problemBank'
 import { groupByArea, problemForSkill, readiness, areaReadiness } from '../lib/mapHelpers'
-import { Button, MasteryBadge, SegmentedControl } from '../ui'
-import { Modal } from '../ui/Modal'
+import { Button, MasteryBadge, Modal, SegmentedControl } from '@mathpilot/ui'
+import { CustomPaceModal } from '../components/CustomPaceModal'
 import type { CourseFocus, MathPilotState, Problem, ResourceRecord } from '../domain/types'
 import type { AppView } from '../app/types'
 
@@ -83,11 +84,11 @@ function mergePreferences(
     tone: state.preferences?.tone ?? 'warm',
     gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
     notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
-    reportsMode: state.preferences?.reportsMode ?? 'on_demand_only',
     activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
     theme: state.preferences?.theme ?? 'system',
     confidencePrompts: state.preferences?.confidencePrompts ?? 'review_only',
     ...patch,
+    reportsMode: 'on_demand_only',
   }
 }
 
@@ -198,6 +199,7 @@ export function TodayView({
   onStartFormulaRecall,
   onWhy,
   setPace,
+  setCustomPace,
   sessionPace,
   diagnostic,
   onStartRepair,
@@ -222,6 +224,7 @@ export function TodayView({
   onStartFormulaRecall: () => void
   onWhy: () => void
   setPace: (pace: SessionPace) => void
+  setCustomPace: (adjustments: NonNullable<MathPilotState['customPaceAdjustments']>) => void
   sessionPace: SessionPace
   diagnostic?: MathPilotState['diagnostic']
   onStartRepair?: (skillId: string) => void
@@ -231,6 +234,7 @@ export function TodayView({
   onOpenHistory?: () => void
 }) {
   const [adjustOpen, setAdjustOpen] = useState(false)
+  const [customPaceOpen, setCustomPaceOpen] = useState(false)
   const paceLabels: Record<SessionPace, string> = {
     short: 'Short',
     normal: 'Normal',
@@ -239,10 +243,18 @@ export function TodayView({
     high_focus: 'High focus',
     custom: 'Custom',
   }
-  const primaryPaceOptions = (['short', 'normal', 'deep', 'low_energy'] as SessionPace[]).map((pace) => ({
+  const primaryPaceOptions = (['short', 'normal', 'deep', 'low_energy', 'custom'] as SessionPace[]).map((pace) => ({
     value: pace,
     label: paceLabels[pace],
   }))
+
+  function handlePaceChange(pace: SessionPace) {
+    if (pace === 'custom') {
+      setCustomPaceOpen(true)
+      return
+    }
+    setPace(pace)
+  }
   const due = state.reviewQueue.filter((item) => item.due <= new Date().toISOString().slice(0, 10)).length
   const weakCount = Object.values(state.mastery).filter((record) => record.masteryScore < 0.4).length
   const primarySkill = nextAction.skillIds[0] ? state.skills[nextAction.skillIds[0]] : undefined
@@ -333,8 +345,13 @@ export function TodayView({
                 label="Session pace"
                 value={sessionPace}
                 options={primaryPaceOptions}
-                onChange={setPace}
+                onChange={handlePaceChange}
               />
+              {sessionPace === 'custom' && (
+                <button type="button" className="secondary" onClick={() => setCustomPaceOpen(true)}>
+                  Edit custom pace settings
+                </button>
+              )}
               <div className="coach-evidence">
                 {evidenceItems.map((item) => (
                   <span key={item}>
@@ -432,13 +449,13 @@ export function TodayView({
             <summary>Adjust pace</summary>
             <div className="segmented" style={{ marginTop: 8 }}>
               {(Object.keys(paceLabels) as SessionPace[])
-                .filter((key) => key !== 'custom')
+                .filter((key) => key !== 'high_focus')
                 .map((pace) => (
                   <button
                     key={pace}
                     type="button"
                     className={sessionPace === pace ? 'active' : ''}
-                    onClick={() => setPace(pace)}
+                    onClick={() => handlePaceChange(pace)}
                   >
                     {paceLabels[pace]}
                   </button>
@@ -522,6 +539,16 @@ export function TodayView({
             </ul>
           </section>
         </>
+      )}
+      {customPaceOpen && (
+        <CustomPaceModal
+          initial={state.customPaceAdjustments}
+          onClose={() => setCustomPaceOpen(false)}
+          onSave={(adjustments) => {
+            setCustomPace(adjustments)
+            setCustomPaceOpen(false)
+          }}
+        />
       )}
     </div>
   )
@@ -724,17 +751,21 @@ export function ActivityView({
   const graphExpression = primaryGraphExpression(problem)
   const graphPresets = graphPresetsForProblem(problem)
   const builtInGraphKind = builtInGraphKindForSkill(problem.skillIds[0])
+  const builtInGraphProps = builtInGraphPropsForProblem(problem, graphPresetIndex)
   const showGraph = Boolean(
-    graphExpression &&
-      problem.skillIds.some(
-        (id) =>
-          id.includes('graph') ||
-          id.includes('derivative') ||
-          id.includes('optimization') ||
-          id.includes('area') ||
-          id.includes('integral') ||
-          id.includes('riemann'),
-      ),
+    builtInGraphKind ||
+      (graphExpression &&
+        problem.skillIds.some(
+          (id) =>
+            id.includes('graph') ||
+            id.includes('derivative') ||
+            id.includes('optimization') ||
+            id.includes('area') ||
+            id.includes('integral') ||
+            id.includes('riemann') ||
+            id.includes('taylor') ||
+            id.includes('slope'),
+        )),
   )
   const showWorkRequired = requiresShowWork(state, problem)
   const activeGraphExpression =
@@ -1163,13 +1194,12 @@ export function ActivityView({
                   ))}
                 </div>
               )}
+              {graphPresets[graphPresetIndex]?.notes && (
+                <p className="muted graph-preset-notes">{graphPresets[graphPresetIndex]?.notes}</p>
+              )}
               <DesmosEmbed expression={activeGraphExpression} />
-              {builtInGraphKind && (
-                <BuiltInGraph
-                  kind={builtInGraphKind}
-                  fn={(x: number) => x * x}
-                  title="Built-in visualization"
-                />
+              {builtInGraphProps && (
+                <BuiltInGraph {...builtInGraphProps} />
               )}
             </div>
           )}
@@ -1334,6 +1364,9 @@ export function Resources({
   update: (state: MathPilotState) => void
 }) {
   const [policy, setPolicy] = useState<string>('')
+  const [query, setQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<ResourceSearchResult[]>([])
+  const [searching, setSearching] = useState(false)
   const [resources, setResources] = useState<MathPilotState['resources'][string][]>([])
   useEffect(() => {
     void import('../domain/configLoader').then((m) =>
@@ -1343,6 +1376,40 @@ export function Resources({
       }),
     )
   }, [state])
+  useEffect(() => {
+    const trimmed = query.trim()
+    if (trimmed.length < 2) return
+    let cancelled = false
+    queueMicrotask(() => {
+      if (!cancelled) setSearching(true)
+    })
+    void searchResources(trimmed, { resources: state.resources }, { limit: 12 }).then((results) => {
+      if (!cancelled) {
+        setSearchResults(results)
+        setSearching(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [query, state.resources])
+
+  const displaySearchResults = query.trim().length < 2 ? [] : searchResults
+  const displayResources: Array<ResourceRecord & { dynamic?: boolean }> =
+    query.trim().length >= 2
+      ? displaySearchResults.map((hit) => ({
+          id: hit.id,
+          title: hit.title,
+          source: hit.source,
+          url: hit.url,
+          duration: hit.dynamic ? 'Search' : '—',
+          format: 'video' as const,
+          effectivenessScore: hit.rankScore,
+          notes: hit.dynamic ? 'Dynamic search result' : '',
+          skillIds: [] as string[],
+          dynamic: hit.dynamic,
+        }))
+      : resources
   return (
     <div className="page">
       <header className="topbar">
@@ -1353,9 +1420,27 @@ export function Resources({
         </div>
         <div className="status-pill">
           <Search size={17} />
-          {resources.length} trusted · ranked by outcome
+          {query.trim().length >= 2
+            ? `${displayResources.length} result${displayResources.length === 1 ? '' : 's'}`
+            : `${resources.length} trusted · ranked by outcome`}
         </div>
       </header>
+      <section className="panel resource-search-panel">
+        <label htmlFor="resource-search" className="meta-label">
+          Search resources
+        </label>
+        <input
+          id="resource-search"
+          className="map-filter"
+          type="search"
+          placeholder="Search by topic, skill, or source…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Search resources"
+          data-testid="resource-search"
+        />
+        {searching && <p className="muted">Searching…</p>}
+      </section>
       <section className="panel external-tools-panel">
         <h2>External graph tools</h2>
         <div className="external-graph-links">
@@ -1370,18 +1455,23 @@ export function Resources({
           </a>
         </div>
       </section>
-      {resources.length === 0 && (
+      {displayResources.length === 0 && (
         <section className="resource-empty" aria-label="No resources">
           <BookOpen size={22} />
           <div>
-            <h2>No ranked resources yet</h2>
-            <p>Start a session or repair a skill. MathPilot will rank resources when they are useful for the current blocker.</p>
+            <h2>{query.trim().length >= 2 ? 'No matches' : 'No ranked resources yet'}</h2>
+            <p>
+              {query.trim().length >= 2
+                ? 'Try a broader topic or check dynamic YouTube results above.'
+                : 'Start a session or repair a skill. MathPilot will rank resources when they are useful for the current blocker.'}
+            </p>
           </div>
         </section>
       )}
       <div className="resource-list">
-        {resources.map((resource) => {
-          const linkedSkills = skillNamesForResource(state, resource)
+        {displayResources.map((resource) => {
+          const linkedSkills = resource.skillIds.length > 0 ? skillNamesForResource(state, resource) : []
+          const isDynamic = Boolean(resource.dynamic)
           return (
           <div className="resource-row" key={resource.id}>
             <a href={resource.url} target="_blank" rel="noreferrer" className="resource-link">
@@ -1390,10 +1480,12 @@ export function Resources({
                 <strong>{resource.title}</strong>
                 <small>
                   {resource.source} · {resource.duration} · effectiveness {Math.round(resource.effectivenessScore * 100)}%
+                  {isDynamic && ' · dynamic search'}
                   {linkedSkills.length > 0 && ` · ${linkedSkills.slice(0, 3).join(', ')}`}
                 </small>
               </span>
             </a>
+            {!isDynamic && (
             <div className="resource-helpfulness">
               <span className="muted">Was this helpful?</span>
               <button
@@ -1418,6 +1510,7 @@ export function Resources({
                 No
               </button>
             </div>
+            )}
           </div>
           )
         })}
@@ -1651,24 +1744,6 @@ export function SettingsView({
             </select>
           </div>
           <div className="settings-row">
-            <label htmlFor="reports-select">Reports</label>
-            <select
-              id="reports-select"
-              value={state.preferences?.reportsMode ?? 'on_demand_only'}
-              onChange={(e) =>
-                update({
-                  ...state,
-                  preferences: mergePreferences(state, {
-                    reportsMode: e.target.value as 'on_demand_only' | 'weekly',
-                  }),
-                })
-              }
-            >
-              <option value="on_demand_only">On demand only</option>
-              <option value="weekly">Weekly</option>
-            </select>
-          </div>
-          <div className="settings-row">
             <label htmlFor="confidence-prompts-select">Confidence prompts</label>
             <select
               id="confidence-prompts-select"
@@ -1815,6 +1890,34 @@ export function SettingsView({
               />
             </label>
           </div>
+        </div>
+
+        <div className="settings-group">
+          <h2>Keyboard shortcuts</h2>
+          <dl className="keyboard-shortcuts-list">
+            <div className="settings-row">
+              <dt>Command palette</dt>
+              <dd>
+                <kbd>⌘</kbd> <kbd>K</kbd> or <kbd>Ctrl</kbd> <kbd>K</kbd>
+              </dd>
+            </div>
+            <div className="settings-row">
+              <dt>Submit answer</dt>
+              <dd>
+                <kbd>Enter</kbd> or <kbd>⌘</kbd> <kbd>Enter</kbd>
+              </dd>
+            </div>
+            <div className="settings-row">
+              <dt>Close modal / dialog</dt>
+              <dd>
+                <kbd>Esc</kbd>
+              </dd>
+            </div>
+            <div className="settings-row">
+              <dt>Knowledge map wheel</dt>
+              <dd>Tab through area nodes, then skill nodes; <kbd>Enter</kbd> or <kbd>Space</kbd> to select</dd>
+            </div>
+          </dl>
         </div>
 
         <div className="settings-group">

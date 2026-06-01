@@ -1,5 +1,12 @@
 /**
- * Optional energy integrations (MathPilot_spec §8.3). No HealthKit dependency required.
+ * Optional energy integrations (MathPilot_spec §8.3).
+ *
+ * Bevel import and manual energy selection are fully supported in the UI.
+ * Apple HealthKit is **not** wired in this build: native HealthKit requires
+ * macOS entitlements, a signed capability, and Swift bridge code. The Tauri
+ * command `health_kit_available` (see `apps/desktop/src-tauri/src/db.rs`)
+ * returns `false` until a future native module is added. Use manual energy or
+ * Bevel import instead.
  */
 
 export interface EnergySnapshot {
@@ -39,9 +46,22 @@ export function parseBevelImport(raw: string): EnergySnapshot | null {
   }
 }
 
-/** HealthKit is not available in the web/Tauri renderer; manual path only on desktop. */
+/** Sync fallback — always false until native HealthKit is implemented. Prefer `healthKitAvailableAsync`. */
 export function healthKitAvailable(): boolean {
   return false
+}
+
+/** Ask the Tauri shell whether HealthKit is available (stub returns false, no entitlements). */
+export async function healthKitAvailableAsync(): Promise<boolean> {
+  if (typeof window === 'undefined' || !(window as Window & { __TAURI__?: unknown }).__TAURI__) {
+    return false
+  }
+  try {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return await invoke<boolean>('health_kit_available')
+  } catch {
+    return false
+  }
 }
 
 export function energyPaceHint(snapshot: EnergySnapshot | undefined): 'low_energy' | 'normal' | 'high_focus' | null {

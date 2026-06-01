@@ -27,6 +27,26 @@ describe('maintenance', () => {
     expect(next.maintenanceRuns?.[0].jobsRun).toContain('skill_improvement')
   })
 
+  it('records skill improvement recommendations when mastery is weak', () => {
+    const state = createInitialState('Calculus 1')
+    state.mastery.chain_rule = {
+      ...state.mastery.chain_rule,
+      masteryScore: 0.3,
+      recentFailures: 3,
+    }
+    state.mistakePatterns['setup:missing_equation'] = {
+      tag: 'setup:missing_equation',
+      skillIds: ['related_rates'],
+      count: 5,
+      lastSeen: new Date().toISOString(),
+      note: 'test',
+    }
+    const next = runMaintenance(state, 'manual')
+    const run = next.maintenanceRuns?.[0]
+    expect(run?.skillsUpdated.length).toBeGreaterThan(0)
+    expect(run?.changesMade.some((c) => c.startsWith('Recommendation:'))).toBe(true)
+  })
+
   it('auto-runs maintenance after three completed sessions', () => {
     const state = createInitialState('Calculus 1')
     state.sessionsSinceMaintenance = 3

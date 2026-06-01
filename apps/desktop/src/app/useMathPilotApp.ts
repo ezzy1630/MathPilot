@@ -51,7 +51,7 @@ import { syncSkillMasteryNotes } from '../domain/skillFileSync'
 import { maybeNotifyReviewDue, requestNotificationPermission } from '../domain/notifications'
 import { startActiveVideo } from '../domain/activeVideoMode'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
-import { evaluateContinuingDiagnostic } from '../domain/continuingDiagnostics'
+import { clearContinuingDiagnosticPending, evaluateContinuingDiagnostic } from '../domain/continuingDiagnostics'
 import { topResourcesForSkill } from '../domain/resourceLearning'
 import { attemptModeForActivity } from '../domain/activityAttemptMode'
 import type { CourseFocus, MathPilotState, Problem } from '../domain/types'
@@ -109,7 +109,7 @@ export function useMathPilotApp() {
           tone: 'warm',
           gamificationLevel: 'minimal',
           notificationsEnabled: settings.notificationsDefault,
-          reportsMode: settings.reports,
+          reportsMode: 'on_demand_only',
           activeVideoMode: 'sometimes',
           theme: 'system',
           confidencePrompts: 'review_only',
@@ -360,6 +360,17 @@ export function useMathPilotApp() {
     void syncSkillMasteryNotes(merged, activeProblem.skillIds)
 
     if (next.diagnostic?.completed && next.diagnostic.summary) {
+      if (next.diagnostic.continuing) {
+        update(
+          pushToast(
+            clearContinuingDiagnosticPending({ ...next }),
+            'Continuing diagnostic complete',
+            'success',
+          ),
+        )
+        setView('today')
+        return
+      }
       update(
         pushToast(
           { ...next, postDiagnosticPending: true, onboarded: true },
@@ -496,6 +507,12 @@ export function useMathPilotApp() {
     update(startDailySession(state, pace))
   }
 
+  function setCustomPace(adjustments: NonNullable<MathPilotState['customPaceAdjustments']>) {
+    if (!state) return
+    const withCustom = { ...state, customPaceAdjustments: adjustments, sessionPace: 'custom' as const }
+    update(startDailySession(withCustom, 'custom'))
+  }
+
   function beginTestOut() {
     if (!state) return
     const gate = gateSkillId ? checkPrerequisiteGate(state, gateSkillId) : null
@@ -586,6 +603,7 @@ export function useMathPilotApp() {
     chooseFocus,
     beginDiagnostic,
     setPace,
+    setCustomPace,
     beginTestOut,
     handleOverride,
     startRepairFromHomework,

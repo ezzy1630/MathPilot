@@ -288,7 +288,9 @@ export function logCodexCall(
   result: CodexInvokeResult,
 ): MathPilotState {
   const { promptPreview, promptHash } = previewAndHash(packet)
-  const call: AiCallLog = {
+  const responsePreview = stripSecretsFromLog(result.stdout).slice(0, 420)
+  const stderrPreview = stripSecretsFromLog(result.stderr).slice(0, 420)
+  const call = {
     id: `ai-${Date.now()}-${state.aiCalls.length + 1}`,
     createdAt: new Date().toISOString(),
     task,
@@ -296,7 +298,10 @@ export function logCodexCall(
     promptPreview,
     promptHash,
     status: result.ok ? 'received' : 'failed',
-  }
+    responsePreview,
+    stderrPreview,
+    sessionId: result.sessionId,
+  } as MathPilotState['aiCalls'][number]
   return {
     ...state,
     aiCalls: [call, ...state.aiCalls],

@@ -257,6 +257,12 @@ pub fn show_local_notification(title: String, body: String) -> Result<(), String
     Ok(())
 }
 
+/// Stub for MathPilot_spec §8.3 — real HealthKit needs macOS entitlements + Swift bridge.
+#[tauri::command]
+pub fn health_kit_available() -> bool {
+    false
+}
+
 #[tauri::command]
 pub fn read_skill_files() -> Result<Vec<String>, String> {
     let skills_dir = repo_root().join("skills");
@@ -530,13 +536,45 @@ pub fn append_skill_maintenance_log(content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn write_skill_patch(patch_id: String, content: String) -> Result<String, String> {
-    let dir = repo_root().join("data").join("skills_patches");
-    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    let safe = safe_runtime_stem(&patch_id)?;
-    let path = dir.join(format!("{safe}.md"));
+pub fn write_skill_patch(skill_id: String, content: String) -> Result<String, String> {
+    let patch_dir = repo_root().join("data").join("skills_patches");
+    let backup_dir = repo_root().join("data").join("skills_backups");
+    std::fs::create_dir_all(&patch_dir).map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
+    let safe = safe_runtime_stem(&skill_id)?;
+    let path = patch_dir.join(format!("{safe}.patch.md"));
+    if path.exists() {
+        let backup_name = format!("{safe}__{}.patch.md", chrono::Utc::now().timestamp_millis());
+        std::fs::copy(&path, backup_dir.join(backup_name)).map_err(|e| e.to_string())?;
+    }
     std::fs::write(&path, content).map_err(|e| e.to_string())?;
     Ok(path.to_string_lossy().to_string())
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PnpmTestResult {
+    pub ok: bool,
+    pub output: String,
+    pub at: String,
+}
+
+#[tauri::command]
+pub fn run_pnpm_test() -> Result<PnpmTestResult, String> {
+    let root = repo_root();
+    let output = Command::new("pnpm")
+        .arg("test")
+        .current_dir(&root)
+        .output()
+        .map_err(|e| format!("pnpm test failed to start ({e})"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let combined = format!("{stdout}{stderr}");
+    Ok(PnpmTestResult {
+        ok: output.status.success(),
+        output: combined.chars().take(12_000).collect(),
+        at: chrono::Utc::now().to_rfc3339(),
+    })
 }
 
 #[tauri::command]

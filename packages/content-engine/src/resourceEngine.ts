@@ -124,6 +124,106 @@ export async function dynamicSearchFallback(query: string): Promise<DynamicSearc
   ]
 }
 
+export interface ResourceSearchResult {
+  id: string
+  title: string
+  url: string
+  source: string
+  rankScore: number
+  trusted?: boolean
+  dynamic?: boolean
+  provider?: string
+}
+
+export interface SearchResourcesOptions {
+  skillId?: string
+  config?: SourcesConfig
+  limit?: number
+  minCuratedBeforeFallback?: number
+}
+
+function resourceMatchesQuery(resource: ResourceRecord, query: string): boolean {
+  const q = query.toLowerCase()
+  if (!q) return false
+  return (
+    resource.title.toLowerCase().includes(q) ||
+    resource.source.toLowerCase().includes(q) ||
+    resource.notes.toLowerCase().includes(q) ||
+    resource.skillIds.some((id) => id.toLowerCase().includes(q))
+  )
+}
+
+function rankAllMatchingResources(
+  state: ResourceEngineState,
+  query: string,
+  config: SourcesConfig,
+): RankedResource[] {
+  return Object.values(state.resources)
+    .filter((resource) => resourceMatchesQuery(resource, query))
+    .map((resource) => {
+      const trusted = isTrusted(resource.source, config)
+      const trustBoost = trusted ? 0.08 : -0.04
+      return {
+        ...resource,
+        trusted,
+        rankScore: Math.min(0.99, Math.max(0.1, resource.effectivenessScore + trustBoost)),
+      }
+    })
+    .sort((a, b) => b.rankScore - a.rankScore)
+}
+
+/** Rank curated catalog hits and append dynamic search when results are thin. */
+export async function searchResources(
+  query: string,
+  state: ResourceEngineState,
+  options: SearchResourcesOptions = {},
+): Promise<ResourceSearchResult[]> {
+  const trimmed = query.trim()
+  if (!trimmed) return []
+
+  const config = options.config ?? (await loadSourcesConfig())
+  const limit = options.limit ?? 8
+  const minCurated = options.minCuratedBeforeFallback ?? 2
+
+  let curated: RankedResource[] = options.skillId
+    ? rankResourcesForSkill(state, options.skillId, config, limit * 2).filter(
+        (resource) => resourceMatchesQuery(resource, trimmed),
+      )
+    : rankAllMatchingResources(state, trimmed, config)
+
+  if (options.skillId && curated.length === 0) {
+    curated = rankResourcesForSkill(state, options.skillId, config, limit)
+  }
+
+  const results: ResourceSearchResult[] = curated.slice(0, limit).map((resource) => ({
+    id: resource.id,
+    title: resource.title,
+    url: resource.url,
+    source: resource.source,
+    rankScore: resource.rankScore,
+    trusted: resource.trusted,
+    dynamic: false,
+  }))
+
+  if (results.length < minCurated) {
+    const dynamic = await dynamicSearchFallback(trimmed)
+    for (const hit of dynamic) {
+      if (results.length >= limit) break
+      results.push({
+        id: `dynamic-${hit.provider}-${results.length}`,
+        title: hit.title,
+        url: hit.url,
+        source: hit.source,
+        rankScore: 0.22,
+        dynamic: true,
+        provider: hit.provider,
+      })
+    }
+  }
+
+  return results.slice(0, limit)
+}
+
 /** Apply post-resource attempt signal to effectiveness score (pure, no side effects). */
 export function trackEffectiveness(
   state: ResourceEngineState,

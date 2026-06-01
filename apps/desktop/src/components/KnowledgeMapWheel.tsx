@@ -20,10 +20,41 @@ export function KnowledgeMapWheel({
   const cx = 200
   const cy = 200
 
+  const areaNodes = areas.map((area, i) => {
+    const angle = i * angleStep - Math.PI / 2
+    const x = cx + Math.cos(angle) * 118
+    const y = cy + Math.sin(angle) * 118
+    const pct = areaReadiness(state, area)
+    const weak = pct < 45
+    const orbitSkills = (groups[area] ?? [])
+      .sort((a, b) => a.mastery.masteryScore - b.mastery.masteryScore)
+      .slice(0, 5)
+    const focusSkill = orbitSkills[0]?.skill
+    return { area, angle, x, y, pct, weak, orbitSkills, focusSkill }
+  })
+
+  const skillNodes = areaNodes.flatMap(({ area, angle, orbitSkills }) =>
+    orbitSkills.map((entry, j) => {
+      const n = orbitSkills.length
+      const spread = 0.35
+      const offset = n <= 1 ? 0 : (j - (n - 1) / 2) * spread
+      const skillAngle = angle + offset
+      const orbitR = 82
+      return {
+        area,
+        entry,
+        sx: cx + Math.cos(skillAngle) * orbitR,
+        sy: cy + Math.sin(skillAngle) * orbitR,
+        highlighted: highlightSkillIds.includes(entry.skill.id),
+        skillWeak: entry.mastery.masteryScore < 0.45,
+      }
+    }),
+  )
+
   return (
     <div className="map-wheel-container">
       <p className="sr-only" id="knowledge-map-wheel-description">
-        Knowledge map wheel grouped by calculus area. Use the list or prerequisite tree view for full keyboard navigation.
+        Knowledge map wheel grouped by calculus area. Tab through area nodes first, then individual skills.
       </p>
       <svg
         viewBox="0 0 400 400"
@@ -52,88 +83,86 @@ export function KnowledgeMapWheel({
           )}
           %
         </text>
-        {areas.map((area, i) => {
-          const angle = i * angleStep - Math.PI / 2
-          const x = cx + Math.cos(angle) * 118
-          const y = cy + Math.sin(angle) * 118
-          const pct = areaReadiness(state, area)
-          const weak = pct < 45
-          const orbitSkills = (groups[area] ?? [])
-            .sort((a, b) => a.mastery.masteryScore - b.mastery.masteryScore)
-            .slice(0, 5)
-          const orbitR = 82
-          return (
-            <g key={area} className="map-wheel-sector">
-              <line
-                x1={cx}
-                y1={cy}
-                x2={x}
-                y2={y}
-                stroke="var(--mp-border)"
-                strokeWidth="1"
-                opacity="0.6"
-              />
-              {orbitSkills.map((entry, j) => {
-                const n = orbitSkills.length
-                const spread = 0.35
-                const offset = n <= 1 ? 0 : (j - (n - 1) / 2) * spread
-                const skillAngle = angle + offset
-                const sx = cx + Math.cos(skillAngle) * orbitR
-                const sy = cy + Math.sin(skillAngle) * orbitR
-                const highlighted = highlightSkillIds.includes(entry.skill.id)
-                const skillWeak = entry.mastery.masteryScore < 0.45
-                return (
-                  <g key={entry.skill.id}>
-                    <line
-                      x1={cx}
-                      y1={cy}
-                      x2={sx}
-                      y2={sy}
-                      stroke="var(--mp-border)"
-                      strokeWidth="0.5"
-                      opacity="0.35"
-                    />
-                    <circle
-                      cx={sx}
-                      cy={sy}
-                      r={highlighted ? 7 : 5}
-                      fill={skillWeak ? 'var(--mp-mastery-weak)' : 'var(--mp-accent-soft)'}
-                      stroke={highlighted ? 'var(--mp-accent)' : 'var(--mp-border)'}
-                      strokeWidth={highlighted ? 2 : 1}
-                      className={skillWeak ? 'wheel-orbit-weak' : undefined}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${entry.skill.name}, ${Math.round(entry.mastery.masteryScore * 100)}% mastery`}
-                      onClick={() => onSkillSelect(entry.skill.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          onSkillSelect(entry.skill.id)
-                        }
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  </g>
-                )
-              })}
-              <circle
-                cx={x}
-                cy={y}
-                r={weak ? 40 : 36}
-                fill="var(--mp-bg-elevated)"
-                stroke={weak ? 'var(--mp-mastery-weak)' : 'var(--mp-accent)'}
-                strokeWidth={weak ? 2.5 : 2}
-                className={weak ? 'wheel-node-weak' : undefined}
-              />
-              <text x={x} y={y - 8} textAnchor="middle" fontSize="9" fill="var(--mp-text-tertiary)">
-                {area.length > 14 ? `${area.slice(0, 12)}…` : area}
-              </text>
-              <text x={x} y={y + 10} textAnchor="middle" fontSize="15" fontWeight="600" fill="var(--mp-text)">
-                {pct}%
-              </text>
-            </g>
-          )
-        })}
+        {areaNodes.map(({ area, angle, x, y, orbitSkills }) => (
+          <g key={`lines-${area}`} className="map-wheel-sector">
+            <line x1={cx} y1={cy} x2={x} y2={y} stroke="var(--mp-border)" strokeWidth="1" opacity="0.6" />
+            {orbitSkills.map((entry, j) => {
+              const n = orbitSkills.length
+              const spread = 0.35
+              const offset = n <= 1 ? 0 : (j - (n - 1) / 2) * spread
+              const skillAngle = angle + offset
+              const orbitR = 82
+              const sx = cx + Math.cos(skillAngle) * orbitR
+              const sy = cy + Math.sin(skillAngle) * orbitR
+              return (
+                <line
+                  key={`spoke-${entry.skill.id}`}
+                  x1={cx}
+                  y1={cy}
+                  x2={sx}
+                  y2={sy}
+                  stroke="var(--mp-border)"
+                  strokeWidth="0.5"
+                  opacity="0.35"
+                />
+              )
+            })}
+          </g>
+        ))}
+        {areaNodes.map(({ area, x, y, pct, weak, focusSkill }) => (
+          <g key={`area-${area}`} className="map-wheel-sector">
+            <circle
+              cx={x}
+              cy={y}
+              r={weak ? 40 : 36}
+              fill="var(--mp-bg-elevated)"
+              stroke={weak ? 'var(--mp-mastery-weak)' : 'var(--mp-accent)'}
+              strokeWidth={weak ? 2.5 : 2}
+              className={weak ? 'wheel-node-weak' : undefined}
+              role="button"
+              tabIndex={0}
+              aria-label={`${area} area, ${pct}% readiness${focusSkill ? `, focus skill ${focusSkill.name}` : ''}`}
+              onClick={() => focusSkill && onSkillSelect(focusSkill.id)}
+              onKeyDown={(e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && focusSkill) {
+                  e.preventDefault()
+                  onSkillSelect(focusSkill.id)
+                }
+              }}
+              style={{ cursor: focusSkill ? 'pointer' : 'default' }}
+            />
+            <text x={x} y={y - 8} textAnchor="middle" fontSize="9" fill="var(--mp-text-tertiary)" aria-hidden="true">
+              {area.length > 14 ? `${area.slice(0, 12)}…` : area}
+            </text>
+            <text x={x} y={y + 10} textAnchor="middle" fontSize="15" fontWeight="600" fill="var(--mp-text)" aria-hidden="true">
+              {pct}%
+            </text>
+          </g>
+        ))}
+        {skillNodes.map(({ entry, sx, sy, highlighted, skillWeak }) => (
+          <g key={entry.skill.id}>
+            <circle
+              cx={sx}
+              cy={sy}
+              r={highlighted ? 7 : 5}
+              fill={skillWeak ? 'var(--mp-mastery-weak)' : 'var(--mp-accent-soft)'}
+              stroke={highlighted ? 'var(--mp-accent)' : 'var(--mp-border)'}
+              strokeWidth={highlighted ? 2 : 1}
+              className={skillWeak ? 'wheel-orbit-weak' : undefined}
+              role="button"
+              tabIndex={0}
+              aria-label={`${entry.skill.name}, ${Math.round(entry.mastery.masteryScore * 100)}% mastery`}
+              onClick={() => onSkillSelect(entry.skill.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onSkillSelect(entry.skill.id)
+                }
+              }}
+              style={{ cursor: 'pointer' }}
+            />
+          </g>
+        ))}
       </svg>
       <div className="map-wheel-legend">
         <p className="meta-label">Weak skills first</p>
@@ -148,6 +177,7 @@ export function KnowledgeMapWheel({
                 key={skill.id}
                 className={`skill-row ${highlightSkillIds.includes(skill.id) ? 'weak' : mastery.masteryScore < 0.4 ? 'weak' : ''}`}
                 onClick={() => onSkillSelect(skill.id)}
+                aria-label={`${skill.name}, ${Math.round(mastery.masteryScore * 100)}% mastery, ${mastery.masteryState}`}
               >
                 <span>{skill.name}</span>
                 <MasteryBadge state={mastery.masteryState} />

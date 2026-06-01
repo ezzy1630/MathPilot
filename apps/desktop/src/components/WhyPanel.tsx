@@ -1,5 +1,5 @@
 import { Map } from 'lucide-react'
-import { Modal } from '../ui/Modal'
+import { AccessibleModal } from './AccessibleModal'
 import type { NextAction } from '../domain/types'
 import type { StudyPlan } from '../domain/studyPlanEngine'
 
@@ -15,7 +15,7 @@ export function WhyPanel({
   onOpenMap?: () => void
 }) {
   return (
-    <Modal title="Why this step?" onClose={onClose}>
+    <AccessibleModal title="Why this step?" onClose={onClose}>
       <p className="why-lead">{action.reason}</p>
       <div className="why-card">
         <p className="eyebrow">Recommended</p>
@@ -48,6 +48,6 @@ export function WhyPanel({
           Got it
         </button>
       </div>
-    </Modal>
+    </AccessibleModal>
   )
 }

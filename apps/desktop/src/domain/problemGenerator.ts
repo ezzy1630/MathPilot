@@ -282,13 +282,16 @@ export function parseCodexProblemPayload(stdout: string): CodexProblemPayload | 
   }
 }
 
-/** Codex generation path (spec §9.2) — active only when developer mode is enabled. */
+/** Codex generation path (spec §9.2) — active when developer mode or Codex problem gen preference is on. */
 export async function generateProblemViaCodexAsync(
   state: MathPilotState,
   skillId: string,
   seed = Date.now(),
 ): Promise<{ state: MathPilotState; record: GeneratedProblemRecord } | null> {
-  if (!state.developerModeEnabled) return null
+  const enableCodex = Boolean(
+    (state.preferences as { enableCodexProblemGen?: boolean } | undefined)?.enableCodexProblemGen,
+  )
+  if (!state.developerModeEnabled && !enableCodex) return null
 
   const { invokeCodexForTask } = await import('./aiAdapter')
   const stubProblem: Problem = {

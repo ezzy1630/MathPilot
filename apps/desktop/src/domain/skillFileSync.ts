@@ -69,21 +69,4 @@ export async function appendSkillMaintenanceLog(message: string, actor: SkillFil
   }
 }
 
-export async function writeSkillPatchPreview(skillId: string, recommendation: string): Promise<void> {
-  if (typeof window === 'undefined' || !(window as Window & { __TAURI__?: unknown }).__TAURI__) return
-  try {
-    const { invoke } = await import('@tauri-apps/api/core')
-    const patchId = `${skillId}-${Date.now()}`
-    const yaml = [
-      `# Patch preview for ${skillId}`,
-      `created_at: ${new Date().toISOString()}`,
-      `recommendation: ${JSON.stringify(recommendation)}`,
-      'suggested_additions:',
-      '  - pitfalls section citing repeated mistakes',
-      '  - setup checklist before execution',
-    ].join('\n')
-    await invoke('write_skill_patch', { patchId, content: yaml })
-  } catch {
-    // best-effort
-  }
-}
+export { buildSkillPatchMarkdown, writeSkillPatchFromRecommendation } from './skillPatcher'

@@ -1,4 +1,4 @@
-import { Modal } from '../ui/Modal'
+import { AccessibleModal } from './AccessibleModal'
 import { BookOpen, Play, Wrench } from 'lucide-react'
 import type { MathPilotState } from '../domain/types'
 
@@ -22,7 +22,7 @@ export function SkillActionModal({
   if (!skill) return null
 
   return (
-    <Modal title={skill.name} onClose={onClose}>
+    <AccessibleModal title={skill.name} onClose={onClose}>
       <p className="muted">
         {skill.area} · {Math.round((mastery?.masteryScore ?? 0) * 100)}% mastery · {mastery?.masteryState ?? 'Unknown'}
       </p>
@@ -41,6 +41,6 @@ export function SkillActionModal({
           Learn / practice
         </button>
       </div>
-    </Modal>
+    </AccessibleModal>
   )
 }

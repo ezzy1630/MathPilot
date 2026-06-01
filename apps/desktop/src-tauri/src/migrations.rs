@@ -53,6 +53,10 @@ pub fn run_migrations(conn: &Connection) -> Result<(), String> {
         migration_v9(conn)?;
         record(conn, 9)?;
     }
+    if current < 10 {
+        migration_v10(conn)?;
+        record(conn, 10)?;
+    }
     Ok(())
 }
 
@@ -362,19 +366,32 @@ fn migration_v9(conn: &Connection) -> Result<(), String> {
     Ok(())
 }
 
+fn migration_v10(conn: &Connection) -> Result<(), String> {
+    conn.execute_batch(
+        "
+        ALTER TABLE ai_calls ADD COLUMN response_preview TEXT;
+        ALTER TABLE ai_calls ADD COLUMN stderr_preview TEXT;
+        ALTER TABLE ai_calls ADD COLUMN session_id TEXT;
+        ",
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::relational;
     use rusqlite::Connection;
 
     #[test]
-    fn migrations_apply_through_v9() {
+    fn migrations_apply_through_v10() {
         let conn = Connection::open_in_memory().expect("in-memory db");
         run_migrations(&conn).expect("migrations");
         let version: i64 = conn
             .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| row.get(0))
             .expect("version");
-        assert!(version >= 9);
+        assert!(version >= 10);
         let count: i64 = conn
             .query_row(
                 "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='maintenance_runs'",
@@ -391,5 +408,84 @@ mod tests {
             )
             .expect("col");
         assert_eq!(has_resource_col, 1);
+        for col in ["response_preview", "stderr_preview", "session_id"] {
+            let present: i64 = conn
+                .query_row(
+                    &format!(
+                        "SELECT COUNT(*) FROM pragma_table_info('ai_calls') WHERE name='{col}'"
+                    ),
+                    [],
+                    |row| row.get(0),
+                )
+                .expect("col");
+            assert_eq!(present, 1, "missing ai_calls.{col}");
+        }
+    }
+
+    #[test]
+    fn v10_ai_calls_and_mistake_patterns_round_trip() {
+        let conn = Connection::open_in_memory().expect("in-memory db");
+        run_migrations(&conn).expect("migrations");
+
+        let payload = r#"{
+          "profileName": "Test",
+          "currentFocus": "Calculus 1",
+          "onboarded": true,
+          "advancedMode": false,
+          "mastery": {
+            "chain_rule": {
+              "skillId": "chain_rule",
+              "masteryScore": 0.5,
+              "masteryState": "Solid",
+              "fluencyScore": 0.5,
+              "retentionScore": 0.5,
+              "conceptualScore": 0.5,
+              "proceduralScore": 0.5,
+              "transferScore": 0.5,
+              "evidenceCount": 1,
+              "recentFailures": 0,
+              "delayedMixedCorrect": 0
+            }
+          },
+          "mistakePatterns": {
+            "setup:missing_equation": {
+              "tag": "setup:missing_equation",
+              "skillIds": ["related_rates"],
+              "count": 5,
+              "lastSeen": "2026-06-01T12:00:00Z",
+              "note": "Forgot constraint equation"
+            }
+          },
+          "aiCalls": [{
+            "id": "ai-1",
+            "createdAt": "2026-06-01T12:00:00Z",
+            "task": "hint chain_rule",
+            "mode": "codex_cli",
+            "promptPreview": "Task: hint",
+            "promptHash": "abc123",
+            "status": "received",
+            "responsePreview": "{\"feedback_to_user\":\"Try u-sub\"}",
+            "stderrPreview": "",
+            "sessionId": "tutor_session_chain_rule"
+          }],
+          "reviewQueue": [],
+          "problems": {},
+          "attempts": [],
+          "homeworkAnalyses": [],
+          "changelog": [],
+          "skills": {},
+          "resources": {}
+        }"#;
+
+        relational::save_relational(&conn, payload).expect("save");
+        let loaded = relational::load_relational(&conn)
+            .expect("load")
+            .expect("payload");
+
+        assert!(loaded.contains("setup:missing_equation"));
+        assert!(loaded.contains("Forgot constraint equation"));
+        assert!(loaded.contains("responsePreview"));
+        assert!(loaded.contains("tutor_session_chain_rule"));
+        assert!(loaded.contains("\"count\":5"));
     }
 }

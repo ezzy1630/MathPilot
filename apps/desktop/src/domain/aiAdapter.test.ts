@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { stripSecretsFromLog, resolveCodexSession, createPromptPacket } from './aiAdapter'
+import { stripSecretsFromLog, resolveCodexSession, createPromptPacket, logCodexCall } from './aiAdapter'
 import { createInitialState } from './learningEngine'
 
 describe('ai adapter', () => {
@@ -54,5 +54,22 @@ describe('ai adapter', () => {
     const sanitized = stripSecretsFromLog('api_key=supersecret123 Bearer abc.def.ghi')
     expect(sanitized).not.toContain('supersecret123')
     expect(sanitized).toContain('[redacted]')
+  })
+
+  it('persists extended ai_calls fields on codex log', () => {
+    const state = createInitialState('Calculus 1')
+    const next = logCodexCall(state, 'hint chain_rule', 'packet body', {
+      ok: true,
+      stdout: '{"feedback_to_user":"Try the chain rule"}',
+      stderr: '',
+      mode: 'codex_cli',
+      sessionId: 'tutor_session_chain_rule',
+    })
+    const call = next.aiCalls[0] as typeof next.aiCalls[0] & {
+      responsePreview?: string
+      sessionId?: string
+    }
+    expect(call.responsePreview).toContain('feedback_to_user')
+    expect(call.sessionId).toBe('tutor_session_chain_rule')
   })
 })

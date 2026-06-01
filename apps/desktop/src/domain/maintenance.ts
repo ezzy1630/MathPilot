@@ -3,7 +3,7 @@ import { markProblemDeprecated } from './problemBank'
 import { addDays } from './learningEngine'
 import { upsertReviewItem } from './reviewScheduler'
 import { masteryState } from './learningEngine'
-import { appendSkillMaintenanceLog, writeSkillPatchPreview } from './skillFileSync'
+import { writeSkillPatchFromRecommendation } from './skillPatcher'
 import type { MathPilotState, Skill } from './types'
 
 export interface MaintenanceRun {
@@ -130,8 +130,7 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
   for (const rec of recommendations) {
     changesMade.push(`Recommendation: ${rec.message}`)
     skillsUpdated.push(rec.skillId)
-    void appendSkillMaintenanceLog(rec.message, 'system')
-    void writeSkillPatchPreview(rec.skillId, rec.message)
+    void writeSkillPatchFromRecommendation(rec, 'codex')
   }
   if (!recommendations.length) {
     changesMade.push('Skill improvement: no high-priority patches suggested.')

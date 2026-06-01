@@ -1,21 +1,9 @@
 import { useMemo } from 'react'
+import type { BuiltInGraphKind as PresetGraphKind, BuiltInGraphPresetProps } from '../domain/graphPresets'
 
-export type BuiltInGraphKind =
-  | 'function'
-  | 'tangent'
-  | 'riemann'
-  | 'sign_chart'
-  | 'taylor'
-  | 'slope_field'
+export type BuiltInGraphKind = PresetGraphKind
 
-export interface BuiltInGraphProps {
-  kind: BuiltInGraphKind
-  fn?: (x: number) => number
-  domain?: [number, number]
-  tangentAt?: number
-  taylorCoeffs?: number[]
-  signIntervals?: Array<{ from: number; to: number; sign: '+' | '-' | '0' }>
-  title?: string
+export interface BuiltInGraphProps extends BuiltInGraphPresetProps {
   width?: number
   height?: number
 }

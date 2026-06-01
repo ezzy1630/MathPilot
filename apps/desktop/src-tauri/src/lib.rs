@@ -29,6 +29,7 @@ pub fn run() {
             db::write_memory_file,
             db::search_index_query,
             db::show_local_notification,
+            db::health_kit_available,
             db::read_skill_files,
             db::invoke_codex,
             db::check_math_symbolic,
@@ -43,6 +44,7 @@ pub fn run() {
             db::append_skill_changelog,
             db::append_skill_maintenance_log,
             db::write_skill_patch,
+            db::run_pnpm_test,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run MathPilot");

@@ -74,9 +74,7 @@ fn save_settings(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
         "advancedMode",
         "sessionPace",
         "developerModeEnabled",
-        "mistakePatterns",
         "resources",
-        "aiCalls",
         "maintenanceRuns",
         "overrides",
         "quickRepair",
@@ -709,9 +707,7 @@ fn load_mistake_patterns(conn: &Connection, obj: &mut Map<String, Value>) -> Res
             map.insert(tag.into(), row);
         }
     }
-    if !map.is_empty() {
-        obj.insert("mistakePatterns".into(), Value::Object(map));
-    }
+    obj.insert("mistakePatterns".into(), Value::Object(map));
     Ok(())
 }
 
@@ -860,8 +856,10 @@ fn save_ai_calls(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
     if let Some(calls) = obj.get("aiCalls").and_then(|v| v.as_array()) {
         for call in calls {
             conn.execute(
-                "INSERT INTO ai_calls (id, created_at, task, mode, prompt_preview, status, prompt_hash)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                "INSERT INTO ai_calls (
+                  id, created_at, task, mode, prompt_preview, status, prompt_hash,
+                  response_preview, stderr_preview, session_id
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
                 params![
                     call.get("id").and_then(|v| v.as_str()).unwrap_or(""),
                     call.get("createdAt").and_then(|v| v.as_str()).unwrap_or(""),
@@ -872,6 +870,9 @@ fn save_ai_calls(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
                         .unwrap_or(""),
                     call.get("status").and_then(|v| v.as_str()).unwrap_or(""),
                     call.get("promptHash").and_then(|v| v.as_str()),
+                    call.get("responsePreview").and_then(|v| v.as_str()),
+                    call.get("stderrPreview").and_then(|v| v.as_str()),
+                    call.get("sessionId").and_then(|v| v.as_str()),
                 ],
             )
             .map_err(|e| e.to_string())?;
@@ -882,7 +883,11 @@ fn save_ai_calls(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
 
 fn load_ai_calls(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), String> {
     let mut stmt = conn
-        .prepare("SELECT id, created_at, task, mode, prompt_preview, status, prompt_hash FROM ai_calls ORDER BY created_at DESC LIMIT 100")
+        .prepare(
+            "SELECT id, created_at, task, mode, prompt_preview, status, prompt_hash,
+                    response_preview, stderr_preview, session_id
+             FROM ai_calls ORDER BY created_at DESC LIMIT 100",
+        )
         .map_err(|e| e.to_string())?;
     let mut list = Vec::new();
     let rows = stmt
@@ -895,15 +900,16 @@ fn load_ai_calls(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), 
                 "promptPreview": row.get::<_, String>(4)?,
                 "status": row.get::<_, String>(5)?,
                 "promptHash": row.get::<_, Option<String>>(6)?,
+                "responsePreview": row.get::<_, Option<String>>(7)?,
+                "stderrPreview": row.get::<_, Option<String>>(8)?,
+                "sessionId": row.get::<_, Option<String>>(9)?,
             }))
         })
         .map_err(|e| e.to_string())?;
     for row in rows.flatten() {
         list.push(row);
     }
-    if !list.is_empty() {
-        obj.insert("aiCalls".into(), Value::Array(list));
-    }
+    obj.insert("aiCalls".into(), Value::Array(list));
     Ok(())
 }
 

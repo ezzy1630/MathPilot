@@ -4,7 +4,7 @@ import {
   sessionDifficultyBias,
 } from './dailySessionEngine'
 import { buildFormulaRecallProblem } from './formulaRecall'
-import { generateProblemForSkill } from './problemGenerator'
+import { generateProblemForSkill, generateProblemViaCodexAsync } from './problemGenerator'
 import { pickInterleavedProblem } from './interleavingEngine'
 import { buildReviewProblem, inferReviewType } from './reviewItemEngine'
 import { problemForSkill } from '../lib/mapHelpers'
@@ -24,6 +24,12 @@ const PHASE_TO_MODE: Partial<Record<ActivityKind, string>> = {
   syllabus_task: 'guided_practice',
 }
 
+type SessionPreferences = MathPilotState['preferences'] & { enableCodexProblemGen?: boolean }
+
+function codexProblemGenEnabled(state: MathPilotState): boolean {
+  return Boolean((state.preferences as SessionPreferences | undefined)?.enableCodexProblemGen)
+}
+
 function difficultyMatchesBias(problem: Problem, bias: number, masteryScore: number): boolean {
   const target = Math.min(0.95, Math.max(0.2, masteryScore + bias))
   return Math.abs(problem.difficulty - target) <= 0.22
@@ -38,11 +44,46 @@ function pickResourceForSkill(state: MathPilotState, skillId: string): ResourceR
   return candidates.sort((a, b) => b.effectivenessScore - a.effectivenessScore)[0]
 }
 
+function generateForSkill(
+  state: MathPilotState,
+  skillId: string,
+): { state: MathPilotState; problemId?: string } {
+  const generated = generateProblemForSkill(state, skillId)
+  if (generated) {
+    return { state: generated.state, problemId: generated.record.problem.id }
+  }
+  const existing = problemForSkill(state, skillId)
+  return { state, problemId: existing }
+}
+
+async function generateForSkillAsync(
+  state: MathPilotState,
+  skillId: string,
+): Promise<{ state: MathPilotState; problemId?: string }> {
+  if (codexProblemGenEnabled(state)) {
+    const codex = await generateProblemViaCodexAsync(state, skillId)
+    if (codex) {
+      return { state: codex.state, problemId: codex.record.problem.id }
+    }
+  }
+  return generateForSkill(state, skillId)
+}
+
 export function resolveProblemForAction(
   state: MathPilotState,
   skillIds: string[],
   actionKind: ActivityKind,
   explicitProblemId?: string,
+): { state: MathPilotState; problemId?: string; resourceId?: string } {
+  return resolveProblemForActionCore(state, skillIds, actionKind, explicitProblemId)
+}
+
+function resolveProblemForActionCore(
+  state: MathPilotState,
+  skillIds: string[],
+  actionKind: ActivityKind,
+  explicitProblemId?: string,
+  options?: { deferGeneration?: boolean },
 ): { state: MathPilotState; problemId?: string; resourceId?: string } {
   if (explicitProblemId && state.problems[explicitProblemId]) {
     return { state, problemId: explicitProblemId }
@@ -112,16 +153,41 @@ export function resolveProblemForAction(
     if (matched) return { state, problemId: matched.id }
   }
 
-  let existing = problemForSkill(state, skillId, preferredMode)
+  const skillPool = Object.values(state.problems).filter(
+    (problem) => problem.skillIds.includes(skillId) && !problem.deprecated,
+  )
+  const existing =
+    skillPool.find((problem) => problem.mode === preferredMode)?.id ?? skillPool[0]?.id
   if (existing) return { state, problemId: existing }
 
-  const generated = generateProblemForSkill(state, skillId)
-  if (generated) {
-    return { state: generated.state, problemId: generated.record.problem.id }
+  if (!options?.deferGeneration) {
+    const fallback = problemForSkill(state, skillId, preferredMode)
+    if (fallback) return { state, problemId: fallback }
   }
 
-  existing = problemForSkill(state, skillId)
-  return { state, problemId: existing }
+  if (options?.deferGeneration) {
+    return { state, problemId: undefined }
+  }
+
+  return generateForSkill(state, skillId)
+}
+
+/** Async resolver — tries Codex generation for new skills when preference enabled. */
+export async function resolveProblemForActionAsync(
+  state: MathPilotState,
+  skillIds: string[],
+  actionKind: ActivityKind,
+  explicitProblemId?: string,
+): Promise<{ state: MathPilotState; problemId?: string; resourceId?: string }> {
+  const partial = resolveProblemForActionCore(state, skillIds, actionKind, explicitProblemId, {
+    deferGeneration: true,
+  })
+  if (partial.problemId) return partial
+
+  const skillId = skillIds[0]
+  if (!skillId) return partial
+
+  return generateForSkillAsync(partial.state, skillId)
 }
 
 export function resolveWorkedExampleProblem(state: MathPilotState, skillId: string): Problem | undefined {

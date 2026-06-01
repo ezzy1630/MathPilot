@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Clock3, FileText, Map, Search, Settings, Sparkles, Wrench } from 'lucide-react'
-import { Modal } from '../ui/Modal'
+import { AccessibleModal } from './AccessibleModal'
+import { searchResources, type ResourceSearchResult } from '@mathpilot/content-engine'
 import { mergeSearchHits, searchViaFts, type SearchHit } from '../domain/searchIndex'
 import type { MathPilotState } from '../domain/types'
 
@@ -38,6 +39,7 @@ export function CommandPalette({
 }) {
   const [query, setQuery] = useState('')
   const [ftsRows, setFtsRows] = useState<Array<{ entityType: string; entityId: string; body: string }>>([])
+  const [resourceHits, setResourceHits] = useState<ResourceSearchResult[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -54,6 +56,19 @@ export function CommandPalette({
       cancelled = true
     }
   }, [state, query])
+
+  useEffect(() => {
+    if (!state || query.trim().length < 2) return
+    let cancelled = false
+    void searchResources(query, { resources: state.resources }, { limit: 4 }).then((results) => {
+      if (!cancelled) setResourceHits(results)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [state, query])
+
+  const effectiveResourceHits = query.trim().length < 2 ? [] : resourceHits
 
   const searchHits = useMemo(() => {
     if (!state || query.trim().length < 2) return []
@@ -76,7 +91,7 @@ export function CommandPalette({
   const recentCommands = commands.filter((command) => ['review', 'map', 'hw'].includes(command.id)).slice(0, 3)
 
   return (
-    <Modal title="Search & commands" onClose={onClose}>
+    <AccessibleModal title="Search & commands" onClose={onClose}>
       <input
         ref={inputRef}
         className="palette-search"
@@ -86,6 +101,33 @@ export function CommandPalette({
         onChange={(e) => setQuery(e.target.value)}
         aria-label="Search"
       />
+      {effectiveResourceHits.length > 0 && (
+        <>
+          <p className="meta-label" style={{ marginTop: 12 }}>
+            Resources
+          </p>
+          <ul className="palette-list">
+            {effectiveResourceHits.map((hit) => (
+              <li key={hit.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.open(hit.url, '_blank', 'noopener,noreferrer')
+                    onClose()
+                  }}
+                >
+                  <BookOpen size={16} />
+                  <strong>{hit.title}</strong>
+                  <span className="muted palette-hit-sub">
+                    {hit.source}
+                    {hit.dynamic ? ' · search' : ''}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       {searchHits.length > 0 && (
         <>
           <p className="meta-label" style={{ marginTop: 12 }}>
@@ -160,8 +202,10 @@ export function CommandPalette({
           </ul>
         </div>
       ))}
-      {!filtered.length && !searchHits.length && <p className="muted">No matches</p>}
+      {!filtered.length && !searchHits.length && !effectiveResourceHits.length && (
+        <p className="muted">No matches</p>
+      )}
       <p className="muted palette-hint">Esc to close · ⌘K anytime</p>
-    </Modal>
+    </AccessibleModal>
   )
 }

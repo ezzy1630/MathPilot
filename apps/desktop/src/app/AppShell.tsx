@@ -14,9 +14,9 @@ import { HomeworkUpload } from '../components/HomeworkUpload'
 import { SyllabusMappingModal } from '../components/SyllabusMappingModal'
 import { clearContinuingDiagnosticPending } from '../domain/continuingDiagnostics'
 import { ProgressReport } from '../components/ProgressReport'
-import { Modal } from '../ui/Modal'
+import { AccessibleModal } from '../components/AccessibleModal'
 import { completeActiveVideoPostCheck } from '../domain/activeVideoMode'
-import { startDiagnostic } from '../domain/diagnosticEngine'
+import { startContinuingDiagnostic, startDiagnostic } from '../domain/diagnosticEngine'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
 import { generateProblemForSkill } from '../domain/problemGenerator'
 import { runMaintenance } from '../domain/maintenance'
@@ -206,6 +206,7 @@ export function AppShell() {
     onVideoInterrupt,
     chooseFocus,
     setPace,
+    setCustomPace,
     beginTestOut,
     handleOverride,
     startRepairFromHomework,
@@ -361,13 +362,13 @@ export function AppShell() {
       )}
 
       {historyOpen && (
-        <Modal title="Attempt history" onClose={() => setHistoryOpen(false)}>
+        <AccessibleModal title="Attempt history" onClose={() => setHistoryOpen(false)}>
           <AttemptHistoryPanel state={appState} onClose={() => setHistoryOpen(false)} />
-        </Modal>
+        </AccessibleModal>
       )}
 
       {syllabusMappingOpen && (appState.syllabusMapping?.length ?? 0) > 0 && (
-        <Modal title="Syllabus alignment" onClose={() => setSyllabusMappingOpen(false)}>
+        <AccessibleModal title="Syllabus alignment" onClose={() => setSyllabusMappingOpen(false)}>
           <SyllabusMappingModal
             state={appState}
             onToggleTopic={(topic, accepted) => {
@@ -391,11 +392,11 @@ export function AppShell() {
             }}
             onDone={() => setSyllabusMappingOpen(false)}
           />
-        </Modal>
+        </AccessibleModal>
       )}
 
       {homeworkUploadOpen && (
-        <Modal title="Upload homework" onClose={() => setHomeworkUploadOpen(false)}>
+        <AccessibleModal title="Upload homework" onClose={() => setHomeworkUploadOpen(false)}>
           <HomeworkUpload
             text={homeworkText}
             onTextChange={setHomeworkText}
@@ -406,7 +407,7 @@ export function AppShell() {
             }}
           />
           {homeworkAnalyzing && <p className="eyebrow">Analyzing homework...</p>}
-        </Modal>
+        </AccessibleModal>
       )}
 
       {gateSkillId && (
@@ -457,7 +458,7 @@ export function AppShell() {
                 type="button"
                 className="primary"
                 onClick={() => {
-                  update(startDiagnostic(appState).state)
+                  update(startContinuingDiagnostic(appState).state)
                   setView('activity')
                 }}
               >
@@ -510,6 +511,7 @@ export function AppShell() {
             onStartFormulaRecall={() => setShowFormulaRecall(true)}
             onWhy={() => setWhyOpen(true)}
             setPace={setPace}
+            setCustomPace={setCustomPace}
             sessionPace={appState.sessionPace ?? 'normal'}
             diagnostic={appState.diagnostic}
             onStartRepair={startRepairFromHomework}
