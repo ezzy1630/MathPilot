@@ -269,6 +269,9 @@ export function AppShell() {
 
   return (
     <main className={`app-shell ${themeClass} ${appState.developerModeEnabled ? 'developer-shell' : ''}`}>
+      <a href="#app-main-content" className="skip-link">
+        Skip to main content
+      </a>
       <div className="titlebar-drag" data-tauri-drag-region aria-hidden />
       <ToastStack state={appState} onDismiss={(id) => update(dismissToast(appState, id))} />
       <aside className="rail" aria-label="MathPilot navigation">
@@ -395,7 +398,7 @@ export function AppShell() {
         />
       )}
 
-      <section className="workspace">
+      <section id="app-main-content" className="workspace" tabIndex={-1}>
         <PythonStatusBanner />
         {!appState.onboarded && !appState.diagnostic && (
           <Onboarding

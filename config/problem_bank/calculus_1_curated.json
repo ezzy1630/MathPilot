@@ -60,6 +60,62 @@
       "hintSequence": ["V = (4/3)πr³, differentiate with respect to time."],
       "verificationStatus": "verified",
       "requiresShowWork": true
+    },
+    {
+      "id": "cur-c1-product-1",
+      "title": "Product rule",
+      "prompt": "Differentiate f(x) = x^2 sin(x).",
+      "skillIds": ["product_rule"],
+      "difficulty": 0.4,
+      "mode": "guided_practice",
+      "answerType": "expression",
+      "expectedAnswer": "2*x*sin(x)+x^2*cos(x)",
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c1-continuity-1",
+      "title": "Continuity check",
+      "prompt": "Is f(x) = (sin x)/x continuous at x = 0 if f(0) = 1? Answer 1 for yes, 0 for no.",
+      "skillIds": ["continuity"],
+      "difficulty": 0.35,
+      "mode": "independent_practice",
+      "answerType": "expression",
+      "expectedAnswer": "1",
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c1-implicit-1",
+      "title": "Implicit differentiation",
+      "prompt": "For x^2 + y^2 = 25, find dy/dx.",
+      "skillIds": ["implicit_differentiation"],
+      "difficulty": 0.45,
+      "mode": "guided_practice",
+      "answerType": "expression",
+      "expectedAnswer": "-x/y",
+      "hintSequence": ["Differentiate both sides with respect to x."],
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c1-riemann-1",
+      "title": "Riemann sum estimate",
+      "prompt": "Approximate ∫_0^2 x dx with a right Riemann sum using n = 4 equal subintervals.",
+      "skillIds": ["riemann_sums"],
+      "difficulty": 0.42,
+      "mode": "independent_practice",
+      "answerType": "expression",
+      "expectedAnswer": "5",
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c1-squeeze-1",
+      "title": "Squeeze theorem",
+      "prompt": "lim_{x→0} x^2 sin(1/x) = ?",
+      "skillIds": ["squeeze_theorem"],
+      "difficulty": 0.38,
+      "mode": "mixed_review",
+      "answerType": "expression",
+      "expectedAnswer": "0",
+      "verificationStatus": "verified"
     }
   ]
 }

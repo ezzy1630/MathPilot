@@ -95,7 +95,13 @@ export function NavButton({
   onClick: () => void
 }) {
   return (
-    <button className={`nav-button ${active ? 'active' : ''}`} onClick={onClick} aria-label={label}>
+    <button
+      type="button"
+      className={`nav-button ${active ? 'active' : ''}`}
+      onClick={onClick}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
+    >
       {icon}
       <span>{label}</span>
     </button>

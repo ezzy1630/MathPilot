@@ -32,9 +32,11 @@
 
 ### Still not at literal 100% spec (honest)
 
-- [ ] Production-scale problem bank at thousands of hand-curated items (current: catalog expansion + curated JSON)
+- [ ] Production-scale problem bank at thousands of hand-curated items (current: catalog expansion + 15 curated JSON items)
 - [ ] Full package extraction from `apps/desktop/src/domain` (FSRS module extracted; engines still in desktop)
 - [ ] Automated Codex-generated bank ingest pipeline
+- [x] CI runs `cargo test --lib` for Tauri migration tests
+- [~] Accessibility: skip link, `aria-current` on nav, map wheel labels (full audit still open)
 - [ ] HealthKit / Bevel integrations (optional in spec)
 - [ ] Full built-in graphing suite (Taylor overlays, slope fields, etc.)
 - [ ] Accessibility audit + broad visual regression harness

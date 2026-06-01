@@ -44,6 +44,39 @@
       "answerType": "expression",
       "expectedAnswer": "2",
       "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c2-partial-1",
+      "title": "Partial fractions",
+      "prompt": "∫ 1/(x^2-1) dx = ? (include +C)",
+      "skillIds": ["partial_fractions"],
+      "difficulty": 0.5,
+      "mode": "guided_practice",
+      "answerType": "expression",
+      "expectedAnswer": "(1/2)*log((x-1)/(x+1))+C",
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c2-param-1",
+      "title": "Parametric velocity",
+      "prompt": "For x = t^2, y = t^3, find dy/dx when t = 2.",
+      "skillIds": ["parametric_equations"],
+      "difficulty": 0.47,
+      "mode": "independent_practice",
+      "answerType": "expression",
+      "expectedAnswer": "3",
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c2-alternating-1",
+      "title": "Alternating series",
+      "prompt": "Does ∑ (-1)^n / n converge? Answer 1 for yes, 0 for no.",
+      "skillIds": ["alternating_series"],
+      "difficulty": 0.4,
+      "mode": "mixed_review",
+      "answerType": "expression",
+      "expectedAnswer": "1",
+      "verificationStatus": "verified"
     }
   ]
 }

@@ -33,6 +33,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust unit tests (Tauri migrations)
+        run: cargo test --lib --manifest-path apps/desktop/src-tauri/Cargo.toml
+
   e2e:
     runs-on: ubuntu-latest
     needs: verify
