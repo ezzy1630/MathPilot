@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.venv/
+.agents/
+.worktrees/
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Tauri / Rust
+apps/desktop/src-tauri/target/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Runtime/private app data
+data/
+memory/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+config/*.local.json
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.sw?
+
+# Test artifacts
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Env / secrets
+.env
+.env.*

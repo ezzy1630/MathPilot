@@ -1,0 +1,10 @@
+{
+  "profileName": "Student",
+  "currentFocus": "Calculus 1",
+  "advancedModeDefault": false,
+  "notificationsDefault": false,
+  "rawHomeworkImageRetention": "delete_by_default",
+  "aiBackend": "codex_cli",
+  "manualPromptPacketFallback": true,
+  "reports": "on_demand_only"
+}

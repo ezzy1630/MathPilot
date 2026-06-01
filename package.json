@@ -1,0 +1,17 @@
+{
+  "name": "mathpilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @mathpilot/desktop dev",
+    "build": "pnpm --filter @mathpilot/desktop build",
+    "test": "pnpm --filter @mathpilot/desktop test && pnpm test:packages",
+    "test:packages": "pnpm --filter @mathpilot/learning-engine test",
+    "test:e2e": "pnpm --filter @mathpilot/desktop test:e2e",
+    "lint": "pnpm --filter @mathpilot/desktop lint"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2"
+  }
+}

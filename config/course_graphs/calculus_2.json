@@ -1,0 +1,243 @@
+{
+  "course": "Calculus 2",
+  "areas": [
+    "Integration Techniques",
+    "Applications of Integration",
+    "Sequences and Series",
+    "Power Series",
+    "Parametric and Polar"
+  ],
+  "skills": [
+    {
+      "id": "u_substitution",
+      "name": "Basic u-Substitution",
+      "area": "Integration Techniques",
+      "course": "Prerequisite",
+      "type": "mixed",
+      "prerequisites": [],
+      "supports": ["integration_by_parts", "trig_integrals"],
+      "commonMistakes": ["poor u choice"],
+      "resources": ["ka-usub"]
+    },
+    {
+      "id": "integration_by_parts",
+      "name": "Integration by Parts",
+      "area": "Integration Techniques",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["u_substitution"],
+      "supports": ["trig_integrals", "improper_integrals"],
+      "commonMistakes": ["poor LIATE choice", "sign errors"],
+      "resources": ["prof-leonard-parts"]
+    },
+    {
+      "id": "trig_integrals",
+      "name": "Trigonometric Integrals",
+      "area": "Integration Techniques",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["integration_by_parts"],
+      "supports": ["trig_substitution"],
+      "commonMistakes": ["wrong power reduction strategy"],
+      "resources": ["ka-trig-integrals"]
+    },
+    {
+      "id": "trig_substitution",
+      "name": "Trigonometric Substitution",
+      "area": "Integration Techniques",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["trig_integrals"],
+      "supports": ["partial_fractions"],
+      "commonMistakes": ["wrong triangle setup"],
+      "resources": ["ka-trig-sub"]
+    },
+    {
+      "id": "partial_fractions",
+      "name": "Partial Fractions",
+      "area": "Integration Techniques",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["algebra_manipulation"],
+      "supports": ["improper_integrals"],
+      "commonMistakes": ["incomplete decomposition"],
+      "resources": ["ka-partial-fractions"]
+    },
+    {
+      "id": "improper_integrals",
+      "name": "Improper Integrals",
+      "area": "Integration Techniques",
+      "course": "Calculus 2",
+      "type": "mixed",
+      "prerequisites": ["definite_integrals"],
+      "supports": ["comparison_tests"],
+      "commonMistakes": ["limit setup errors"],
+      "resources": ["ka-improper"]
+    },
+    {
+      "id": "volumes_of_revolution",
+      "name": "Volumes of Revolution",
+      "area": "Applications of Integration",
+      "course": "Calculus 2",
+      "type": "mixed",
+      "prerequisites": ["definite_integrals"],
+      "supports": [],
+      "commonMistakes": ["washer vs shell confusion"],
+      "resources": ["ka-volumes"]
+    },
+    {
+      "id": "arc_length",
+      "name": "Arc Length",
+      "area": "Applications of Integration",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["definite_integrals"],
+      "supports": [],
+      "commonMistakes": ["forgets to square derivative"],
+      "resources": ["ka-arc-length"]
+    },
+    {
+      "id": "sequences",
+      "name": "Sequences",
+      "area": "Sequences and Series",
+      "course": "Calculus 2",
+      "type": "conceptual",
+      "prerequisites": ["limits_intro"],
+      "supports": ["series_intro"],
+      "commonMistakes": ["confuses sequence with series"],
+      "resources": ["prof-leonard-sequences"]
+    },
+    {
+      "id": "series_intro",
+      "name": "Series Basics",
+      "area": "Sequences and Series",
+      "course": "Calculus 2",
+      "type": "conceptual",
+      "prerequisites": ["sequences"],
+      "supports": ["geometric_series", "series_test_selection"],
+      "commonMistakes": ["partial sum vs series value"],
+      "resources": ["ka-series"]
+    },
+    {
+      "id": "geometric_series",
+      "name": "Geometric Series",
+      "area": "Sequences and Series",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["series_intro"],
+      "supports": ["ratio_test"],
+      "commonMistakes": ["|r| boundary errors"],
+      "resources": ["ka-geometric-series"]
+    },
+    {
+      "id": "series_test_selection",
+      "name": "Series Test Selection",
+      "area": "Sequences and Series",
+      "course": "Calculus 2",
+      "type": "mixed",
+      "prerequisites": ["series_intro", "improper_integrals"],
+      "supports": ["ratio_test", "comparison_tests"],
+      "commonMistakes": ["uses ratio when comparison is cleaner"],
+      "resources": ["prof-leonard-series"]
+    },
+    {
+      "id": "ratio_test",
+      "name": "Ratio Test",
+      "area": "Sequences and Series",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["series_test_selection"],
+      "supports": ["power_series"],
+      "commonMistakes": ["L=1 treated as conclusive"],
+      "resources": ["ka-ratio-test"]
+    },
+    {
+      "id": "comparison_tests",
+      "name": "Comparison Tests",
+      "area": "Sequences and Series",
+      "course": "Calculus 2",
+      "type": "mixed",
+      "prerequisites": ["series_intro"],
+      "supports": ["series_test_selection"],
+      "commonMistakes": ["wrong comparison series"],
+      "resources": ["ka-comparison"]
+    },
+    {
+      "id": "alternating_series",
+      "name": "Alternating Series Test",
+      "area": "Sequences and Series",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["series_intro"],
+      "supports": [],
+      "commonMistakes": ["does not check decreasing condition"],
+      "resources": ["ka-alternating"]
+    },
+    {
+      "id": "power_series",
+      "name": "Power Series",
+      "area": "Power Series",
+      "course": "Calculus 2",
+      "type": "mixed",
+      "prerequisites": ["ratio_test"],
+      "supports": ["taylor_series"],
+      "commonMistakes": ["radius vs interval confusion"],
+      "resources": ["ka-power-series"]
+    },
+    {
+      "id": "taylor_series",
+      "name": "Taylor and Maclaurin Series",
+      "area": "Power Series",
+      "course": "Calculus 2",
+      "type": "mixed",
+      "prerequisites": ["power_series"],
+      "supports": ["taylor_error"],
+      "commonMistakes": ["center not accounted for"],
+      "resources": ["ka-taylor"]
+    },
+    {
+      "id": "taylor_error",
+      "name": "Taylor Polynomial Error",
+      "area": "Power Series",
+      "course": "Calculus 2",
+      "type": "conceptual",
+      "prerequisites": ["taylor_series"],
+      "supports": [],
+      "commonMistakes": ["wrong remainder form"],
+      "resources": ["ka-taylor-error"]
+    },
+    {
+      "id": "parametric_equations",
+      "name": "Parametric Equations",
+      "area": "Parametric and Polar",
+      "course": "Calculus 2",
+      "type": "mixed",
+      "prerequisites": ["derivative_rules_basic"],
+      "supports": ["polar_coordinates"],
+      "commonMistakes": ["chain rule with parameter"],
+      "resources": ["ka-parametric"]
+    },
+    {
+      "id": "polar_coordinates",
+      "name": "Polar Coordinates",
+      "area": "Parametric and Polar",
+      "course": "Calculus 2",
+      "type": "mixed",
+      "prerequisites": ["parametric_equations"],
+      "supports": ["polar_area"],
+      "commonMistakes": ["r vs theta confusion"],
+      "resources": ["ka-polar"]
+    },
+    {
+      "id": "polar_area",
+      "name": "Polar Area",
+      "area": "Parametric and Polar",
+      "course": "Calculus 2",
+      "type": "procedural",
+      "prerequisites": ["polar_coordinates"],
+      "supports": [],
+      "commonMistakes": ["forgets 1/2 factor"],
+      "resources": ["ka-polar-area"]
+    }
+  ]
+}

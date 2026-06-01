@@ -1,0 +1,12 @@
+{
+  "trustedSources": [
+    "Khan Academy",
+    "Organic Chemistry Tutor",
+    "3Blue1Brown",
+    "Professor Leonard",
+    "Paul's Online Math Notes",
+    "MIT OpenCourseWare",
+    "PatrickJMT"
+  ],
+  "policy": "Prefer curated trusted links, learn effectiveness from performance, and use dynamic search only when needed."
+}

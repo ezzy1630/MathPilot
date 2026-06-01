@@ -1,0 +1,269 @@
+import { recordAttempt } from './learningEngine'
+import { problemBankForDiagnostic } from './problemBank'
+import type { AttemptInput, MathPilotState, Problem } from './types'
+
+export const DIAGNOSTIC_TARGET_QUESTIONS = 25
+
+export interface DiagnosticSession {
+  id: string
+  startedAt: string
+  targetCount: number
+  answeredCount: number
+  currentIndex: number
+  queue: string[]
+  weakSkills: string[]
+  strongSkills: string[]
+  completed: boolean
+  summary?: DiagnosticSummary
+}
+
+export interface DiagnosticSummary {
+  strong: string[]
+  weak: string[]
+  recommendedNext: string
+  recommendedSkillIds: string[]
+}
+
+export function startDiagnostic(state: MathPilotState): { state: MathPilotState; session: DiagnosticSession } {
+  const pool = problemBankForDiagnostic(state)
+  const queue = buildAdaptiveQueue(state, pool, DIAGNOSTIC_TARGET_QUESTIONS)
+  const session: DiagnosticSession = {
+    id: `diag-${Date.now()}`,
+    startedAt: new Date().toISOString(),
+    targetCount: DIAGNOSTIC_TARGET_QUESTIONS,
+    answeredCount: 0,
+    currentIndex: 0,
+    queue,
+    weakSkills: [],
+    strongSkills: [],
+    completed: false,
+  }
+  return {
+    state: { ...state, diagnostic: session },
+    session,
+  }
+}
+
+export function currentDiagnosticProblem(state: MathPilotState): Problem | undefined {
+  const session = state.diagnostic
+  if (!session || session.completed) return undefined
+  const problemId = session.queue[session.currentIndex]
+  return problemId ? state.problems[problemId] : undefined
+}
+
+export function submitDiagnosticAnswer(
+  state: MathPilotState,
+  problemId: string,
+  answer: string,
+  correct: boolean,
+): MathPilotState {
+  const session = state.diagnostic
+  if (!session || session.completed) return state
+
+  const problem = state.problems[problemId]
+  const attemptInput: AttemptInput = {
+    problemId,
+    skillIds: problem.skillIds,
+    answer,
+    correct,
+    mode: 'diagnostic',
+    hintCount: 0,
+    seconds: 90,
+    mixed: true,
+    delayed: false,
+    mistakeTags: correct ? undefined : ['diagnostic:needs_confirmation'],
+  }
+
+  let next = recordAttempt(state, attemptInput)
+  const weak = new Set(session.weakSkills)
+  const strong = new Set(session.strongSkills)
+
+  for (const skillId of problem.skillIds) {
+    if (correct) strong.add(skillId)
+    else weak.add(skillId)
+  }
+
+  const answeredCount = session.answeredCount + 1
+  const currentIndex = session.currentIndex + 1
+  const completed = answeredCount >= session.targetCount || currentIndex >= session.queue.length
+
+  let queue = session.queue
+  if (!completed && answeredCount % 3 === 0) {
+    queue = reprioritizeDiagnosticQueue(next, { ...session, weakSkills: [...weak], strongSkills: [...strong] }, currentIndex)
+  }
+
+  let summary = session.summary
+  if (completed) {
+    summary = buildDiagnosticSummary(next, [...weak], [...strong])
+    next = applyDiagnosticMasterySignals(next, weak, strong)
+    next = {
+      ...next,
+      onboarded: true,
+      changelog: [
+        `${new Date().toISOString()}: Diagnostic completed — ${summary.recommendedNext}`,
+        ...next.changelog,
+      ],
+    }
+  }
+
+  return {
+    ...next,
+    diagnostic: {
+      ...session,
+      answeredCount,
+      currentIndex,
+      queue,
+      weakSkills: [...weak],
+      strongSkills: [...strong],
+      completed,
+      summary,
+    },
+  }
+}
+
+function reprioritizeDiagnosticQueue(
+  state: MathPilotState,
+  session: DiagnosticSession,
+  answeredThroughIndex: number,
+): string[] {
+  const weak = new Set(session.weakSkills)
+  const strong = new Set(session.strongSkills)
+  const prefix = session.queue.slice(0, answeredThroughIndex)
+  const prefixIds = new Set(prefix)
+
+  const pool = problemBankForDiagnostic(state)
+  const bySkill = new Map<string, string[]>()
+  for (const problem of pool) {
+    for (const skillId of problem.skillIds) {
+      const list = bySkill.get(skillId) ?? []
+      if (!list.includes(problem.id)) list.push(problem.id)
+      bySkill.set(skillId, list)
+    }
+  }
+
+  const orderedSkills = Object.keys(state.skills).sort((a, b) => {
+    const aRank = weak.has(a) ? 0 : strong.has(a) ? 2 : 1
+    const bRank = weak.has(b) ? 0 : strong.has(b) ? 2 : 1
+    if (aRank !== bRank) return aRank - bRank
+    return (state.mastery[a]?.masteryScore ?? 0.3) - (state.mastery[b]?.masteryScore ?? 0.3)
+  })
+
+  const rebuilt = [...prefix]
+  const used = new Set(prefixIds)
+
+  for (const skillId of orderedSkills) {
+    for (const problemId of bySkill.get(skillId) ?? []) {
+      if (used.has(problemId)) continue
+      rebuilt.push(problemId)
+      used.add(problemId)
+      if (rebuilt.length >= session.targetCount) return rebuilt
+    }
+  }
+
+  for (const problem of pool) {
+    if (used.has(problem.id)) continue
+    rebuilt.push(problem.id)
+    used.add(problem.id)
+    if (rebuilt.length >= session.targetCount) break
+  }
+
+  return rebuilt.slice(0, session.targetCount)
+}
+
+function buildAdaptiveQueue(state: MathPilotState, pool: Problem[], target: number): string[] {
+  const bySkill = new Map<string, Problem[]>()
+  for (const problem of pool) {
+    for (const skillId of problem.skillIds) {
+      const list = bySkill.get(skillId) ?? []
+      list.push(problem)
+      bySkill.set(skillId, list)
+    }
+  }
+
+  const skillIds = Object.keys(state.skills)
+  const ordered = [...skillIds].sort((a, b) => {
+    const ma = state.mastery[a]?.masteryScore ?? 0.3
+    const mb = state.mastery[b]?.masteryScore ?? 0.3
+    return ma - mb
+  })
+
+  const queue: string[] = []
+  const used = new Set<string>()
+
+  for (const skillId of ordered) {
+    const candidates = bySkill.get(skillId) ?? []
+    for (const problem of candidates) {
+      if (queue.length >= target) break
+      if (used.has(problem.id)) continue
+      used.add(problem.id)
+      queue.push(problem.id)
+    }
+    if (queue.length >= target) break
+  }
+
+  while (queue.length < target) {
+    const fallback = pool.find((p) => !used.has(p.id))
+    if (!fallback) break
+    used.add(fallback.id)
+    queue.push(fallback.id)
+  }
+
+  return queue.slice(0, target)
+}
+
+function buildDiagnosticSummary(
+  state: MathPilotState,
+  weakIds: string[],
+  strongIds: string[],
+): DiagnosticSummary {
+  const weak = weakIds
+    .map((id) => state.skills[id]?.name)
+    .filter(Boolean)
+    .slice(0, 5) as string[]
+  const strong = strongIds
+    .map((id) => state.skills[id]?.name)
+    .filter(Boolean)
+    .slice(0, 5) as string[]
+
+  const topWeak = weakIds.sort(
+    (a, b) => (state.mastery[a]?.masteryScore ?? 0) - (state.mastery[b]?.masteryScore ?? 0),
+  )[0]
+
+  const skillName = topWeak ? state.skills[topWeak]?.name : 'foundational skills'
+  return {
+    strong,
+    weak,
+    recommendedNext: topWeak ? `Quick repair: ${skillName}` : 'Continue guided practice',
+    recommendedSkillIds: topWeak ? [topWeak] : [],
+  }
+}
+
+function applyDiagnosticMasterySignals(
+  state: MathPilotState,
+  weak: Set<string>,
+  strong: Set<string>,
+): MathPilotState {
+  const mastery = { ...state.mastery }
+  for (const skillId of weak) {
+    const current = mastery[skillId]
+    if (!current) continue
+    const score = Math.max(0.12, current.masteryScore - 0.08)
+    mastery[skillId] = {
+      ...current,
+      masteryScore: score,
+      masteryState: 'Weak',
+      recentFailures: current.recentFailures + 1,
+    }
+  }
+  for (const skillId of strong) {
+    const current = mastery[skillId]
+    if (!current || weak.has(skillId)) continue
+    const score = Math.min(0.72, current.masteryScore + 0.06)
+    mastery[skillId] = {
+      ...current,
+      masteryScore: score,
+      masteryState: score >= 0.55 ? 'Developing' : 'Learning',
+    }
+  }
+  return { ...state, mastery }
+}

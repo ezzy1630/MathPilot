@@ -1,0 +1,287 @@
+{
+  "course": "Calculus 1",
+  "areas": [
+    "Prerequisite Readiness",
+    "Limits",
+    "Derivatives",
+    "Applications",
+    "Integration"
+  ],
+  "skills": [
+    {
+      "id": "algebra_manipulation",
+      "name": "Algebraic Manipulation",
+      "area": "Prerequisite Readiness",
+      "course": "Prerequisite",
+      "type": "procedural",
+      "prerequisites": [],
+      "supports": ["function_notation", "limits_intro"],
+      "commonMistakes": ["sign errors", "distribution mistakes"],
+      "resources": ["ka-algebra"]
+    },
+    {
+      "id": "function_notation",
+      "name": "Function Notation",
+      "area": "Prerequisite Readiness",
+      "course": "Prerequisite",
+      "type": "conceptual",
+      "prerequisites": ["algebra_manipulation"],
+      "supports": ["function_composition", "limits_intro"],
+      "commonMistakes": ["confuses input with output"],
+      "resources": ["ka-functions"]
+    },
+    {
+      "id": "function_composition",
+      "name": "Function Composition",
+      "area": "Prerequisite Readiness",
+      "course": "Prerequisite",
+      "type": "mixed",
+      "prerequisites": ["function_notation"],
+      "supports": ["chain_rule", "u_substitution"],
+      "commonMistakes": ["loses inner expression", "treats nested expressions as linear"],
+      "resources": ["ka-composition"]
+    },
+    {
+      "id": "trig_values",
+      "name": "Trigonometric Values",
+      "area": "Prerequisite Readiness",
+      "course": "Prerequisite",
+      "type": "procedural",
+      "prerequisites": [],
+      "supports": ["derivatives_trig"],
+      "commonMistakes": ["unit circle recall errors"],
+      "resources": ["ka-trig"]
+    },
+    {
+      "id": "limits_intro",
+      "name": "Limits and Continuity",
+      "area": "Limits",
+      "course": "Calculus 1",
+      "type": "mixed",
+      "prerequisites": ["function_notation"],
+      "supports": ["derivative_definition", "lhopital"],
+      "commonMistakes": ["uses function value instead of limit behavior"],
+      "resources": ["3b1b-limits", "ka-limits"]
+    },
+    {
+      "id": "one_sided_limits",
+      "name": "One-Sided Limits",
+      "area": "Limits",
+      "course": "Calculus 1",
+      "type": "conceptual",
+      "prerequisites": ["limits_intro"],
+      "supports": ["continuity"],
+      "commonMistakes": ["ignores direction of approach"],
+      "resources": ["ka-limits"]
+    },
+    {
+      "id": "continuity",
+      "name": "Continuity",
+      "area": "Limits",
+      "course": "Calculus 1",
+      "type": "conceptual",
+      "prerequisites": ["limits_intro", "one_sided_limits"],
+      "supports": ["ivt", "derivative_definition"],
+      "commonMistakes": ["confuses limit exists with function defined"],
+      "resources": ["ka-continuity"]
+    },
+    {
+      "id": "derivative_definition",
+      "name": "Derivative Definition",
+      "area": "Derivatives",
+      "course": "Calculus 1",
+      "type": "conceptual",
+      "prerequisites": ["limits_intro"],
+      "supports": ["derivative_rules_basic"],
+      "commonMistakes": ["algebra errors in difference quotient"],
+      "resources": ["3b1b-derivatives"]
+    },
+    {
+      "id": "derivative_rules_basic",
+      "name": "Derivative Rules",
+      "area": "Derivatives",
+      "course": "Calculus 1",
+      "type": "procedural",
+      "prerequisites": ["derivative_definition"],
+      "supports": ["product_rule", "quotient_rule", "chain_rule"],
+      "commonMistakes": ["drops constants", "misapplies power rule"],
+      "resources": ["oct-derivatives", "ka-derivative-rules"]
+    },
+    {
+      "id": "product_rule",
+      "name": "Product Rule",
+      "area": "Derivatives",
+      "course": "Calculus 1",
+      "type": "procedural",
+      "prerequisites": ["derivative_rules_basic"],
+      "supports": ["quotient_rule"],
+      "commonMistakes": ["forgets to differentiate both factors"],
+      "resources": ["ka-product-rule"]
+    },
+    {
+      "id": "quotient_rule",
+      "name": "Quotient Rule",
+      "area": "Derivatives",
+      "course": "Calculus 1",
+      "type": "procedural",
+      "prerequisites": ["product_rule"],
+      "supports": ["chain_rule"],
+      "commonMistakes": ["sign errors in numerator order"],
+      "resources": ["ka-quotient-rule"]
+    },
+    {
+      "id": "chain_rule",
+      "name": "Chain Rule",
+      "area": "Derivatives",
+      "course": "Calculus 1",
+      "type": "mixed",
+      "prerequisites": ["derivative_rules_basic", "function_composition"],
+      "supports": ["implicit_differentiation", "related_rates", "u_substitution"],
+      "commonMistakes": ["forgets inner derivative", "fails to identify composition"],
+      "resources": ["ka-chain-rule", "oct-chain-rule"]
+    },
+    {
+      "id": "derivatives_trig",
+      "name": "Derivatives of Trig Functions",
+      "area": "Derivatives",
+      "course": "Calculus 1",
+      "type": "procedural",
+      "prerequisites": ["derivative_rules_basic", "trig_values"],
+      "supports": ["chain_rule"],
+      "commonMistakes": ["wrong trig derivative pairing"],
+      "resources": ["ka-trig-derivatives"]
+    },
+    {
+      "id": "implicit_differentiation",
+      "name": "Implicit Differentiation",
+      "area": "Derivatives",
+      "course": "Calculus 1",
+      "type": "mixed",
+      "prerequisites": ["chain_rule"],
+      "supports": ["related_rates"],
+      "commonMistakes": ["forgets to differentiate y with respect to x"],
+      "resources": ["ka-implicit"]
+    },
+    {
+      "id": "related_rates",
+      "name": "Related Rates Setup",
+      "area": "Applications",
+      "course": "Calculus 1",
+      "type": "mixed",
+      "prerequisites": ["chain_rule", "implicit_differentiation"],
+      "supports": ["optimization"],
+      "commonMistakes": ["differentiates before relationship equation", "drops units"],
+      "resources": ["prof-leonard-related-rates"]
+    },
+    {
+      "id": "optimization",
+      "name": "Optimization",
+      "area": "Applications",
+      "course": "Calculus 1",
+      "type": "mixed",
+      "prerequisites": ["related_rates", "extrema"],
+      "supports": [],
+      "commonMistakes": ["domain not restricted", "endpoint not checked"],
+      "resources": ["ka-optimization"]
+    },
+    {
+      "id": "extrema",
+      "name": "Extrema and Critical Points",
+      "area": "Applications",
+      "course": "Calculus 1",
+      "type": "mixed",
+      "prerequisites": ["derivative_rules_basic"],
+      "supports": ["optimization", "curve_sketching"],
+      "commonMistakes": ["critical point without derivative test"],
+      "resources": ["ka-extrema"]
+    },
+    {
+      "id": "curve_sketching",
+      "name": "Graphing with Derivatives",
+      "area": "Applications",
+      "course": "Calculus 1",
+      "type": "mixed",
+      "prerequisites": ["extrema", "concavity"],
+      "supports": [],
+      "commonMistakes": ["sign chart errors"],
+      "resources": ["ka-curve-sketch"]
+    },
+    {
+      "id": "concavity",
+      "name": "Concavity and Inflection",
+      "area": "Applications",
+      "course": "Calculus 1",
+      "type": "conceptual",
+      "prerequisites": ["derivative_rules_basic"],
+      "supports": ["curve_sketching"],
+      "commonMistakes": ["confuses f'' sign with f sign"],
+      "resources": ["ka-concavity"]
+    },
+    {
+      "id": "lhopital",
+      "name": "L'Hopital's Rule",
+      "area": "Limits",
+      "course": "Calculus 1",
+      "type": "procedural",
+      "prerequisites": ["limits_intro", "derivative_rules_basic"],
+      "supports": [],
+      "commonMistakes": ["applies when not indeterminate"],
+      "resources": ["ka-lhopital"]
+    },
+    {
+      "id": "antiderivatives",
+      "name": "Antiderivatives",
+      "area": "Integration",
+      "course": "Calculus 1",
+      "type": "procedural",
+      "prerequisites": ["derivative_rules_basic"],
+      "supports": ["riemann_sums", "ftc"],
+      "commonMistakes": ["missing +C", "wrong power rule reversal"],
+      "resources": ["ka-antiderivatives"]
+    },
+    {
+      "id": "riemann_sums",
+      "name": "Riemann Sums",
+      "area": "Integration",
+      "course": "Calculus 1",
+      "type": "conceptual",
+      "prerequisites": ["limits_intro"],
+      "supports": ["definite_integrals"],
+      "commonMistakes": ["wrong sample point choice"],
+      "resources": ["3b1b-integrals"]
+    },
+    {
+      "id": "definite_integrals",
+      "name": "Definite Integrals",
+      "area": "Integration",
+      "course": "Calculus 1",
+      "type": "procedural",
+      "prerequisites": ["riemann_sums", "antiderivatives"],
+      "supports": ["ftc", "u_substitution"],
+      "commonMistakes": ["bounds not substituted"],
+      "resources": ["ka-definite-integrals"]
+    },
+    {
+      "id": "ftc",
+      "name": "Fundamental Theorem of Calculus",
+      "area": "Integration",
+      "course": "Calculus 1",
+      "type": "conceptual",
+      "prerequisites": ["definite_integrals"],
+      "supports": ["u_substitution"],
+      "commonMistakes": ["confuses accumulation with area only"],
+      "resources": ["ka-ftc"]
+    },
+    {
+      "id": "u_substitution",
+      "name": "Basic u-Substitution",
+      "area": "Integration",
+      "course": "Calculus 1",
+      "type": "mixed",
+      "prerequisites": ["chain_rule", "antiderivatives"],
+      "supports": ["integration_by_parts"],
+      "commonMistakes": ["poor u choice", "missing du factor"],
+      "resources": ["oct-usub", "ka-usub"]
+    }
+  ]
+}
