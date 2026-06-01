@@ -8,6 +8,8 @@ node_modules/
 dist/
 dist-ssr/
 *.local
+apps/desktop/app-icon.png
+apps/desktop/app-icon-raster.png
 
 # Tauri / Rust
 apps/desktop/src-tauri/target/

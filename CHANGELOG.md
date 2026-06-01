@@ -6,6 +6,11 @@ Entries are structured so app, memory, content, and developer changes can be aud
 
 ### Changed
 
+- type: design
+  actor: codex
+  files_changed: `apps/desktop/src-tauri/icons/`, `apps/desktop/app-icon-square.png`, `apps/desktop/app-icon-source.svg`, `apps/desktop/public/favicon.svg`, `apps/desktop/public/icon-square.svg`
+  summary: Replaced the generic blue “+” icon with a calculus-themed mark (∫ + mastery trajectory) on brand blue; regenerated macOS/Android/iOS icon sets via `tauri icon`.
+
 - type: docs
   actor: codex
   files_changed: `docs/GAP_AUDIT.md`, `docs/MANUAL_QA_CHECKLIST.md`, `CHANGELOG.md`
