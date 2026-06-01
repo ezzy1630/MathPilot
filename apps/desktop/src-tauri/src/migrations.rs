@@ -341,3 +341,27 @@ fn migration_v8(conn: &Connection) -> Result<(), String> {
     .map_err(|e| e.to_string())?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+
+    #[test]
+    fn migrations_apply_through_v8() {
+        let conn = Connection::open_in_memory().expect("in-memory db");
+        run_migrations(&conn).expect("migrations");
+        let version: i64 = conn
+            .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| row.get(0))
+            .expect("version");
+        assert!(version >= 8);
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='maintenance_runs'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("count");
+        assert_eq!(count, 1);
+    }
+}

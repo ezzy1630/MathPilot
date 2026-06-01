@@ -21,11 +21,20 @@
 - [x] CI: `feat/**` branches + macOS desktop build job
 - [x] 91 unit tests passing; lint + build green
 
+### 2026-06-01 high-ROI follow-up (`feat/high-roi-followup`)
+
+- [x] Production problem bank: catalog 3× variants per skill + `config/problem_bank/*.json` + `problemBankLoader.ts` (150+ problems Calc 1)
+- [x] True FSRS via `ts-fsrs` in `packages/learning-engine/src/fsrsSchedule.ts`, wired in `reviewScheduler`
+- [x] Codex code apply + rollback Tauri commands (`apply_code_patches`, `rollback_code_patches`) + Developer UI
+- [x] Batch verify problem bank (Developer → promotes SymPy-verified items)
+- [x] Rust migration test (v8 + `maintenance_runs`)
+- [x] Storybook: `ProgressReport.stories.tsx`; expanded graph presets (Taylor, slope fields)
+
 ### Still not at literal 100% spec (honest)
 
-- [ ] Production-scale problem bank (thousands of curated items)
-- [ ] True FSRS library / full package extraction from `apps/desktop/src/domain`
-- [ ] Codex code self-apply with diff apply + rollback (approval scaffold only)
+- [ ] Production-scale problem bank at thousands of hand-curated items (current: catalog expansion + curated JSON)
+- [ ] Full package extraction from `apps/desktop/src/domain` (FSRS module extracted; engines still in desktop)
+- [ ] Automated Codex-generated bank ingest pipeline
 - [ ] HealthKit / Bevel integrations (optional in spec)
 - [ ] Full built-in graphing suite (Taylor overlays, slope fields, etc.)
 - [ ] Accessibility audit + broad visual regression harness

@@ -37,6 +37,8 @@ pub fn run() {
             db::ocr_homework_base64,
             db::list_backups,
             db::restore_backup,
+            db::apply_code_patches,
+            db::rollback_code_patches,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run MathPilot");

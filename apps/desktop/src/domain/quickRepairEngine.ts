@@ -27,6 +27,13 @@ const PHASE_ORDER: QuickRepairPhase[] = [
 
 const TARGET_PRACTICE_COUNT = 4
 
+function repairPriority(problem: Problem): number {
+  if (problem.mode === 'quick_repair') return 0
+  if (problem.id.startsWith('repair-')) return 1
+  if (problem.source === 'curated_json') return 2
+  return 3
+}
+
 function targetedPracticePool(state: MathPilotState, skillId: string): Problem[] {
   return Object.values(state.problems)
     .filter(
@@ -35,7 +42,7 @@ function targetedPracticePool(state: MathPilotState, skillId: string): Problem[]
         !p.deprecated &&
         (p.mode === 'quick_repair' || p.mode === 'guided_practice' || p.mode === 'independent_practice'),
     )
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => repairPriority(a) - repairPriority(b) || a.id.localeCompare(b.id))
 }
 
 export function buildQuickRepairPracticeQueue(state: MathPilotState, skillId: string): string[] {

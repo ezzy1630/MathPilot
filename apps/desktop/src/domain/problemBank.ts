@@ -114,3 +114,74 @@ export function activeProblems(state: MathPilotState): Problem[] {
 export function verifiedProblems(state: MathPilotState): Problem[] {
   return activeProblems(state).filter((p) => p.verificationStatus === 'verified')
 }
+
+export interface BatchVerifyResult {
+  checked: number
+  promoted: number
+  failed: number
+  skipped: number
+  problemIds: string[]
+}
+
+/** Verify unverified bank problems (developer / maintenance pipeline). */
+export async function batchVerifyProblemBank(
+  state: MathPilotState,
+  limit = 40,
+): Promise<{ state: MathPilotState; result: BatchVerifyResult }> {
+  const { verifyGeneratedProblemAsync } = await import('./problemGenerator')
+  const candidates = activeProblems(state)
+    .filter((p) => p.verificationStatus !== 'verified' && p.verificationStatus !== 'deprecated')
+    .slice(0, limit)
+
+  let next = state
+  const result: BatchVerifyResult = {
+    checked: 0,
+    promoted: 0,
+    failed: 0,
+    skipped: 0,
+    problemIds: [],
+  }
+
+  for (const problem of candidates) {
+    if (problem.answerType === 'choice') {
+      result.skipped += 1
+      continue
+    }
+    result.checked += 1
+    result.problemIds.push(problem.id)
+    const spec = {
+      skillId: problem.skillIds[0] ?? 'chain_rule',
+      title: problem.title,
+      prompt: problem.prompt,
+      expectedAnswer: problem.expectedAnswer,
+      mode: problem.mode,
+      difficulty: problem.difficulty,
+      answerType: (problem.answerType === 'text' ? 'text' : 'expression') as 'text' | 'expression',
+      hintSequence: problem.hintSequence,
+      variables: ['x'] as string[],
+    }
+    try {
+      const verification = await verifyGeneratedProblemAsync(spec)
+      if (verification.symbolic === 'passed' || verification.numeric === 'passed') {
+        next = promoteProblemToVerified(next, problem.id)
+        result.promoted += 1
+      } else {
+        next = markProblemUnverifiedUsed(next, problem.id)
+        result.failed += 1
+      }
+    } catch {
+      result.skipped += 1
+    }
+  }
+
+  return {
+    state: {
+      ...next,
+      changelog: [
+        `${new Date().toISOString()}: Batch verify — ${result.promoted} promoted, ${result.failed} failed, ${result.skipped} skipped.`,
+        ...next.changelog,
+      ],
+    },
+    result,
+  }
+}

@@ -1808,6 +1808,10 @@ export function DeveloperView({
   codexPingBusy,
   showFullPrompts,
   onToggleShowFullPrompts,
+  onBatchVerifyBank,
+  batchVerifyBusy,
+  onApplyCodeChange,
+  onRollbackCodeChange,
 }: {
   state: MathPilotState
   packet: string
@@ -1820,6 +1824,10 @@ export function DeveloperView({
   codexPingBusy?: boolean
   showFullPrompts?: boolean
   onToggleShowFullPrompts?: (enabled: boolean) => void
+  onBatchVerifyBank?: () => void
+  batchVerifyBusy?: boolean
+  onApplyCodeChange?: (proposalId: string) => void
+  onRollbackCodeChange?: (proposalId: string) => void
 }) {
   const [backups, setBackups] = useState<string[]>([])
   const [memoryFiles, setMemoryFiles] = useState<string[]>([])
@@ -1859,6 +1867,11 @@ export function DeveloperView({
           {onTestCodex && (
             <button type="button" className="secondary" disabled={codexPingBusy} onClick={onTestCodex}>
               {codexPingBusy ? 'Pinging Codex…' : 'Test Codex CLI'}
+            </button>
+          )}
+          {onBatchVerifyBank && (
+            <button type="button" className="secondary" disabled={batchVerifyBusy} onClick={onBatchVerifyBank}>
+              {batchVerifyBusy ? 'Verifying bank…' : 'Batch verify bank'}
             </button>
           )}
         </div>
@@ -1905,6 +1918,28 @@ export function DeveloperView({
               </li>
             ))}
           </ul>
+          {(state.codeChangeProposals?.length ?? 0) > 0 && (
+            <>
+              <h2>Code change proposals</h2>
+              <ul className="log-list">
+                {state.codeChangeProposals!.map((proposal) => (
+                  <li key={proposal.id}>
+                    <strong>{proposal.status}</strong> — {proposal.summary}
+                    {proposal.status === 'approved' && onApplyCodeChange && (
+                      <button type="button" className="secondary" onClick={() => onApplyCodeChange(proposal.id)}>
+                        Apply patches
+                      </button>
+                    )}
+                    {proposal.status === 'applied' && onRollbackCodeChange && (
+                      <button type="button" className="secondary" onClick={() => onRollbackCodeChange(proposal.id)}>
+                        Rollback
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           <h2>Changelog</h2>
           <ul className="log-list">
             {state.changelog.slice(0, 10).map((entry) => (

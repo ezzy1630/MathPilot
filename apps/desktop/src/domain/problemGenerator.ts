@@ -160,10 +160,10 @@ export async function verifyGeneratedProblemAsync(
   spec: TemplateSpec,
 ): Promise<GeneratedProblemRecord['verification']> {
   const variables = spec.variables ?? ['x']
-  let symbolic: 'passed' | 'failed' | 'skipped' = 'skipped'
-  let numeric: 'passed' | 'failed' | 'skipped' = 'skipped'
 
   const symbolicProbe = await checkAnswerSymbolic(spec.expectedAnswer, spec.expectedAnswer, variables)
+  let symbolic: 'passed' | 'failed' | 'skipped'
+  let numeric: 'passed' | 'failed' | 'skipped'
   if (symbolicProbe?.correct) {
     symbolic = 'passed'
     numeric = symbolicProbe.method === 'numeric' ? 'passed' : 'passed'

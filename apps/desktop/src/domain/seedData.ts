@@ -1,4 +1,5 @@
 import { skillsForCourse } from './courseGraph'
+import { loadProductionProblemBank } from './problemBankLoader'
 import { expandDiagnosticProblemsForSkills } from './diagnosticTemplates'
 import { diagnosticMixForSkills } from './diagnosticQuestionMix'
 import type { CourseFocus, Problem, ResourceRecord } from './types'
@@ -228,6 +229,12 @@ export function allProblems(course: CourseFocus): Problem[] {
     if (!ids.has(generated.id)) {
       ids.add(generated.id)
       merged.push(generated)
+    }
+  }
+  for (const bank of loadProductionProblemBank(course)) {
+    if (!ids.has(bank.id)) {
+      ids.add(bank.id)
+      merged.push(bank)
     }
   }
   return merged

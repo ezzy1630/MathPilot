@@ -104,6 +104,10 @@ importers:
   packages/data: {}
 
   packages/learning-engine:
+    dependencies:
+      ts-fsrs:
+        specifier: ^5.4.1
+        version: 5.4.1
     devDependencies:
       vitest:
         specifier: ^4.0.15
@@ -2359,6 +2363,10 @@ packages:
   ts-dedent@2.2.0:
     resolution: {integrity: sha512-q5W7tVM71e2xjHZTlgfTDoPF/SmqKG5hddq9SzR49CH2hayqRKJtQ4mtRlSxKaJlR/+9rEM+mnBHf7I2/BQcpQ==}
     engines: {node: '>=6.10'}
+
+  ts-fsrs@5.4.1:
+    resolution: {integrity: sha512-mOp9+oexJexBTkwjg/jQI1aSUQRLIAvbimeKHLSmVdNJPwObugFNKmZkoggH5d6kZ0uaWLboP1Al1DnXAfIb9w==}
+    engines: {node: '>=20.0.0'}
 
   tsconfig-paths@4.2.0:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
@@ -4657,6 +4665,8 @@ snapshots:
       typescript: 6.0.3
 
   ts-dedent@2.2.0: {}
+
+  ts-fsrs@5.4.1: {}
 
   tsconfig-paths@4.2.0:
     dependencies:

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Activity, Map, Settings, Sparkles } from 'lucide-react'
 import { BrandMark } from '../components/BrandMark'
 import { CommandPalette, type PaletteCommand } from '../components/CommandPalette'
@@ -17,6 +17,8 @@ import { startDiagnostic } from '../domain/diagnosticEngine'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
 import { generateProblemForSkill } from '../domain/problemGenerator'
 import { runMaintenance } from '../domain/maintenance'
+import { batchVerifyProblemBank } from '../domain/problemBank'
+import { applyApprovedCodeChange, rollbackCodeChange } from '../domain/codeSelfImprovement'
 import { checkPrerequisiteGate } from '../domain/sessionEngine'
 import { applyCodexResponse, parseCodexResponse } from '../domain/codexParser'
 import { resetState } from '../domain/storage'
@@ -38,6 +40,7 @@ import { useMathPilotApp } from './useMathPilotApp'
 
 export function AppShell() {
   const app = useMathPilotApp()
+  const [batchVerifyBusy, setBatchVerifyBusy] = useState(false)
   const homeworkDropReady = !app.loading && Boolean(app.appState?.onboarded)
   const analyzeHomeworkForDrop = app.analyzeHomework
   const setViewForDrop = app.setView
@@ -552,6 +555,30 @@ export function AppShell() {
                   },
                 })
               }
+              batchVerifyBusy={batchVerifyBusy}
+              onBatchVerifyBank={() => {
+                setBatchVerifyBusy(true)
+                void batchVerifyProblemBank(appState, 50).then(({ state, result }) => {
+                  update(
+                    pushToast(
+                      state,
+                      `Verified ${result.checked}: ${result.promoted} promoted, ${result.failed} failed`,
+                      'success',
+                    ),
+                  )
+                  setBatchVerifyBusy(false)
+                })
+              }}
+              onApplyCodeChange={(id) => {
+                void applyApprovedCodeChange(appState, id).then((next) =>
+                  update(pushToast(next, 'Code patches applied', 'success')),
+                )
+              }}
+              onRollbackCodeChange={(id) => {
+                void rollbackCodeChange(appState, id).then((next) =>
+                  update(pushToast(next, 'Code change rolled back', 'info')),
+                )
+              }}
             />
           </div>
         )}

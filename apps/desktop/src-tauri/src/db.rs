@@ -449,3 +449,66 @@ pub fn restore_backup(app: AppHandle, backup_file: String) -> Result<String, Str
     let payload = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
     Ok(payload)
 }
+
+#[derive(serde::Deserialize)]
+pub struct CodePatch {
+    pub path: String,
+    pub content: String,
+}
+
+fn desktop_src_root() -> PathBuf {
+    repo_root().join("apps").join("desktop")
+}
+
+#[tauri::command]
+pub fn apply_code_patches(backup_id: String, patches: Vec<CodePatch>) -> Result<Vec<String>, String> {
+    let root = desktop_src_root();
+    let backup_dir = repo_root().join("data").join("code_patch_backups");
+    std::fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
+
+    let mut applied = Vec::new();
+    for patch in patches {
+        let rel = patch.path.trim_start_matches('/');
+        if rel.contains("..") {
+            return Err("invalid patch path".to_string());
+        }
+        let full = root.join(rel);
+        if !full.starts_with(&root) {
+            return Err("patch path must stay inside apps/desktop".to_string());
+        }
+        if full.exists() {
+            let backup_name = format!("{}__{}", backup_id, rel.replace('/', "__"));
+            let backup_path = backup_dir.join(backup_name);
+            let old = std::fs::read_to_string(&full).map_err(|e| e.to_string())?;
+            std::fs::write(&backup_path, old).map_err(|e| e.to_string())?;
+        }
+        if let Some(parent) = full.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        std::fs::write(&full, patch.content).map_err(|e| e.to_string())?;
+        applied.push(rel.to_string());
+    }
+    Ok(applied)
+}
+
+#[tauri::command]
+pub fn rollback_code_patches(backup_id: String) -> Result<Vec<String>, String> {
+    let root = desktop_src_root();
+    let backup_dir = repo_root().join("data").join("code_patch_backups");
+    let prefix = format!("{backup_id}__");
+    let mut restored = Vec::new();
+
+    for entry in std::fs::read_dir(&backup_dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let name = entry.file_name().to_string_lossy().to_string();
+        if !name.starts_with(&prefix) {
+            continue
+        }
+        let rel = name.trim_start_matches(&prefix).replace("__", "/");
+        let full = root.join(&rel);
+        let content = std::fs::read_to_string(entry.path()).map_err(|e| e.to_string())?;
+        std::fs::write(&full, content).map_err(|e| e.to_string())?;
+        restored.push(rel);
+    }
+    Ok(restored)
+}

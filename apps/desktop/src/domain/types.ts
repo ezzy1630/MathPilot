@@ -102,6 +102,17 @@ export interface ReviewItem {
   priority: number
   reason: string
   reviewType?: 'procedural' | 'concept' | 'method_selection' | 'graph_interpretation' | 'explain_in_words' | 'recall' | 'transfer' | 'mistake_correction'
+  /** FSRS-4 card state when using true spaced repetition scheduler. */
+  fsrs?: {
+    stability: number
+    difficulty: number
+    scheduled_days: number
+    reps: number
+    lapses: number
+    state: number
+    last_review?: string
+    due?: string
+  }
 }
 
 export interface MistakePattern {
@@ -320,7 +331,9 @@ export interface MathPilotState {
     summary: string
     files: string[]
     diffPreview: string
+    patches?: Array<{ path: string; content: string }>
     status: 'pending_approval' | 'approved' | 'rejected' | 'applied'
     backupId?: string
+    appliedPaths?: string[]
   }>
 }

@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "vitest": "^4.0.15"
+  },
+  "dependencies": {
+    "ts-fsrs": "^5.4.1"
   }
 }

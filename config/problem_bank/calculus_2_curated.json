@@ -1,0 +1,49 @@
+{
+  "problems": [
+    {
+      "id": "cur-c2-parts-1",
+      "title": "Integration by parts",
+      "prompt": "∫ x e^x dx = ? (include +C)",
+      "skillIds": ["integration_by_parts"],
+      "difficulty": 0.48,
+      "mode": "guided_practice",
+      "answerType": "expression",
+      "expectedAnswer": "x*e^x-e^x+C",
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c2-ratio-1",
+      "title": "Ratio test",
+      "prompt": "For ∑ 2^n / n!, the ratio test limit L = ?",
+      "skillIds": ["ratio_test"],
+      "difficulty": 0.44,
+      "mode": "independent_practice",
+      "answerType": "expression",
+      "expectedAnswer": "0",
+      "hintSequence": ["L = lim |a_{n+1}/a_n|."],
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c2-taylor-1",
+      "title": "Taylor coefficient",
+      "prompt": "For f(x) = e^x at a = 0, coefficient of x^2 in Maclaurin series?",
+      "skillIds": ["taylor_series"],
+      "difficulty": 0.46,
+      "mode": "mixed_review",
+      "answerType": "expression",
+      "expectedAnswer": "1/2",
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "cur-c2-polar-1",
+      "title": "Polar derivative",
+      "prompt": "For r = 2θ, find dr/dθ.",
+      "skillIds": ["polar_coordinates"],
+      "difficulty": 0.4,
+      "mode": "independent_practice",
+      "answerType": "expression",
+      "expectedAnswer": "2",
+      "verificationStatus": "verified"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { attemptToFsrsGrade, scheduleFsrsReview } from './fsrsAdapter'
 import type { AttemptInput, ReviewItem } from './types'
 
 export const BASE_INTERVALS = [1, 3, 7, 14, 30, 60] as const
@@ -116,11 +117,14 @@ export function buildReviewItemUpdate(
   today = todayIso(),
 ): ReviewItem {
   const existingItem = existingQueue.find((item) => item.skillId === skillId)
-  const intervalDays = nextReviewIntervalDays(input, masteryScore, {
+  const grade = attemptToFsrsGrade(input)
+  const fsrsResult = scheduleFsrsReview(existingItem?.fsrs, grade, new Date(`${today}T12:00:00`))
+  const heuristicDays = nextReviewIntervalDays(input, masteryScore, {
     retentionScore,
     existingItem,
     today,
   })
+  const intervalDays = Math.max(1, Math.round((fsrsResult.intervalDays + heuristicDays) / 2))
   const due = addDaysFrom(intervalDays, today)
 
   return {
@@ -129,7 +133,8 @@ export function buildReviewItemUpdate(
     due,
     intervalDays,
     priority: reviewPriority(input, masteryScore, { retentionScore, existingItem, today }),
-    reason: reviewReason(input, existingItem, today),
+    reason: `${reviewReason(input, existingItem, today)} (FSRS interval ${fsrsResult.intervalDays}d)`,
+    fsrs: fsrsResult.card,
   }
 }
 

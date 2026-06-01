@@ -24,6 +24,7 @@ export function graphPresetsForProblem(problem: Problem): GraphPreset[] {
       ]
     case 'riemann_sums':
     case 'definite_integrals':
+    case 'area_net_change':
     case 'ftc':
       return [
         { label: 'Integrand', expression: 'y=2*x' },
@@ -40,9 +41,17 @@ export function graphPresetsForProblem(problem: Problem): GraphPreset[] {
       ]
     case 'taylor_series':
     case 'taylor_polynomials':
+    case 'taylor_error':
       return [
         { label: 'sin(x)', expression: 'y=sin(x)' },
         { label: 'Taylor approx n=3', expression: 'y=x-x^3/6' },
+        { label: 'Taylor n=5', expression: 'y=x-x^3/6+x^5/120' },
+      ]
+    case 'slope_fields':
+    case 'separable_de':
+      return [
+        { label: 'dy/dx = x - y', expression: 'y=x' },
+        { label: 'Slope sample', expression: 'y=-x' },
       ]
     case 'limits_intro':
     case 'continuity':
