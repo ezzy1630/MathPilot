@@ -16,6 +16,9 @@ export default defineConfig({
       '@mathpilot/learning-engine': path.resolve(root, '../../packages/learning-engine/src/index.ts'),
       '@mathpilot/math-engine': path.resolve(root, '../../packages/math-engine/src/index.ts'),
       '@mathpilot/ai-adapter': path.resolve(root, '../../packages/ai-adapter/src/index.ts'),
+      '@mathpilot/content-engine': path.resolve(root, '../../packages/content-engine/src/index.ts'),
+      '@mathpilot/ui': path.resolve(root, '../../packages/ui/src/index.ts'),
+      '@mathpilot/data': path.resolve(root, '../../packages/data/src/index.ts'),
     },
   },
   server: {

@@ -21,6 +21,11 @@ export interface TrustedSource {
 export interface SourcesConfig {
   trustedSources: string[]
   policy: string
+  dynamicSearch?: {
+    provider: string
+    urlTemplate: string
+    trustedChannelHint?: string
+  }
 }
 
 import appSettingsJson from '@config/app_settings.json'

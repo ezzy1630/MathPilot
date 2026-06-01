@@ -9,7 +9,10 @@ import { WhyPanel } from '../components/WhyPanel'
 import { ToastStack } from '../ui'
 import { PythonStatusBanner } from '../components/PythonStatusBanner'
 import { initNativeChrome, isTauriRuntime } from '../lib/nativeChrome'
+import { AttemptHistoryPanel } from '../components/AttemptHistoryPanel'
 import { HomeworkUpload } from '../components/HomeworkUpload'
+import { SyllabusMappingModal } from '../components/SyllabusMappingModal'
+import { clearContinuingDiagnosticPending } from '../domain/continuingDiagnostics'
 import { ProgressReport } from '../components/ProgressReport'
 import { Modal } from '../ui/Modal'
 import { completeActiveVideoPostCheck } from '../domain/activeVideoMode'
@@ -41,6 +44,8 @@ import { useMathPilotApp } from './useMathPilotApp'
 export function AppShell() {
   const app = useMathPilotApp()
   const [batchVerifyBusy, setBatchVerifyBusy] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [syllabusMappingOpen, setSyllabusMappingOpen] = useState(false)
   const homeworkDropReady = !app.loading && Boolean(app.appState?.onboarded)
   const analyzeHomeworkForDrop = app.analyzeHomework
   const setViewForDrop = app.setView
@@ -252,6 +257,14 @@ export function AppShell() {
     { id: 'maint', label: 'Run maintenance', group: 'Maintain', icon: 'maintain', keywords: 'backup', run: () => update(runMaintenance(appState)) },
     { id: 'report', label: 'Progress report', group: 'Maintain', icon: 'report', keywords: 'analytics', run: () => setShowReport(true) },
     {
+      id: 'history',
+      label: 'Attempt history',
+      group: 'Navigate',
+      icon: 'review',
+      keywords: 'attempts mistakes search',
+      run: () => setHistoryOpen(true),
+    },
+    {
       id: 'dev',
       label: 'Developer mode',
       group: 'Maintain',
@@ -347,6 +360,40 @@ export function AppShell() {
         />
       )}
 
+      {historyOpen && (
+        <Modal title="Attempt history" onClose={() => setHistoryOpen(false)}>
+          <AttemptHistoryPanel state={appState} onClose={() => setHistoryOpen(false)} />
+        </Modal>
+      )}
+
+      {syllabusMappingOpen && (appState.syllabusMapping?.length ?? 0) > 0 && (
+        <Modal title="Syllabus alignment" onClose={() => setSyllabusMappingOpen(false)}>
+          <SyllabusMappingModal
+            state={appState}
+            onToggleTopic={(topic, accepted) => {
+              const nextMapping = (appState.syllabusMapping ?? []).map((entry) =>
+                entry.topic === topic ? { ...entry, accepted } : entry,
+              )
+              const acceptedItems = nextMapping
+                .filter((entry) => entry.accepted)
+                .map((entry, index) => ({
+                  week: index + 1,
+                  topic: entry.topic,
+                  skillIds: entry.skillIds,
+                }))
+              update({
+                ...appState,
+                syllabusMapping: nextMapping,
+                syllabus: appState.syllabus
+                  ? { ...appState.syllabus, items: acceptedItems }
+                  : appState.syllabus,
+              })
+            }}
+            onDone={() => setSyllabusMappingOpen(false)}
+          />
+        </Modal>
+      )}
+
       {homeworkUploadOpen && (
         <Modal title="Upload homework" onClose={() => setHomeworkUploadOpen(false)}>
           <HomeworkUpload
@@ -400,6 +447,32 @@ export function AppShell() {
 
       <section id="app-main-content" className="workspace" tabIndex={-1}>
         <PythonStatusBanner />
+        {appState.continuingDiagnosticPending && view === 'today' && (
+          <div className="continuing-diagnostic-banner panel" role="status">
+            <p>
+              MathPilot recommends a short continuing diagnostic based on recent mistakes.
+            </p>
+            <div className="action-row">
+              <button
+                type="button"
+                className="primary"
+                onClick={() => {
+                  update(startDiagnostic(appState).state)
+                  setView('activity')
+                }}
+              >
+                Start continuing diagnostic
+              </button>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => update(clearContinuingDiagnosticPending(appState))}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
         {!appState.onboarded && !appState.diagnostic && (
           <Onboarding
             chooseFocus={chooseFocus}
@@ -442,6 +515,8 @@ export function AppShell() {
             onStartRepair={startRepairFromHomework}
             onOpenReport={() => setShowReport(true)}
             onSaveWorkedExample={saveHomeworkWorkedExample}
+            onOpenHomework={() => setHomeworkUploadOpen(true)}
+            onOpenHistory={() => setHistoryOpen(true)}
           />
         )}
         {renderActivity && (
@@ -484,6 +559,7 @@ export function AppShell() {
             setHomeworkText={setHomeworkText}
             analyzeHomework={analyzeHomework}
             homeworkAnalyzing={homeworkAnalyzing}
+            wrongEscalation={app.wrongEscalation}
           />
         )}
         {view === 'map' && showMain && action && (
@@ -518,6 +594,7 @@ export function AppShell() {
               const parsed = parseCodexResponse(codexPaste)
               if (parsed) update(applyCodexResponse(appState, parsed))
             }}
+            onSyllabusUploaded={() => setSyllabusMappingOpen(true)}
           />
         )}
         {view === 'developer' && appState.developerModeEnabled && (
@@ -582,6 +659,7 @@ export function AppShell() {
                   update(pushToast(next, 'Code change rolled back', 'info')),
                 )
               }}
+              onUpdateState={(next) => update(pushToast(next, 'Developer state updated', 'info'))}
             />
           </div>
         )}

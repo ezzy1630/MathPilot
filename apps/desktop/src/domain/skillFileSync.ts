@@ -1,5 +1,7 @@
 import type { MathPilotState } from './types'
 
+export type SkillFileActor = 'codex' | 'system' | 'user'
+
 /** Append durable mastery notes for skills that changed recently (spec: skill file writes). */
 export async function syncSkillMasteryNotes(state: MathPilotState, skillIds: string[]): Promise<void> {
   if (typeof window === 'undefined' || !(window as Window & { __TAURI__?: unknown }).__TAURI__) return
@@ -15,9 +17,72 @@ export async function syncSkillMasteryNotes(state: MathPilotState, skillIds: str
   if (!lines.length) return
 
   const content = `## Mastery update ${new Date().toISOString().slice(0, 10)}\n${lines.join('\n')}`
+  await appendSkillFileWithBackup('skill_mastery_log.md', content, 'system', 'mastery sync')
+}
+
+/** Versioned backup + append for skill maintenance log (§16.3). */
+export async function appendSkillFileWithBackup(
+  filename: string,
+  content: string,
+  actor: SkillFileActor,
+  reason: string,
+): Promise<void> {
+  if (typeof window === 'undefined' || !(window as Window & { __TAURI__?: unknown }).__TAURI__) return
+
   try {
     const { invoke } = await import('@tauri-apps/api/core')
-    await invoke('append_memory_file', { filename: 'skill_mastery_log.md', content })
+    const versionId = `skill-backup-${Date.now()}`
+    await invoke('backup_skill_file', { filename, backupId: versionId })
+    await invoke('append_memory_file', { filename, content })
+    await invoke('append_skill_changelog', {
+      entry: {
+        at: new Date().toISOString(),
+        actor,
+        filesChanged: [filename],
+        reason,
+        backupId: versionId,
+      },
+    })
+  } catch {
+    // best-effort
+  }
+}
+
+export async function appendSkillMaintenanceLog(message: string, actor: SkillFileActor = 'system'): Promise<void> {
+  const content = `- ${new Date().toISOString()} [${actor}]: ${message}`
+  if (typeof window === 'undefined' || !(window as Window & { __TAURI__?: unknown }).__TAURI__) return
+  try {
+    const { invoke } = await import('@tauri-apps/api/core')
+    await invoke('backup_skill_file', { filename: 'improve_skill_file.md', backupId: `maint-${Date.now()}` })
+    await invoke('append_skill_maintenance_log', { content })
+    await invoke('append_skill_changelog', {
+      entry: {
+        at: new Date().toISOString(),
+        actor,
+        filesChanged: ['skills/maintenance/improve_skill_file.md'],
+        reason: 'maintenance skill_improvement',
+        backupId: `maint-${Date.now()}`,
+      },
+    })
+  } catch {
+    // best-effort
+  }
+}
+
+export async function writeSkillPatchPreview(skillId: string, recommendation: string): Promise<void> {
+  if (typeof window === 'undefined' || !(window as Window & { __TAURI__?: unknown }).__TAURI__) return
+  try {
+    const { invoke } = await import('@tauri-apps/api/core')
+    const patchId = `${skillId}-${Date.now()}`
+    const yaml = [
+      `# Patch preview for ${skillId}`,
+      `created_at: ${new Date().toISOString()}`,
+      `recommendation: ${JSON.stringify(recommendation)}`,
+      'suggested_additions:',
+      '  - pitfalls section citing repeated mistakes',
+      '  - setup checklist before execution',
+    ].join('\n')
+    await invoke('write_skill_patch', { patchId, content: yaml })
   } catch {
     // best-effort
   }

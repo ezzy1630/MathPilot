@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { resolveAnswerDisagreement, resolveWithCodexInspect } from './mathDisagreement'
+import { resolveAnswerDisagreement, inspectDisagreementWithCodex } from './mathDisagreement'
+import { gradeAnswerWithDisagreement } from './mathEngine'
 import { createInitialState } from './learningEngine'
 
 describe('resolveAnswerDisagreement', () => {
@@ -25,7 +26,7 @@ describe('resolveAnswerDisagreement', () => {
 
   it('falls back when Codex inspect is unavailable', async () => {
     const state = createInitialState('Calculus 1')
-    const { resolution } = await resolveWithCodexInspect(
+    const { resolution } = await inspectDisagreementWithCodex(
       state,
       { correct: true, feedback: 'Correct.', method: 'symbolic', mistakeTags: [], confidence: 1, normalizedExpected: '1', normalizedActual: '1' },
       false,
@@ -33,5 +34,17 @@ describe('resolveAnswerDisagreement', () => {
     )
     expect(resolution.correct).toBe(true)
     expect(resolution.usedAiOverride).toBe(false)
+  })
+
+  it('gradeAnswerWithDisagreement uses inspect path for symbolic disagreement', async () => {
+    const state = createInitialState('Calculus 1')
+    const graded = await gradeAnswerWithDisagreement(
+      state,
+      { expected: '2*x', actual: '2*x', variables: ['x'] },
+      false,
+      'Codex says wrong',
+    )
+    expect(graded.result.correct).toBe(true)
+    expect(graded.result.method).toBe('symbolic')
   })
 })

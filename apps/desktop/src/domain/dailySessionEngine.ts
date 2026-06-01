@@ -1,5 +1,5 @@
 import { maybeAutoMaintenance } from './maintenance'
-import { paceAdjustments, planSession, type SessionPace } from './sessionEngine'
+import { paceAdjustments, planSession, resolvePaceAdjustments, type SessionPace } from './sessionEngine'
 import type { ActivityKind, MathPilotState } from './types'
 
 export interface DailySessionState {
@@ -12,25 +12,28 @@ export interface DailySessionState {
   difficultyBias: number
   reviewIntensity: number
   videoPhaseWeight: number
+  explanationLevel: 'minimal' | 'normal' | 'high'
 }
 
 export function startDailySession(state: MathPilotState, pace: SessionPace = state.sessionPace ?? 'normal'): MathPilotState {
-  const plan = planSession(pace)
-  const adjustments = paceAdjustments(pace)
+  const resolvedPace = pace === 'custom' ? 'custom' : pace
+  const plan = planSession(resolvedPace, state)
+  const adjustments = resolvePaceAdjustments(state, resolvedPace)
   const itemsTargetInPhase = phaseItemTarget(plan.phases[0], plan, adjustments)
   return {
     ...state,
-    sessionPace: pace,
+    sessionPace: resolvedPace,
     dailySession: {
-      pace,
+      pace: resolvedPace,
       phases: plan.phases,
       phaseIndex: 0,
       itemsCompletedInPhase: 0,
-      itemsTargetInPhase: itemsTargetInPhase,
+      itemsTargetInPhase,
       startedAt: new Date().toISOString(),
       difficultyBias: adjustments.difficultyBias,
       reviewIntensity: adjustments.reviewIntensity,
       videoPhaseWeight: adjustments.videoPhaseWeight,
+      explanationLevel: plan.explanationLevel,
     },
   }
 }
@@ -44,11 +47,20 @@ export function phaseItemTarget(
   plan: ReturnType<typeof planSession>,
   adjustments = paceAdjustments('normal'),
 ): number {
-  const base = Math.max(1, Math.ceil(plan.problemBudget / plan.phases.length))
-  if (phase === 'resource_watch') {
+  const base = Math.max(1, Math.ceil(plan.problemBudget / Math.max(1, plan.phases.length)))
+  if (phase === 'resource_watch' || phase === 'concept_input') {
     return adjustments.videoPhaseWeight >= 1.2 ? 1 : 1
   }
-  if (phase === 'mixed_review') {
+  if (phase === 'worked_example') {
+    return 1
+  }
+  if (phase === 'formula_recall') {
+    return Math.max(1, Math.round(base * 0.5 * adjustments.reviewIntensity))
+  }
+  if (phase === 'syllabus_task') {
+    return Math.max(1, Math.round(base * 0.85))
+  }
+  if (phase === 'mixed_review' || phase === 'retrieval_warmup') {
     return Math.max(1, Math.round(base * adjustments.reviewIntensity))
   }
   if (phase === 'quick_repair') {
@@ -61,7 +73,11 @@ export function phaseItemTarget(
 }
 
 export function sessionDifficultyBias(state: MathPilotState): number {
-  return state.dailySession?.difficultyBias ?? paceAdjustments(state.sessionPace ?? 'normal').difficultyBias
+  return state.dailySession?.difficultyBias ?? resolvePaceAdjustments(state, state.sessionPace ?? 'normal').difficultyBias
+}
+
+export function sessionReviewIntensity(state: MathPilotState): number {
+  return state.dailySession?.reviewIntensity ?? resolvePaceAdjustments(state, state.sessionPace ?? 'normal').reviewIntensity
 }
 
 export function advanceDailySession(state: MathPilotState): MathPilotState {
@@ -79,7 +95,7 @@ export function advanceDailySession(state: MathPilotState): MathPilotState {
   const nextIndex = session.phaseIndex + 1
   if (nextIndex >= session.phases.length) {
     const sessionsSinceMaintenance = (state.sessionsSinceMaintenance ?? 0) + 1
-    const completed = {
+    const completedState = {
       ...state,
       dailySession: undefined,
       sessionsSinceMaintenance,
@@ -88,11 +104,11 @@ export function advanceDailySession(state: MathPilotState): MathPilotState {
         ...state.changelog,
       ],
     }
-    return maybeAutoMaintenance(completed)
+    return maybeAutoMaintenance(completedState)
   }
 
-  const plan = planSession(session.pace)
-  const adjustments = paceAdjustments(session.pace)
+  const plan = planSession(session.pace, state)
+  const adjustments = resolvePaceAdjustments(state, session.pace)
   const nextPhase = session.phases[nextIndex]
 
   return {
@@ -108,19 +124,29 @@ export function advanceDailySession(state: MathPilotState): MathPilotState {
 
 export function sessionPhaseLabel(kind: ActivityKind): string {
   const labels: Partial<Record<ActivityKind, string>> = {
-    mixed_review: 'Retrieval warm-up / mixed review',
+    retrieval_warmup: 'Retrieval warm-up',
+    concept_input: 'Concept input',
+    worked_example: 'Worked example',
+    mixed_review: 'Mixed review',
     resource_watch: 'Concept input',
     guided_practice: 'Guided practice',
     independent_practice: 'Independent practice',
     quick_repair: 'Quick repair',
     diagnostic: 'Diagnostic',
     homework_review: 'Homework review',
+    formula_recall: 'Formula recall',
+    syllabus_task: 'Syllabus task',
   }
   return labels[kind] ?? kind.replaceAll('_', ' ')
 }
 
 export function phaseContentMode(phase: ActivityKind): ActivityKind {
   const aliases: Partial<Record<ActivityKind, ActivityKind>> = {
+    retrieval_warmup: 'mixed_review',
+    concept_input: 'resource_watch',
+    worked_example: 'guided_practice',
+    formula_recall: 'formula_recall',
+    syllabus_task: 'guided_practice',
     mixed_review: 'mixed_review',
     resource_watch: 'resource_watch',
     guided_practice: 'guided_practice',

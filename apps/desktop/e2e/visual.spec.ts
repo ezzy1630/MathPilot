@@ -41,7 +41,8 @@ test.describe('visual QA surfaces', () => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
     const recommendation = page.getByRole('region', { name: 'Recommended next move' })
-    await expect(recommendation.getByText('Recommended next move')).toBeVisible()
+    await expect(recommendation.getByText('Continue', { exact: true })).toBeVisible()
+    await expect(page.getByTestId('today-continue')).toBeVisible()
     await attachViewport(page, 'today-coach-desk.png')
 
     await recommendation.getByRole('button', { name: /Start session|Start repair|Start review|Resume diagnostic/i }).click()

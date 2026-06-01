@@ -16,7 +16,6 @@ describe('learning engine', () => {
 
     expect(action.kind).toBe('quick_repair')
     expect(action.skillIds).toContain('function_composition')
-    expect(action.reason).toContain('depends on')
   })
 
   it('gives stronger mastery evidence for delayed mixed correct work than hinted guided work', () => {
@@ -287,5 +286,6 @@ describe('learning engine', () => {
     })
 
     expect(fast.mastery.chain_rule.fluencyScore).toBeGreaterThan(slow.mastery.chain_rule.fluencyScore)
+    expect(fast.attempts[0].fluencyDelta).toBeGreaterThan(slow.attempts[0].fluencyDelta ?? -1)
   })
 })

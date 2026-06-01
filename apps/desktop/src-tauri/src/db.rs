@@ -128,12 +128,13 @@ pub fn db_sync_attempt(
     delayed: bool,
     confidence: Option<f64>,
     created_at: String,
+    resource_id: Option<String>,
 ) -> Result<(), String> {
     let conn = state.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO attempts (id, problem_id, skill_ids, answer_raw, correct, mode, hint_count, seconds, mixed, delayed, confidence, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
-         ON CONFLICT(id) DO UPDATE SET answer_raw = excluded.answer_raw, correct = excluded.correct",
+        "INSERT INTO attempts (id, problem_id, skill_ids, answer_raw, correct, mode, hint_count, seconds, mixed, delayed, confidence, created_at, resource_id)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
+         ON CONFLICT(id) DO UPDATE SET answer_raw = excluded.answer_raw, correct = excluded.correct, resource_id = excluded.resource_id",
         params![
             id,
             problem_id,
@@ -147,6 +148,7 @@ pub fn db_sync_attempt(
             if delayed { 1 } else { 0 },
             confidence,
             created_at,
+            resource_id,
         ],
     )
     .map_err(|e| e.to_string())?;
@@ -456,44 +458,113 @@ pub struct CodePatch {
     pub content: String,
 }
 
-fn desktop_src_root() -> PathBuf {
-    repo_root().join("apps").join("desktop")
+fn repo_relative_path(rel: &str) -> Result<PathBuf, String> {
+    let trimmed = rel.trim_start_matches('/');
+    if trimmed.contains("..") {
+        return Err("invalid path".to_string());
+    }
+    let full = repo_root().join(trimmed);
+    if !full.starts_with(&repo_root()) {
+        return Err("path must stay inside repo root".to_string());
+    }
+    Ok(full)
+}
+
+#[tauri::command]
+pub fn backup_skill_file(filename: String, backup_id: String) -> Result<(), String> {
+    let rel = format!("skills/maintenance/{}", filename.trim_start_matches("skills/maintenance/"));
+    let source = repo_relative_path(&rel)?;
+    if !source.exists() {
+        return Ok(());
+    }
+    let backup_dir = repo_root().join("data").join("skill_file_backups");
+    std::fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
+    let backup_path = backup_dir.join(format!("{}__{}", backup_id, filename.replace('/', "__")));
+    std::fs::copy(&source, backup_path).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SkillChangelogEntry {
+    pub at: String,
+    pub actor: String,
+    pub files_changed: Vec<String>,
+    pub reason: String,
+    pub backup_id: String,
+}
+
+#[tauri::command]
+pub fn append_skill_changelog(entry: SkillChangelogEntry) -> Result<(), String> {
+    let path = repo_root().join("data").join("skill_changelog.jsonl");
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let line = serde_json::to_string(&entry).map_err(|e| e.to_string())?;
+    use std::io::Write;
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .map_err(|e| e.to_string())?;
+    file.write_all(format!("{line}\n").as_bytes())
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn append_skill_maintenance_log(content: String) -> Result<(), String> {
+    let path = repo_relative_path("skills/maintenance/improve_skill_file.md")?;
+    use std::io::Write;
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .map_err(|e| e.to_string())?;
+    if path.metadata().map(|m| m.len()).unwrap_or(0) > 0 {
+        file.write_all(b"\n").map_err(|e| e.to_string())?;
+    }
+    file.write_all(content.as_bytes())
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn write_skill_patch(patch_id: String, content: String) -> Result<String, String> {
+    let dir = repo_root().join("data").join("skills_patches");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let safe = safe_runtime_stem(&patch_id)?;
+    let path = dir.join(format!("{safe}.md"));
+    std::fs::write(&path, content).map_err(|e| e.to_string())?;
+    Ok(path.to_string_lossy().to_string())
 }
 
 #[tauri::command]
 pub fn apply_code_patches(backup_id: String, patches: Vec<CodePatch>) -> Result<Vec<String>, String> {
-    let root = desktop_src_root();
     let backup_dir = repo_root().join("data").join("code_patch_backups");
     std::fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
 
     let mut applied = Vec::new();
     for patch in patches {
-        let rel = patch.path.trim_start_matches('/');
-        if rel.contains("..") {
-            return Err("invalid patch path".to_string());
-        }
-        let full = root.join(rel);
-        if !full.starts_with(&root) {
-            return Err("patch path must stay inside apps/desktop".to_string());
+        let full = repo_relative_path(&patch.path)?;
+        if let Some(parent) = full.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
         if full.exists() {
+            let rel = patch.path.trim_start_matches('/');
             let backup_name = format!("{}__{}", backup_id, rel.replace('/', "__"));
             let backup_path = backup_dir.join(backup_name);
             let old = std::fs::read_to_string(&full).map_err(|e| e.to_string())?;
             std::fs::write(&backup_path, old).map_err(|e| e.to_string())?;
         }
-        if let Some(parent) = full.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-        }
         std::fs::write(&full, patch.content).map_err(|e| e.to_string())?;
-        applied.push(rel.to_string());
+        applied.push(patch.path.trim_start_matches('/').to_string());
     }
     Ok(applied)
 }
 
 #[tauri::command]
 pub fn rollback_code_patches(backup_id: String) -> Result<Vec<String>, String> {
-    let root = desktop_src_root();
     let backup_dir = repo_root().join("data").join("code_patch_backups");
     let prefix = format!("{backup_id}__");
     let mut restored = Vec::new();
@@ -505,7 +576,7 @@ pub fn rollback_code_patches(backup_id: String) -> Result<Vec<String>, String> {
             continue
         }
         let rel = name.trim_start_matches(&prefix).replace("__", "/");
-        let full = root.join(&rel);
+        let full = repo_relative_path(&rel)?;
         let content = std::fs::read_to_string(entry.path()).map_err(|e| e.to_string())?;
         std::fs::write(&full, content).map_err(|e| e.to_string())?;
         restored.push(rel);

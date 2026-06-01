@@ -8,5 +8,10 @@
     "MIT OpenCourseWare",
     "PatrickJMT"
   ],
-  "policy": "Prefer curated trusted links, learn effectiveness from performance, and use dynamic search only when needed."
+  "policy": "Prefer curated trusted links, learn effectiveness from performance, and use dynamic search only when needed.",
+  "dynamicSearch": {
+    "provider": "youtube",
+    "urlTemplate": "https://www.youtube.com/results?search_query={query}",
+    "trustedChannelHint": "Khan Academy OR Organic Chemistry Tutor OR Professor Leonard"
+  }
 }

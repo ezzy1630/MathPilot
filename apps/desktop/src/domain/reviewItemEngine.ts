@@ -32,6 +32,34 @@ const GRAPH_PROMPTS: Record<string, { prompt: string; expected: string; choices:
   },
 }
 
+const CONCEPT_MC: Record<string, { prompt: string; expected: string; choices: string[] }> = {
+  limits_intro: {
+    prompt: 'Which statement best describes lim(x→a) f(x)?',
+    expected: 'value f(x) approaches as x nears a',
+    choices: [
+      'value f(x) approaches as x nears a',
+      'always equals f(a)',
+      'largest value of f on an interval',
+      'derivative at a',
+    ],
+  },
+  continuity: {
+    prompt: 'A function is continuous at x=a when…',
+    expected: 'limit equals f(a)',
+    choices: ['limit equals f(a)', 'f(a)=0', "f'(a) exists", 'f is increasing at a'],
+  },
+  derivative_definition: {
+    prompt: 'The derivative at x measures…',
+    expected: 'instantaneous rate of change',
+    choices: ['instantaneous rate of change', 'average value on [a,b]', 'area under curve', 'limit of a series'],
+  },
+  ftc: {
+    prompt: 'FTC Part 2 connects antiderivatives to…',
+    expected: 'definite integrals',
+    choices: ['definite integrals', 'limits only', 'series convergence', 'implicit differentiation'],
+  },
+}
+
 const EXPLAIN_PROMPTS: Record<string, { prompt: string; expected: string }> = {
   chain_rule: {
     prompt: 'In one sentence, why do we multiply by the inner derivative in the chain rule?',
@@ -77,10 +105,20 @@ export function inferReviewType(state: MathPilotState, skillId: string): ReviewI
   if (FORMULA_CATALOG.some((f) => f.skillId === skillId)) return 'recall'
   if (EXPLAIN_PROMPTS[skillId]) return 'explain_in_words'
   if (METHOD_SELECTION[skillId]) return 'method_selection'
+  if (CONCEPT_MC[skillId]) return 'concept'
   const skill = state.skills[skillId]
   if (skill?.type === 'conceptual') return 'concept'
   if (skill?.area.includes('Applications')) return 'transfer'
   return 'procedural'
+}
+
+function transferSkillInSameArea(state: MathPilotState, skillId: string): string {
+  const skill = state.skills[skillId]
+  if (!skill) return skillId
+  const alternate = Object.values(state.skills).find(
+    (s) => s.area === skill.area && s.id !== skillId && s.type !== skill.type,
+  )
+  return alternate?.id ?? skillId
 }
 
 export function buildReviewProblem(
@@ -184,6 +222,45 @@ export function buildReviewProblem(
       verificationStatus: 'verified',
     }
     return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
+  }
+
+  if (reviewType === 'concept' && CONCEPT_MC[skillId]) {
+    const spec = CONCEPT_MC[skillId]
+    const id = `review-concept-${skillId}-${seed}`
+    const problem: Problem = {
+      id,
+      title: 'Concept check',
+      prompt: spec.prompt,
+      skillIds: [skillId],
+      difficulty: 0.38,
+      mode: 'mixed_review',
+      answerType: 'choice',
+      expectedAnswer: spec.expected,
+      choices: spec.choices,
+      hintSequence: ['Eliminate choices that confuse limits, averages, and rates.'],
+      source: 'review_concept',
+      verificationStatus: 'verified',
+    }
+    return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
+  }
+
+  if (reviewType === 'transfer') {
+    const transferSkillId = transferSkillInSameArea(state, skillId)
+    const generated = generateProblemForSkill(state, transferSkillId, seed)
+    if (!generated) return { state }
+    const id = `review-transfer-${skillId}-${seed}`
+    const problem: Problem = {
+      ...generated.record.problem,
+      id,
+      title: `Transfer: ${state.skills[transferSkillId]?.name ?? transferSkillId}`,
+      skillIds: [skillId, transferSkillId],
+      mode: 'mixed_review',
+      source: 'review_transfer',
+    }
+    return {
+      state: { ...generated.state, problems: { ...generated.state.problems, [id]: problem } },
+      problem,
+    }
   }
 
   const generated = generateProblemForSkill(state, skillId, seed)

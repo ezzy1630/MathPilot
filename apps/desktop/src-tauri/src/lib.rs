@@ -39,6 +39,10 @@ pub fn run() {
             db::restore_backup,
             db::apply_code_patches,
             db::rollback_code_patches,
+            db::backup_skill_file,
+            db::append_skill_changelog,
+            db::append_skill_maintenance_log,
+            db::write_skill_patch,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run MathPilot");

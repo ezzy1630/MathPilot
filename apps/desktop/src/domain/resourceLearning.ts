@@ -24,7 +24,13 @@ export function updateResourceEffectiveness(
   const resource = state.resources[resourceId]
   if (!resource) return state
 
-  const delta = input.correct && input.hintCount === 0 ? 0.03 : input.correct ? 0.01 : -0.04
+  const afterResource = Boolean(input.resourceId === resourceId || state.activeVideo?.resourceId === resourceId)
+  const delta =
+    input.correct && input.hintCount === 0
+      ? 0.03 + (afterResource ? 0.01 : 0)
+      : input.correct
+        ? 0.01
+        : -0.04
   const score = Math.min(0.95, Math.max(0.15, resource.effectivenessScore + delta))
 
   return {
@@ -36,11 +42,27 @@ export function updateResourceEffectiveness(
         effectivenessScore: score,
         notes:
           score >= resource.effectivenessScore
-            ? 'Recent sessions improved outcomes.'
+            ? afterResource
+              ? 'Post-resource practice improved outcomes.'
+              : 'Recent sessions improved outcomes.'
             : 'Recent sessions did not improve outcomes — try a different source.',
       },
     },
+    resourceEvents: afterResource
+      ? appendResourceEvent(state, resourceId, input.correct ? 'post_check' : 'watched', input.correct)
+      : state.resourceEvents,
   }
+}
+
+/** When an attempt follows a resource watch, link resourceId and update effectiveness. */
+export function applyPostResourceAttempt(
+  state: MathPilotState,
+  input: AttemptInput,
+): MathPilotState {
+  const resourceId = input.resourceId ?? state.activeVideo?.resourceId
+  if (!resourceId) return state
+  const withLink = { ...input, resourceId }
+  return updateResourceEffectiveness(state, resourceId, withLink)
 }
 
 export function topResourcesForSkill(state: MathPilotState, skillId: string, limit = 3) {
@@ -105,6 +127,7 @@ export function recordResourceUsage(state: MathPilotState, resourceId: string, c
     seconds: 300,
     mixed: false,
     delayed: false,
+    resourceId,
   })
   return {
     ...next,

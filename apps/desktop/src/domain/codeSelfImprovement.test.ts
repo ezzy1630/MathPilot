@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { approveCodeChange, proposeCodeChange, rejectCodeChange } from './codeSelfImprovement'
+import { approveCodeChange, proposeCodeChange, rejectCodeChange, validateCodePatchPath } from './codeSelfImprovement'
 import { createInitialState } from './learningEngine'
 
 describe('codeSelfImprovement', () => {
@@ -7,6 +7,12 @@ describe('codeSelfImprovement', () => {
     const state = createInitialState('Calculus 1')
     const next = proposeCodeChange(state, { summary: 'fix', files: ['a.ts'], diffPreview: 'diff' })
     expect(next.codeChangeProposals).toBeUndefined()
+  })
+
+  it('rejects paths outside repo root', () => {
+    expect(validateCodePatchPath('/etc/passwd').ok).toBe(false)
+    expect(validateCodePatchPath('apps/desktop/src/main.tsx').ok).toBe(true)
+    expect(validateCodePatchPath('../secrets.env').ok).toBe(false)
   })
 
   it('tracks approval workflow', () => {

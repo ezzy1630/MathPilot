@@ -63,6 +63,16 @@ export interface CodexInspectPayload {
  * Ask Codex to inspect when symbolic and prior Codex judgment disagree.
  * Falls back to deterministic policy when CLI is unavailable.
  */
+export async function inspectDisagreementWithCodex(
+  state: MathPilotState,
+  symbolic: CheckAnswerResult,
+  codexSaysCorrect: boolean,
+  codexFeedback: string | undefined,
+  context: { problemSummary?: string; userAttempt?: string } = {},
+): Promise<{ resolution: DisagreementResolution; state: MathPilotState }> {
+  return resolveWithCodexInspect(state, symbolic, codexSaysCorrect, codexFeedback, context)
+}
+
 export async function resolveWithCodexInspect(
   state: MathPilotState,
   symbolic: CheckAnswerResult,

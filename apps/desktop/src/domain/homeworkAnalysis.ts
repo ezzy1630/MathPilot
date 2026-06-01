@@ -25,6 +25,9 @@ interface ParsedHomework {
   skillsAffected: string[]
   feedbackSummary: string
   stepFeedback?: HomeworkStepFeedback[]
+  steps?: HomeworkAnalysis['steps']
+  wrongStepIndex?: number
+  detectedProblems?: HomeworkAnalysis['detectedProblems']
 }
 
 function keywordFallback(text: string): ParsedHomework {
@@ -74,19 +77,74 @@ function keywordFallback(text: string): ParsedHomework {
   }
 }
 
-function parseStepFeedback(raw: unknown): HomeworkStepFeedback[] | undefined {
+function parseSteps(raw: unknown): HomeworkAnalysis['steps'] | undefined {
   if (!Array.isArray(raw)) return undefined
   return raw
-    .map((item) => {
+    .map((item, index) => {
       if (!item || typeof item !== 'object') return null
       const row = item as Record<string, unknown>
       return {
-        step: String(row.step ?? 'Step'),
+        label: String(row.label ?? row.step ?? `Step ${index + 1}`),
+        work: String(row.work ?? row.note ?? ''),
         correct: Boolean(row.correct),
-        note: String(row.note ?? ''),
+        note: row.note ? String(row.note) : undefined,
       }
     })
-    .filter(Boolean) as HomeworkStepFeedback[]
+    .filter(Boolean) as NonNullable<HomeworkAnalysis['steps']>
+}
+
+function parseDetectedProblems(raw: unknown): HomeworkAnalysis['detectedProblems'] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  return raw
+    .map((item, index) => {
+      if (!item || typeof item !== 'object') return null
+      const row = item as Record<string, unknown>
+      const correctness = String(row.correctness ?? 'unclear')
+      const valid = ['correct', 'incorrect', 'unclear'].includes(correctness)
+        ? (correctness as HomeworkAnalysis['correctness'])
+        : 'unclear'
+      return {
+        label: String(row.label ?? `Problem ${index + 1}`),
+        problemText: String(row.problem_text ?? row.problemText ?? ''),
+        correctness: valid,
+        mistakeTags: Array.isArray(row.mistake_tags) ? (row.mistake_tags as string[]) : [],
+      }
+    })
+    .filter((p) => p && p.problemText.length > 0) as HomeworkAnalysis['detectedProblems']
+}
+
+function parseStepFeedback(raw: unknown, steps?: HomeworkAnalysis['steps'], wrongStepIndex?: number): HomeworkStepFeedback[] | undefined {
+  if (Array.isArray(raw)) {
+    return raw
+      .map((item, index) => {
+        if (!item || typeof item !== 'object') return null
+        const row = item as Record<string, unknown>
+        return {
+          step: String(row.step ?? `Step ${index + 1}`),
+          correct: Boolean(row.correct),
+          note: String(row.note ?? ''),
+          index: typeof row.index === 'number' ? row.index : index,
+        }
+      })
+      .filter(Boolean) as HomeworkStepFeedback[]
+  }
+  if (steps?.length) {
+    return steps.map((step, index) => ({
+      step: step.label,
+      correct: step.correct,
+      note: step.note ?? step.work,
+      index,
+    }))
+  }
+  if (typeof wrongStepIndex === 'number' && steps?.length) {
+    return steps.map((step, index) => ({
+      step: step.label,
+      correct: index !== wrongStepIndex,
+      note: index === wrongStepIndex ? 'First incorrect step identified.' : step.note ?? step.work,
+      index,
+    }))
+  }
+  return undefined
 }
 
 async function analyzeWithCodex(
@@ -106,8 +164,10 @@ async function analyzeWithCodex(
       input.imageFileName ? `Attached image: ${input.imageFileName}` : '',
       input.imageDataUrl ? 'Image data provided (base64).' : '',
       'Extract problem statement, student work summary, topic, correctness, mistake_tags, skills_affected, feedback_summary.',
-      'Also return step_feedback: array of { step, correct, note } for setup/method/execution.',
-      'Return JSON only: { problem_text, extracted_work_summary, detected_topic, correctness, mistake_tags, skills_affected, feedback_summary, step_feedback }',
+      'Also return step_feedback: array of { step, correct, note, index } OR steps: array of { label, work, correct, note }.',
+      'Return wrong_step_index (0-based) when a specific step is wrong.',
+      'For multi-problem sheets return problems: array of { label, problem_text, correctness, mistake_tags }.',
+      'Return JSON only: { problem_text, extracted_work_summary, detected_topic, correctness, mistake_tags, skills_affected, feedback_summary, step_feedback, steps, wrong_step_index, problems }',
     ].join('\n'),
     memory,
     skillBodies,
@@ -125,6 +185,17 @@ async function analyzeWithCodex(
     ? (correctness as HomeworkAnalysis['correctness'])
     : 'unclear'
 
+  const steps = parseSteps(parsed.steps)
+  const wrongStepIndex =
+    typeof parsed.wrong_step_index === 'number'
+      ? parsed.wrong_step_index
+      : typeof parsed.wrongStepIndex === 'number'
+        ? parsed.wrongStepIndex
+        : undefined
+  const detectedProblems =
+    parseDetectedProblems(parsed.problems) ??
+    parseDetectedProblems(parsed.detected_problems)
+
   return {
     problemText: String(parsed.problem_text ?? parsed.feedback_to_user ?? input.problemText ?? 'Homework upload'),
     extractedWorkSummary: String(
@@ -135,7 +206,10 @@ async function analyzeWithCodex(
     mistakeTags: Array.isArray(parsed.mistake_tags) ? (parsed.mistake_tags as string[]) : [],
     skillsAffected: Array.isArray(parsed.skills_affected) ? (parsed.skills_affected as string[]) : ['chain_rule'],
     feedbackSummary: String(parsed.feedback_summary ?? parsed.feedback_to_user ?? 'Review your setup and method.'),
-    stepFeedback: parseStepFeedback(parsed.step_feedback),
+    steps,
+    wrongStepIndex,
+    detectedProblems,
+    stepFeedback: parseStepFeedback(parsed.step_feedback, steps, wrongStepIndex),
   }
 }
 
@@ -217,11 +291,9 @@ export async function analyzeHomeworkDeep(
       ? chooseRepairRecommendation(state, skillsAffected, parsed.mistakeTags)
       : undefined
 
-  const detectedProblems = detectedProblemsFromText(
-    problemText || parsed.problemText,
-    parsed.correctness,
-    parsed.mistakeTags,
-  )
+  const detectedProblems =
+    parsed.detectedProblems ??
+    detectedProblemsFromText(problemText || parsed.problemText, parsed.correctness, parsed.mistakeTags)
 
   const analysis: HomeworkAnalysis = {
     id: `homework-${Date.now()}`,
@@ -237,6 +309,8 @@ export async function analyzeHomeworkDeep(
     feedbackSummary: parsed.feedbackSummary,
     rawImageSaved,
     stepFeedback,
+    steps: parsed.steps,
+    wrongStepIndex: parsed.wrongStepIndex,
     repairRecommendation,
     detectedProblems,
   }
@@ -247,6 +321,9 @@ export async function analyzeHomeworkDeep(
     skillsAffected,
     extractedWorkSummary: parsed.extractedWorkSummary,
     stepFeedback,
+    steps: parsed.steps,
+    wrongStepIndex: parsed.wrongStepIndex,
+    detectedProblems,
   })
 
   next = {

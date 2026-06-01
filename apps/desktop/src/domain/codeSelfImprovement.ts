@@ -17,12 +17,49 @@ export interface CodeChangeProposal {
   appliedPaths?: string[]
 }
 
+const REPO_ROOT_PREFIXES = ['apps/', 'packages/', 'skills/', 'config/', 'scripts/', 'data/']
+
+/** Paths for code self-improvement must stay under the MathPilot repo root. */
+export function validateCodePatchPath(path: string): { ok: boolean; reason?: string } {
+  const rel = path.trim().replace(/^\/+/, '')
+  if (!rel || rel.includes('..') || rel.startsWith('.env') || rel.includes('/.env')) {
+    return { ok: false, reason: 'invalid or sensitive path' }
+  }
+  if (rel.startsWith('node_modules/') || rel.includes('/node_modules/')) {
+    return { ok: false, reason: 'node_modules is not patchable' }
+  }
+  const allowed = REPO_ROOT_PREFIXES.some((prefix) => rel.startsWith(prefix))
+  if (!allowed) {
+    return { ok: false, reason: 'path must be under repo root (apps/, packages/, skills/, config/, scripts/, data/)' }
+  }
+  return { ok: true }
+}
+
+export function validateCodePatches(patches: CodePatch[]): { ok: boolean; invalidPaths: string[] } {
+  const invalidPaths = patches
+    .map((patch) => patch.path)
+    .filter((path) => !validateCodePatchPath(path).ok)
+  return { ok: invalidPaths.length === 0, invalidPaths }
+}
+
 /** Spec §19: code self-improvement requires developer mode, backup, and explicit approval. */
 export function proposeCodeChange(
   state: MathPilotState,
   input: { summary: string; files: string[]; diffPreview: string; patches?: CodePatch[] },
 ): MathPilotState {
   if (!state.developerModeEnabled) return state
+  if (input.patches?.length) {
+    const validation = validateCodePatches(input.patches)
+    if (!validation.ok) {
+      return {
+        ...state,
+        changelog: [
+          `${new Date().toISOString()}: Code change rejected — invalid paths: ${validation.invalidPaths.join(', ')}.`,
+          ...state.changelog,
+        ],
+      }
+    }
+  }
   const proposal: CodeChangeProposal = {
     id: `code-change-${Date.now()}`,
     createdAt: new Date().toISOString(),
@@ -79,6 +116,9 @@ export async function applyApprovedCodeChange(
   if (idx < 0) return state
   const proposal = proposals[idx]
   if (proposal.status !== 'approved' || !proposal.patches?.length) return state
+
+  const validation = validateCodePatches(proposal.patches)
+  if (!validation.ok) return state
 
   const backupId = proposal.backupId ?? `backup-${Date.now()}`
   let appliedPaths: string[] = []

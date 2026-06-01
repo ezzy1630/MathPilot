@@ -38,7 +38,7 @@ select:focus-visible {
   top: 0;
   z-index: 1000;
   padding: 0.5rem 1rem;
-  background: var(--mp-surface-elevated);
+  background: var(--mp-bg-elevated);
   color: var(--mp-text);
   border-radius: var(--mp-radius-sm);
   text-decoration: none;
@@ -3207,4 +3207,131 @@ textarea {
   .teaching-inspector {
     order: 2;
   }
+}
+
+.today-primary-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.today-narrative {
+  font-size: var(--mp-text-lg);
+  color: var(--mp-text);
+}
+
+.today-adjust-panel {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--mp-border);
+}
+
+.prominent-homework {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.attempt-history-list {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.attempt-history-list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--mp-border);
+}
+
+.attempt-tags {
+  display: block;
+  font-size: var(--mp-text-sm);
+  color: var(--mp-text-tertiary);
+}
+
+.attempt-correctness.ok {
+  color: var(--mp-success);
+}
+
+.attempt-correctness.miss {
+  color: var(--mp-danger);
+}
+
+.homework-steps-list {
+  margin: 12px 0;
+  padding-left: 1.25rem;
+}
+
+.homework-step-wrong {
+  color: var(--mp-danger);
+  font-weight: var(--mp-font-weight-medium);
+}
+
+.homework-step-ok {
+  color: var(--mp-success);
+}
+
+.homework-step-num {
+  display: block;
+  font-size: var(--mp-text-sm);
+  color: var(--mp-text-tertiary);
+}
+
+.inspector-resource-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.inspector-resource-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--mp-border);
+}
+
+.feedback-escalation {
+  margin-top: 8px;
+}
+
+.keyboard-submit-hint {
+  margin: 8px 0 0;
+  font-size: var(--mp-text-sm);
+}
+
+.continuing-diagnostic-banner {
+  margin-bottom: 16px;
+}
+
+.developer-inspect-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.video-prediction {
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: var(--mp-radius-md);
+  background: var(--mp-surface-inset);
+}
+
+.video-prediction textarea {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.syllabus-mapping-modal .syllabus-mapping-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  max-height: 280px;
+  overflow: auto;
 }

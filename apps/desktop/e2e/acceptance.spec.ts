@@ -128,9 +128,9 @@ test.describe('MathPilot acceptance', () => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
     const recommendation = page.getByRole('region', { name: 'Recommended next move' })
-    await expect(recommendation.getByText('Recommended next move')).toBeVisible()
-    await expect(recommendation.getByRole('button', { name: 'Why this now' })).toBeVisible()
-    await expect(page.getByText('Session pace')).toBeVisible()
+    await expect(recommendation.getByText('Continue', { exact: true })).toBeVisible()
+    await expect(recommendation.getByRole('button', { name: 'Why', exact: true })).toBeVisible()
+    await expect(page.getByTestId('today-adjust')).toBeVisible()
     const continueBtn = recommendation.getByRole('button', { name: /Start session|Start repair|Start review|Resume diagnostic/i })
     await continueBtn.click()
     await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible({ timeout: 15_000 })
@@ -141,6 +141,29 @@ test.describe('MathPilot acceptance', () => {
     await page.getByRole('button', { name: 'Knowledge map', exact: true }).click()
     await expect(page.getByRole('img', { name: 'Knowledge map wheel' })).toBeVisible()
     await expect(page.getByText('Recommendation evidence')).toBeVisible()
+  })
+
+  test('attempt history panel is searchable from Today', async ({ page }) => {
+    await page.addInitScript(seedOnboardedState)
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
+    await page.getByText('More for today').click()
+    await page.getByTestId('today-open-history').click()
+    await expect(page.getByRole('dialog', { name: 'Attempt history' })).toBeVisible()
+    await page.getByTestId('attempt-history-search').fill('chain')
+    await expect(page.getByTestId('attempt-history-row').first()).toBeVisible()
+  })
+
+  test('syllabus mapping panel accepts extracted topics', async ({ page }) => {
+    await page.addInitScript(seedOnboardedState)
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Settings' }).click()
+    const textarea = page.locator('.syllabus-upload')
+    await textarea.fill('Week 1: Limits and continuity\nMidterm 3/15\nWeek 2: Chain rule derivatives')
+    await textarea.blur()
+    await expect(page.getByTestId('syllabus-mapping-panel')).toBeVisible({ timeout: 10_000 })
+    await page.getByTestId('syllabus-mapping-done').click()
+    await expect(page.getByText(/active/)).toBeVisible()
   })
 
   test('leaving an active diagnostic shows map instead of stacking activity underneath', async ({ page }) => {

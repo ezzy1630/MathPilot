@@ -56,6 +56,8 @@ pub fn load_relational(conn: &Connection) -> Result<Option<String>, String> {
     load_attempts(conn, &mut obj)?;
     load_mistake_patterns(conn, &mut obj)?;
     load_resource_effectiveness(conn, &mut obj)?;
+    load_resources_table(conn, &mut obj)?;
+    load_resource_events(conn, &mut obj)?;
     load_ai_calls(conn, &mut obj)?;
     load_changelog(conn, &mut obj)?;
     load_maintenance_runs(conn, &mut obj)?;
@@ -446,8 +448,9 @@ fn save_homework(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
                 "INSERT INTO homework_analyses (
                   id, created_at, detected_topic, problem_text, extracted_work_summary,
                   correctness, mistake_tags_json, skills_affected_json, feedback_summary,
-                  raw_image_saved, image_path, step_feedback_json, repair_recommendation_json
-                ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)",
+                  raw_image_saved, image_path, step_feedback_json, repair_recommendation_json,
+                  steps_json, wrong_step_index, detected_problems_json
+                ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",
                 params![
                     h.get("id").and_then(|v| v.as_str()).unwrap_or(""),
                     h.get("createdAt").and_then(|v| v.as_str()).unwrap_or(""),
@@ -485,6 +488,9 @@ fn save_homework(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
                     h.get("repairRecommendation")
                         .filter(|v| !v.is_null())
                         .map(|v| v.to_string()),
+                    h.get("steps").map(|v| v.to_string()),
+                    h.get("wrongStepIndex").and_then(|v| v.as_i64()),
+                    h.get("detectedProblems").map(|v| v.to_string()),
                 ],
             )
             .map_err(|e| e.to_string())?;
@@ -498,7 +504,8 @@ fn load_homework(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), 
         .prepare(
             "SELECT id, created_at, detected_topic, problem_text, extracted_work_summary,
                     correctness, mistake_tags_json, skills_affected_json, feedback_summary,
-                    raw_image_saved, image_path, step_feedback_json, repair_recommendation_json
+                    raw_image_saved, image_path, step_feedback_json, repair_recommendation_json,
+                    steps_json, wrong_step_index, detected_problems_json
              FROM homework_analyses ORDER BY created_at DESC",
         )
         .map_err(|e| e.to_string())?;
@@ -519,6 +526,9 @@ fn load_homework(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), 
                 "imagePath": row.get::<_, Option<String>>(10)?,
                 "stepFeedback": row.get::<_, Option<String>>(11)?.and_then(|s| serde_json::from_str::<Value>(&s).ok()).unwrap_or(Value::Array(vec![])),
                 "repairRecommendation": row.get::<_, Option<String>>(12)?.and_then(|s| serde_json::from_str::<Value>(&s).ok()),
+                "steps": row.get::<_, Option<String>>(13)?.and_then(|s| serde_json::from_str::<Value>(&s).ok()),
+                "wrongStepIndex": row.get::<_, Option<i64>>(14)?,
+                "detectedProblems": row.get::<_, Option<String>>(15)?.and_then(|s| serde_json::from_str::<Value>(&s).ok()),
             }))
         })
         .map_err(|e| e.to_string())?;
@@ -537,8 +547,8 @@ fn save_attempts(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
             conn.execute(
                 "INSERT INTO attempts (
                   id, problem_id, skill_ids, answer_raw, correct, mode, hint_count, seconds,
-                  mixed, delayed, confidence, mistake_tags, mastery_delta, created_at
-                ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14)",
+                  mixed, delayed, confidence, mistake_tags, mastery_delta, created_at, resource_id
+                ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",
                 params![
                     a.get("id").and_then(|v| v.as_str()).unwrap_or(""),
                     a.get("problemId").and_then(|v| v.as_str()).unwrap_or(""),
@@ -570,6 +580,7 @@ fn save_attempts(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
                         .and_then(|v| v.as_f64())
                         .unwrap_or(0.0),
                     a.get("createdAt").and_then(|v| v.as_str()).unwrap_or(""),
+                    a.get("resourceId").and_then(|v| v.as_str()),
                 ],
             )
             .map_err(|e| e.to_string())?;
@@ -582,7 +593,7 @@ fn load_attempts(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), 
     let mut stmt = conn
         .prepare(
             "SELECT id, problem_id, skill_ids, answer_raw, correct, mode, hint_count, seconds,
-                    mixed, delayed, confidence, mistake_tags, mastery_delta, created_at
+                    mixed, delayed, confidence, mistake_tags, mastery_delta, created_at, resource_id
              FROM attempts ORDER BY created_at DESC",
         )
         .map_err(|e| e.to_string())?;
@@ -590,6 +601,7 @@ fn load_attempts(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), 
     let rows = stmt
         .query_map([], |row| {
             let tags: Option<String> = row.get(11)?;
+            let resource_id: Option<String> = row.get(14).ok();
             Ok(json!({
                 "id": row.get::<_, String>(0)?,
                 "problemId": row.get::<_, String>(1)?,
@@ -605,6 +617,7 @@ fn load_attempts(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), 
                 "mistakeTags": tags.and_then(|s| serde_json::from_str::<Value>(&s).ok()),
                 "masteryDelta": row.get::<_, f64>(12)?,
                 "createdAt": row.get::<_, String>(13)?,
+                "resourceId": resource_id,
             }))
         })
         .map_err(|e| e.to_string())?;
@@ -696,7 +709,9 @@ fn load_mistake_patterns(conn: &Connection, obj: &mut Map<String, Value>) -> Res
             map.insert(tag.into(), row);
         }
     }
-    obj.insert("mistakePatterns".into(), Value::Object(map));
+    if !map.is_empty() {
+        obj.insert("mistakePatterns".into(), Value::Object(map));
+    }
     Ok(())
 }
 
@@ -738,16 +753,103 @@ fn load_resource_effectiveness(
             ))
         })
         .map_err(|e| e.to_string())?;
+    if obj.get("resources").is_none() {
+        obj.insert("resources".into(), Value::Object(Map::new()));
+    }
     if let Some(resources) = obj.get_mut("resources").and_then(|v| v.as_object_mut()) {
         for row in rows.flatten() {
             let (id, score, notes) = row;
-            if let Some(resource) = resources.get_mut(&id).and_then(|v| v.as_object_mut()) {
+            let entry = resources.entry(id.clone()).or_insert_with(|| {
+                json!({
+                    "id": id,
+                    "title": id,
+                    "source": "",
+                    "url": "",
+                    "skillIds": [],
+                    "duration": "—",
+                    "format": "video",
+                    "effectivenessScore": score,
+                    "notes": notes,
+                })
+            });
+            if let Some(resource) = entry.as_object_mut() {
                 resource.insert("effectivenessScore".into(), json!(score));
                 if !notes.is_empty() {
                     resource.insert("notes".into(), json!(notes));
                 }
             }
         }
+    }
+    Ok(())
+}
+
+fn load_resources_table(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, title, url, source, duration, skill_ids_json, effectiveness_score
+             FROM resources",
+        )
+        .map_err(|e| e.to_string())?;
+    if obj.get("resources").is_none() {
+        obj.insert("resources".into(), Value::Object(Map::new()));
+    }
+    let rows = stmt
+        .query_map([], |row| {
+            Ok(json!({
+                "id": row.get::<_, String>(0)?,
+                "title": row.get::<_, String>(1)?,
+                "url": row.get::<_, String>(2)?,
+                "source": row.get::<_, String>(3)?,
+                "duration": row.get::<_, String>(4)?,
+                "skillIds": serde_json::from_str::<Value>(&row.get::<_, String>(5)?).unwrap_or(Value::Array(vec![])),
+                "format": "video",
+                "effectivenessScore": row.get::<_, f64>(6)?,
+                "notes": "",
+            }))
+        })
+        .map_err(|e| e.to_string())?;
+    if let Some(resources) = obj.get_mut("resources").and_then(|v| v.as_object_mut()) {
+        for row in rows.flatten() {
+            if let Some(id) = row.get("id").and_then(|v| v.as_str()) {
+                let existing = resources.get(id).cloned().unwrap_or(row.clone());
+                let mut merged = existing.as_object().cloned().unwrap_or_default();
+                if let Some(patch) = row.as_object() {
+                    for (k, v) in patch {
+                        merged.insert(k.clone(), v.clone());
+                    }
+                }
+                resources.insert(id.to_string(), Value::Object(merged));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn load_resource_events(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, resource_id, event_type, helpful, created_at
+             FROM resource_events ORDER BY created_at DESC LIMIT 200",
+        )
+        .map_err(|e| e.to_string())?;
+    let mut list = Vec::new();
+    let rows = stmt
+        .query_map([], |row| {
+            let helpful: Option<i64> = row.get(3)?;
+            Ok(json!({
+                "id": row.get::<_, String>(0)?,
+                "resourceId": row.get::<_, String>(1)?,
+                "eventType": row.get::<_, String>(2)?,
+                "helpful": helpful.map(|v| v == 1),
+                "createdAt": row.get::<_, String>(4)?,
+            }))
+        })
+        .map_err(|e| e.to_string())?;
+    for row in rows.flatten() {
+        list.push(row);
+    }
+    if !list.is_empty() {
+        obj.insert("resourceEvents".into(), Value::Array(list));
     }
     Ok(())
 }

@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildCodexSessionId,
-  createPromptPacket,
-  resolveCodexSession,
-  wrapPacketForChatGPT,
-} from './aiAdapter'
+import { stripSecretsFromLog, resolveCodexSession, createPromptPacket } from './aiAdapter'
 import { createInitialState } from './learningEngine'
 
 describe('ai adapter', () => {
@@ -46,18 +41,18 @@ describe('ai adapter', () => {
     const state = createInitialState('Calculus 1')
     const { sessionId, state: next } = resolveCodexSession(state, 'homework_analysis', undefined, 'hw-1')
     expect(sessionId).toMatch(/^grading_session_/)
-    expect(next.codexSessions).toBeDefined()
+    expect(next.codexSessions?.grading_session).toBeDefined()
   })
 
-  it('builds tutor session id from skill', () => {
-    expect(buildCodexSessionId('tutor', 'explain', { id: 'p', skillIds: ['chain_rule'] } as never)).toBe(
-      'tutor_session_chain_rule',
-    )
+  it('stores question_generation_session canonical key', () => {
+    const state = createInitialState('Calculus 1')
+    const { state: next } = resolveCodexSession(state, 'generate problem for chain_rule')
+    expect(next.codexSessions?.question_generation_session).toBeDefined()
   })
 
-  it('wraps packets for ChatGPT', () => {
-    const wrapped = wrapPacketForChatGPT('TASK BODY')
-    expect(wrapped).toContain('MathPilot')
-    expect(wrapped).toContain('TASK BODY')
+  it('redacts secrets from log previews', () => {
+    const sanitized = stripSecretsFromLog('api_key=supersecret123 Bearer abc.def.ghi')
+    expect(sanitized).not.toContain('supersecret123')
+    expect(sanitized).toContain('[redacted]')
   })
 })

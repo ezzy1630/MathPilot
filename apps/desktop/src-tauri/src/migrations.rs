@@ -49,6 +49,10 @@ pub fn run_migrations(conn: &Connection) -> Result<(), String> {
         migration_v8(conn)?;
         record(conn, 8)?;
     }
+    if current < 9 {
+        migration_v9(conn)?;
+        record(conn, 9)?;
+    }
     Ok(())
 }
 
@@ -342,19 +346,35 @@ fn migration_v8(conn: &Connection) -> Result<(), String> {
     Ok(())
 }
 
+fn migration_v9(conn: &Connection) -> Result<(), String> {
+    conn.execute_batch(
+        "
+        ALTER TABLE attempts ADD COLUMN resource_id TEXT;
+        CREATE INDEX IF NOT EXISTS idx_attempts_resource ON attempts(resource_id);
+        CREATE INDEX IF NOT EXISTS idx_ai_calls_created ON ai_calls(created_at DESC);
+        UPDATE ai_calls SET prompt_hash = '' WHERE prompt_hash IS NULL;
+        ALTER TABLE homework_analyses ADD COLUMN steps_json TEXT;
+        ALTER TABLE homework_analyses ADD COLUMN wrong_step_index INTEGER;
+        ALTER TABLE homework_analyses ADD COLUMN detected_problems_json TEXT;
+        ",
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use rusqlite::Connection;
 
     #[test]
-    fn migrations_apply_through_v8() {
+    fn migrations_apply_through_v9() {
         let conn = Connection::open_in_memory().expect("in-memory db");
         run_migrations(&conn).expect("migrations");
         let version: i64 = conn
             .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| row.get(0))
             .expect("version");
-        assert!(version >= 8);
+        assert!(version >= 9);
         let count: i64 = conn
             .query_row(
                 "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='maintenance_runs'",
@@ -363,5 +383,13 @@ mod tests {
             )
             .expect("count");
         assert_eq!(count, 1);
+        let has_resource_col: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('attempts') WHERE name='resource_id'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("col");
+        assert_eq!(has_resource_col, 1);
     }
 }

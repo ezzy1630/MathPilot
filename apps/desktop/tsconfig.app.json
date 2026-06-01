@@ -25,7 +25,10 @@
       "@config/*": ["../../config/*"],
       "@mathpilot/learning-engine": ["../../packages/learning-engine/src/index.ts"],
       "@mathpilot/math-engine": ["../../packages/math-engine/src/index.ts"],
-      "@mathpilot/ai-adapter": ["../../packages/ai-adapter/src/index.ts"]
+      "@mathpilot/ai-adapter": ["../../packages/ai-adapter/src/index.ts"],
+      "@mathpilot/content-engine": ["../../packages/content-engine/src/index.ts"],
+      "@mathpilot/ui": ["../../packages/ui/src/index.ts"],
+      "@mathpilot/data": ["../../packages/data/src/index.ts"]
     }
   },
   "include": ["src"],

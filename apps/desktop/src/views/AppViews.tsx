@@ -15,7 +15,12 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode, type RefObject } from 'react'
-import { graphPresetsForProblem, primaryGraphExpression } from '../domain/graphPresets'
+import {
+  builtInGraphKindForSkill,
+  graphPresetsForProblem,
+  primaryGraphExpression,
+} from '../domain/graphPresets'
+import { BuiltInGraph } from '../components/BuiltInGraph'
 import { listBackups, restoreBackupPayload } from '../domain/persistence'
 import type { MathfieldElement } from 'mathlive'
 import { HomeworkUpload } from '../components/HomeworkUpload'
@@ -31,6 +36,7 @@ import { SessionChrome } from '../components/SessionChrome'
 import { VideoEmbed } from '../components/VideoEmbed'
 import { SignChart } from '../components/SignChart'
 import { signChartForSkill } from '../domain/signChartData'
+import { attemptModeForActivity } from '../domain/activityAttemptMode'
 import { requiresShowWork } from '../domain/showWorkPolicy'
 import { applySyllabusUpload } from '../domain/syllabusUpload'
 import { MistakePatternsPanel } from '../components/MistakePatternsPanel'
@@ -51,11 +57,13 @@ import { currentSessionPhase, sessionPhaseLabel } from '../domain/dailySessionEn
 import { checkPrerequisiteGate } from '../domain/sessionEngine'
 import type { SessionPace } from '../domain/sessionEngine'
 import { quickRepairExplanation, repairProgress } from '../domain/quickRepairEngine'
-import { topResourcesForSkill } from '../domain/resourceLearning'
+import { rankResourcesForSkill } from '@mathpilot/content-engine'
+import { energyPaceHint, parseBevelImport } from '../domain/healthIntegrations'
+import { markProblemDeprecated } from '../domain/problemBank'
 import { groupByArea, problemForSkill, readiness, areaReadiness } from '../lib/mapHelpers'
 import { Button, MasteryBadge, SegmentedControl } from '../ui'
 import { Modal } from '../ui/Modal'
-import type { CourseFocus, MathPilotState, Problem } from '../domain/types'
+import type { CourseFocus, MathPilotState, Problem, ResourceRecord } from '../domain/types'
 import type { AppView } from '../app/types'
 
 function shouldShowConfidencePrompts(state: MathPilotState, problem?: Problem): boolean {
@@ -196,6 +204,7 @@ export function TodayView({
   onOpenReport,
   onSaveWorkedExample,
   onOpenHomework,
+  onOpenHistory,
 }: {
   state: MathPilotState
   nextAction: ReturnType<typeof chooseNextAction>
@@ -219,7 +228,9 @@ export function TodayView({
   onOpenReport?: () => void
   onSaveWorkedExample?: (analysisId: string) => void
   onOpenHomework?: () => void
+  onOpenHistory?: () => void
 }) {
+  const [adjustOpen, setAdjustOpen] = useState(false)
   const paceLabels: Record<SessionPace, string> = {
     short: 'Short',
     normal: 'Normal',
@@ -236,9 +247,11 @@ export function TodayView({
   const weakCount = Object.values(state.mastery).filter((record) => record.masteryScore < 0.4).length
   const primarySkill = nextAction.skillIds[0] ? state.skills[nextAction.skillIds[0]] : undefined
   const readinessValue = readiness(state)
-  const coachConstraint = primarySkill
-    ? `${primarySkill.name} is the current constraint.`
-    : `${state.currentFocus} calibration is the current constraint.`
+  const narrative =
+    state.studyPlan?.summary ??
+    (primarySkill
+      ? `${primarySkill.name} is the current constraint.`
+      : `${state.currentFocus} calibration is the current constraint.`)
   const actionLabel = diagnostic && !diagnostic.completed
     ? 'Resume diagnostic'
     : nextAction.kind === 'quick_repair'
@@ -269,64 +282,95 @@ export function TodayView({
         <div>
           <p className="eyebrow">{state.profileName ? `Hi, ${state.profileName}` : 'Private calculus desk'}</p>
           <h1>Coach desk</h1>
-          <p className="today-subtitle">{coachConstraint} MathPilot will keep the next move small and measurable.</p>
         </div>
       </header>
 
-      <TodayMasteryStrip state={state} onOpenMap={() => setView('map')} />
-
       <section className="coach-desk" aria-label="Recommended next move">
         <div className="coach-desk-hero coach-primary">
-          <p className="eyebrow">Recommended next move</p>
+          <p className="eyebrow">Continue</p>
           <h2>{nextAction.title}</h2>
-          <p className="coach-reason">{nextAction.reason}</p>
-          <div className="coach-actions">
+          <p className="coach-reason today-narrative">{narrative}</p>
+          <p className="muted coach-reason">{nextAction.reason}</p>
+          <div className="coach-actions today-primary-actions">
             <Button
               variant="primary"
               size="lg"
               icon={<Play size={18} />}
               onClick={startAction}
               aria-label={`Continue: ${actionLabel} — ${nextAction.title}`}
+              data-testid="today-continue"
+            >
+              Continue
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={startAction}
+              aria-label={`Start: ${actionLabel}`}
+              data-testid="today-start"
             >
               {actionLabel}
             </Button>
             <Button variant="ghost" size="lg" icon={<Eye size={18} />} onClick={onWhy}>
-              Why this now
+              Why
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => setAdjustOpen((open) => !open)}
+              aria-expanded={adjustOpen}
+              data-testid="today-adjust"
+            >
+              Adjust
+            </Button>
+            <Button variant="ghost" size="lg" icon={<Map size={18} />} onClick={() => setView('map')}>
+              Map
             </Button>
           </div>
+          {adjustOpen && (
+            <div className="today-adjust-panel" aria-label="Session pace">
+              <SegmentedControl
+                label="Session pace"
+                value={sessionPace}
+                options={primaryPaceOptions}
+                onChange={setPace}
+              />
+              <div className="coach-evidence">
+                {evidenceItems.map((item) => (
+                  <span key={item}>
+                    <ShieldCheck size={14} aria-hidden />
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="session-setup-row" aria-label="Session setup">
-        <SegmentedControl
-          label="Session pace"
-          value={sessionPace}
-          options={primaryPaceOptions}
-          onChange={setPace}
-        />
-        <div className="coach-evidence" aria-label="Why this now">
-          <p className="eyebrow">Why this now</p>
-          {evidenceItems.map((item) => (
-            <span key={item}>
-              <ShieldCheck size={14} />
-              {item}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {diagnostic?.completed && diagnostic.summary && (
-        <p className="diagnostic-summary panel" style={{ marginBottom: 16 }}>
-          <strong>Map snapshot:</strong> strong in {diagnostic.summary.strong.slice(0, 3).join(', ') || '—'} · focus{' '}
-          {diagnostic.summary.weak.slice(0, 3).join(', ') || '—'}
-        </p>
-      )}
+      <TodayMasteryStrip state={state} onOpenMap={() => setView('map')} />
 
       <details className="today-more">
         <summary>More for today</summary>
         <div className="today-more-body">
+          {diagnostic?.completed && diagnostic.summary && (
+            <p className="diagnostic-summary panel">
+              <strong>Map snapshot:</strong> strong in {diagnostic.summary.strong.slice(0, 3).join(', ') || '—'} · focus{' '}
+              {diagnostic.summary.weak.slice(0, 3).join(', ') || '—'}
+            </p>
+          )}
+          <button type="button" className="secondary prominent-homework" onClick={onOpenHomework}>
+            <FolderOpen size={18} aria-hidden />
+            Upload or review homework
+          </button>
+          {onOpenHistory && (
+            <button type="button" className="secondary" onClick={onOpenHistory} data-testid="today-open-history">
+              <Search size={18} aria-hidden />
+              Attempt history
+            </button>
+          )}
           <details className="contextual-entry">
-            <summary>Homework</summary>
+            <summary>Homework results</summary>
             <div className="today-collapsed-section">
               {onOpenHomework ? (
                 <button type="button" className="secondary" onClick={onOpenHomework}>
@@ -516,6 +560,7 @@ export function ActivityView({
   setHomeworkText,
   analyzeHomework,
   homeworkAnalyzing,
+  wrongEscalation = 0,
 }: {
   problem?: Problem
   state: MathPilotState
@@ -552,6 +597,7 @@ export function ActivityView({
     saveRaw?: boolean,
   ) => void | Promise<void>
   homeworkAnalyzing?: boolean
+  wrongEscalation?: number
 }) {
   const [rawInput, setRawInput] = useState(false)
   const [graphOpen, setGraphOpen] = useState(false)
@@ -677,6 +723,7 @@ export function ActivityView({
       : 'Use a hint if you are blocked. If the setup feels unsteady, mark that you are lost.'
   const graphExpression = primaryGraphExpression(problem)
   const graphPresets = graphPresetsForProblem(problem)
+  const builtInGraphKind = builtInGraphKindForSkill(problem.skillIds[0])
   const showGraph = Boolean(
     graphExpression &&
       problem.skillIds.some(
@@ -699,8 +746,14 @@ export function ActivityView({
     Boolean(state.readOnlyExample)
   const videoResource =
     sessionPhase === 'resource_watch' && problem.skillIds[0]
-      ? topResourcesForSkill(state, problem.skillIds[0])[0]
+      ? rankResourcesForSkill(state, problem.skillIds[0], undefined, 1)[0]
       : undefined
+  const rankedResources = problem.skillIds[0]
+    ? rankResourcesForSkill(state, problem.skillIds[0], undefined, 4)
+    : []
+  const attemptMode = attemptModeForActivity(problem.mode)
+  const showReviewExplain =
+    attemptMode === 'review' && (wrongEscalation ?? 0) >= 2 && feedbackTone !== 'correct'
 
   return (
     <div className="page activity-page">
@@ -892,7 +945,10 @@ export function ActivityView({
               ))}
             </div>
           )}
-          <section className="answer-dock" aria-label="Answer actions">
+          <p className="keyboard-submit-hint muted" id="keyboard-submit-hint">
+            Press Enter to check your answer (Shift+Enter for a new line in text fields).
+          </p>
+          <section className="answer-dock" aria-label="Answer actions" aria-describedby="keyboard-submit-hint">
             <div className="activity-primary-actions">
               <Button variant="primary" onClick={submitAnswer} aria-label="Check answer and submit">
                 Check answer
@@ -969,6 +1025,13 @@ export function ActivityView({
             <p className="meta-label">Teaching inspector</p>
             <h3>{inspectorTitle}</h3>
             <p>{inspectorBody}</p>
+            {(wrongEscalation ?? 0) > 0 && feedbackTone !== 'correct' && (
+              <p className="eyebrow feedback-escalation" data-testid="feedback-escalation">
+                Guided feedback · step {(wrongEscalation ?? 0) + 1} of 3
+                {attemptMode === 'independent' && ' · try again before more help'}
+                {attemptMode === 'review' && wrongEscalation! >= 2 && ' · explain-after-miss'}
+              </p>
+            )}
             <section className="inspector-next">
               <h4>Try next</h4>
               <ul>
@@ -1008,6 +1071,16 @@ export function ActivityView({
               >
                 Build repair step
               </Button>
+              {showReviewExplain && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => requestHelp('After a review miss, explain the concept without giving the full answer')}
+                  disabled={codexBusy || isDiagnostic}
+                >
+                  Explain after miss
+                </Button>
+              )}
               {state.developerModeEnabled && (
                 <Button variant="ghost" size="sm" onClick={() => generatePacket('explain current problem attempt')}>
                   Prompt packet
@@ -1040,8 +1113,23 @@ export function ActivityView({
                 </div>
               </div>
             )}
+            {rankedResources.length > 0 && (
+              <div className="inspector-resources" aria-label="Ranked resources for this skill">
+                <p className="meta-label">Resources for this skill</p>
+                <ul className="inspector-resource-list">
+                  {rankedResources.map((resource: ResourceRecord) => (
+                    <li key={resource.id}>
+                      <a href={resource.url} target="_blank" rel="noreferrer">
+                        {resource.title}
+                      </a>
+                      <span className="muted">{Math.round(resource.effectivenessScore * 100)}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {analyzeHomework && setHomeworkText && (
-              <details className="inspector-upload">
+              <details className="inspector-upload" open>
                 <summary>Upload work photo</summary>
                 {homeworkAnalyzing && <p className="eyebrow">Analyzing homework...</p>}
                 <HomeworkUpload
@@ -1076,6 +1164,13 @@ export function ActivityView({
                 </div>
               )}
               <DesmosEmbed expression={activeGraphExpression} />
+              {builtInGraphKind && (
+                <BuiltInGraph
+                  kind={builtInGraphKind}
+                  fn={(x: number) => x * x}
+                  title="Built-in visualization"
+                />
+              )}
             </div>
           )}
           {signChart && (
@@ -1416,6 +1511,7 @@ export function SettingsView({
   codexPaste,
   setCodexPaste,
   onApplyCodexPaste,
+  onSyllabusUploaded,
 }: {
   state: MathPilotState
   update: (state: MathPilotState) => void
@@ -1425,9 +1521,11 @@ export function SettingsView({
   codexPaste: string
   setCodexPaste: (v: string) => void
   onApplyCodexPaste: () => void
+  onSyllabusUploaded?: () => void
 }) {
   const [resetConfirm, setResetConfirm] = useState('')
   const [syllabusDraft, setSyllabusDraft] = useState('')
+  const [bevelDraft, setBevelDraft] = useState('')
   const mapping = state.syllabusMapping ?? []
   const syllabusDates = state.syllabus?.extractedDates ?? []
   const syllabusExams = state.syllabus?.extractedExams ?? []
@@ -1589,6 +1687,25 @@ export function SettingsView({
               <option value="often">Often</option>
             </select>
           </div>
+          <div className="settings-row settings-row-stack">
+            <label htmlFor="bevel-import">Bevel energy import (optional)</label>
+            <textarea
+              id="bevel-import"
+              className="syllabus-upload"
+              placeholder='Paste Bevel JSON {"score": 72} or a number'
+              rows={2}
+              value={bevelDraft}
+              onChange={(e) => setBevelDraft(e.target.value)}
+              onBlur={() => {
+                const snap = parseBevelImport(bevelDraft)
+                const hint = energyPaceHint(snap ?? undefined)
+                if (hint) {
+                  update({ ...state, sessionPace: hint })
+                }
+              }}
+            />
+            <p className="muted">Adjusts today&apos;s pace from imported energy (§8.3). HealthKit is not available in this desktop build.</p>
+          </div>
           <div className="settings-row">
             <span>Study reminders</span>
             <label className="toggle">
@@ -1637,7 +1754,10 @@ export function SettingsView({
               onChange={(e) => setSyllabusDraft(e.target.value)}
               onBlur={() => {
                 const text = syllabusDraft.trim()
-                if (text.length > 20) update(applySyllabusUpload(state, text))
+                if (text.length > 20) {
+                  update(applySyllabusUpload(state, text))
+                  onSyllabusUploaded?.()
+                }
               }}
             />
           </div>
@@ -1818,6 +1938,7 @@ export function DeveloperView({
   batchVerifyBusy,
   onApplyCodeChange,
   onRollbackCodeChange,
+  onUpdateState,
 }: {
   state: MathPilotState
   packet: string
@@ -1834,9 +1955,13 @@ export function DeveloperView({
   batchVerifyBusy?: boolean
   onApplyCodeChange?: (proposalId: string) => void
   onRollbackCodeChange?: (proposalId: string) => void
+  onUpdateState?: (state: MathPilotState) => void
 }) {
   const [backups, setBackups] = useState<string[]>([])
   const [memoryFiles, setMemoryFiles] = useState<string[]>([])
+  const [deprecateId, setDeprecateId] = useState('')
+  const [deprecateReason, setDeprecateReason] = useState('manual review')
+  const [inspectSkillId, setInspectSkillId] = useState(Object.keys(state.skills)[0] ?? '')
 
   useEffect(() => {
     void listBackups().then(setBackups)
@@ -1893,6 +2018,56 @@ export function DeveloperView({
           />
         </label>
       </div>
+      <section className="developer-inspect-grid">
+        <div className="panel">
+          <h2>Skill inspect (read-only)</h2>
+          <select value={inspectSkillId} onChange={(e) => setInspectSkillId(e.target.value)} aria-label="Skill to inspect">
+            {Object.values(state.skills).map((skill) => (
+              <option key={skill.id} value={skill.id}>
+                {skill.name}
+              </option>
+            ))}
+          </select>
+          <pre className="packet memory-viewer">
+            {JSON.stringify(
+              {
+                skill: state.skills[inspectSkillId],
+                mastery: state.mastery[inspectSkillId],
+                mistakePatterns: Object.values(state.mistakePatterns).filter((p) =>
+                  p.skillIds.includes(inspectSkillId),
+                ),
+              },
+              null,
+              2,
+            )}
+          </pre>
+        </div>
+        <div className="panel">
+          <h2>Deprecate problem</h2>
+          <input
+            type="text"
+            value={deprecateId}
+            onChange={(e) => setDeprecateId(e.target.value)}
+            placeholder="problem id"
+            aria-label="Problem id to deprecate"
+          />
+          <input
+            type="text"
+            value={deprecateReason}
+            onChange={(e) => setDeprecateReason(e.target.value)}
+            placeholder="reason"
+            aria-label="Deprecation reason"
+          />
+          <button
+            type="button"
+            className="secondary"
+            disabled={!deprecateId.trim() || !onUpdateState}
+            onClick={() => onUpdateState?.(markProblemDeprecated(state, deprecateId.trim(), deprecateReason.trim()))}
+          >
+            Mark deprecated
+          </button>
+        </div>
+      </section>
       <section className="two-column">
         <div className="panel">
           <h2>Prompt packet</h2>

@@ -1,8 +1,12 @@
 import { loadAppSettings } from './configLoader'
+import { evaluateContinuingDiagnostic } from './continuingDiagnostics'
+import { currentSessionPhase } from './dailySessionEngine'
 import { enrichNextAction } from './narrativeCopy'
 import { attachStudyPlan } from './studyPlanEngine'
 import { enrichReviewQueue } from './reviewItemEngine'
 import { buildReviewItemUpdate, upsertReviewItem } from './reviewScheduler'
+import { applyPostResourceAttempt } from './resourceLearning'
+import { buildSessionPhaseAction } from './sessionEngine'
 import { skillsForCourse } from './courseGraph'
 import { confidenceCalibrationHint, confidenceReviewBoost } from './confidenceRouting'
 import { syllabusSkillBoost } from './syllabus'
@@ -138,6 +142,11 @@ export function chooseNextAction(state: MathPilotState): NextAction {
 }
 
 function chooseNextActionCore(state: MathPilotState): NextAction {
+  const sessionPhase = currentSessionPhase(state)
+  if (sessionPhase && !(state.diagnostic && !state.diagnostic.completed) && !state.quickRepair) {
+    return buildSessionPhaseAction(state, sessionPhase)
+  }
+
   const calibration = confidenceCalibrationHint(state)
   if (calibration) {
     const overSkill = state.attempts.find((a) => (a.confidence ?? 0) >= 4 && !a.correct)?.skillIds[0]
@@ -275,7 +284,35 @@ function partialCreditFactor(input: AttemptInput): number {
   return Math.max(0.35, 1 - credit * 0.55)
 }
 
+function conceptualQualityProxy(input: AttemptInput, problem?: { answerType?: string }): number {
+  if (!input.correct || problem?.answerType !== 'text') return 0
+  const length = input.answer.trim().length
+  if (length < 12) return 0
+  return Math.min(1, length / 80)
+}
+
+function attemptDifficultyWeight(problem?: { difficulty?: number }, skill?: { type?: string }): number {
+  const difficultyFactor = problem?.difficulty !== undefined ? 0.85 + problem.difficulty * 0.3 : 1
+  const skillTypeFactor =
+    skill?.type === 'conceptual' ? 1.12 : skill?.type === 'mixed' ? 1.05 : skill?.type === 'procedural' ? 0.98 : 1
+  const answerTypeFactor =
+    problem && 'answerType' in problem
+      ? problem.answerType === 'text'
+        ? 1.08
+        : problem.answerType === 'choice'
+          ? 0.95
+          : 1
+      : 1
+  return difficultyFactor * skillTypeFactor * answerTypeFactor
+}
+
 export function recordAttempt(state: MathPilotState, input: AttemptInput): MathPilotState {
+  const problem = state.problems[input.problemId]
+  const primarySkill = input.skillIds[0]
+  const skillMeta = primarySkill ? state.skills[primarySkill] : undefined
+  const weight = attemptDifficultyWeight(problem, skillMeta)
+  const conceptualQuality = conceptualQualityProxy(input, problem)
+
   const independencePenalty = input.hintCount === 0 ? 1 : input.hintCount === 1 ? 0.68 : 0.42
   const modeWeight = input.delayed && input.mixed ? 1.85 : input.mixed ? 1.35 : input.mode === 'guided' ? 0.82 : 1
   const slowCorrect = input.correct && input.seconds >= 180
@@ -298,7 +335,9 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
   const magnitude = input.correct ? 0.075 : wrongMagnitude
   const partialFactor = partialCreditFactor(input)
   const masteryDelta =
-    direction * magnitude * independencePenalty * modeWeight * fluencyWeight * partialFactor
+    direction * magnitude * independencePenalty * modeWeight * fluencyWeight * partialFactor * weight
+
+  let primaryFluencyDelta = 0
 
   const attempt: AttemptRecord = {
     ...input,
@@ -306,6 +345,7 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
     createdAt: new Date().toISOString(),
     masteryDelta,
     partialCredit: input.partialCredit,
+    conceptualQuality: conceptualQuality || undefined,
   }
 
   const nextState: MathPilotState = {
@@ -316,7 +356,7 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
     mistakePatterns: { ...state.mistakePatterns },
   }
 
-  const primarySkill = input.skillIds[0]
+  const primarySkillId = input.skillIds[0]
   const prereqMistake = input.mistakeTags?.some((tag) => tag.startsWith('prereq:'))
 
   if (input.confidence !== undefined && input.skillIds[0]) {
@@ -327,7 +367,9 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
       const underconfident = input.confidence <= 2 && input.correct
       nextState.mastery[sid] = {
         ...rec,
-        conceptualScore: overconfident ? clamp(rec.conceptualScore - 0.04) : rec.conceptualScore,
+        conceptualScore: overconfident
+          ? clamp(rec.conceptualScore - 0.06)
+          : clamp(rec.conceptualScore + conceptualQuality * 0.05),
         proceduralScore: underconfident ? clamp(rec.proceduralScore + 0.03) : rec.proceduralScore,
       }
     }
@@ -344,10 +386,10 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
     if (input.correct && input.confidence !== undefined && input.confidence <= 2) {
       delta *= 1.1
     }
-    if (!input.correct && prereqMistake && skillId === primarySkill) {
+    if (!input.correct && prereqMistake && skillId === primarySkillId) {
       delta *= 0.35
     }
-    if (!input.correct && prereqMistake && skillId !== primarySkill) {
+    if (!input.correct && prereqMistake && skillId !== primarySkillId) {
       delta *= 1.25
     }
     if (!input.correct && input.delayed) {
@@ -362,9 +404,15 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
           ? 0.05
           : 0.02
       : -0.025
+    if (skillId === primarySkillId) primaryFluencyDelta = fluencyDelta
     const fluency = clamp(current.fluencyScore + fluencyDelta)
-    const retention = clamp(current.retentionScore + (input.delayed ? masteryDelta * 1.3 : masteryDelta * 0.45))
-    const transfer = clamp(current.transferScore + (input.mixed ? masteryDelta * 1.2 : masteryDelta * 0.25))
+    const isTransferEvidence =
+      input.mixed && input.skillIds.length > 1 && input.skillIds.some((id) => id !== primarySkillId)
+    const retention = clamp(current.retentionScore + (input.delayed ? delta * 1.3 : delta * 0.45))
+    const transfer = clamp(
+      current.transferScore +
+        (isTransferEvidence ? delta * 1.5 : input.mixed ? delta * 1.2 : delta * 0.25),
+    )
     const delayedMixedCorrect =
       (current.delayedMixedCorrect ?? 0) + (input.correct && input.delayed && input.mixed ? 1 : 0)
     const reviewItem = buildReviewItemUpdate(
@@ -383,8 +431,8 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
       delayedMixedCorrect,
       fluencyScore: fluency,
       retentionScore: retention,
-      conceptualScore: clamp(current.conceptualScore + masteryDelta * 0.6),
-      proceduralScore: clamp(current.proceduralScore + masteryDelta),
+      conceptualScore: clamp(current.conceptualScore + delta * 0.6 + conceptualQuality * 0.04),
+      proceduralScore: clamp(current.proceduralScore + delta),
       transferScore: transfer,
       evidenceCount: current.evidenceCount + 1,
       recentFailures: input.correct ? Math.max(0, current.recentFailures - 1) : current.recentFailures + 1,
@@ -394,6 +442,9 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
 
     nextState.reviewQueue = upsertReviewItem(nextState.reviewQueue, reviewItem)
   }
+
+  attempt.fluencyDelta = primaryFluencyDelta
+  nextState.attempts[0] = attempt
 
   for (const tag of input.mistakeTags ?? []) {
     const previous = nextState.mistakePatterns[tag]
@@ -406,7 +457,14 @@ export function recordAttempt(state: MathPilotState, input: AttemptInput): MathP
     }
   }
 
-  return attachStudyPlan(enrichReviewQueue(nextState))
+  if (input.resourceId || state.activeVideo?.resourceId) {
+    return evaluateContinuingDiagnostic(
+      applyPostResourceAttempt(nextState, input),
+      input,
+    )
+  }
+
+  return evaluateContinuingDiagnostic(attachStudyPlan(enrichReviewQueue(nextState)), input)
 }
 
 function readableMistake(tag: string) {

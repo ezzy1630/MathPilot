@@ -51,6 +51,7 @@ import { syncSkillMasteryNotes } from '../domain/skillFileSync'
 import { maybeNotifyReviewDue, requestNotificationPermission } from '../domain/notifications'
 import { startActiveVideo } from '../domain/activeVideoMode'
 import { currentSessionPhase } from '../domain/dailySessionEngine'
+import { evaluateContinuingDiagnostic } from '../domain/continuingDiagnostics'
 import { topResourcesForSkill } from '../domain/resourceLearning'
 import { attemptModeForActivity } from '../domain/activityAttemptMode'
 import type { CourseFocus, MathPilotState, Problem } from '../domain/types'
@@ -335,6 +336,10 @@ export function useMathPilotApp() {
     if (state.dailySession) {
       merged = advanceDailySession(merged)
     }
+    const lastAttempt = merged.attempts[0]
+    if (lastAttempt) {
+      merged = evaluateContinuingDiagnostic(merged, lastAttempt)
+    }
     const mode = attemptModeForActivity(activeProblem.mode)
     const styled = feedbackForMode(mode, result, hintCount, wrongEscalation)
     setWrongEscalation(result.correct ? 0 : styled.nextEscalation)
@@ -570,6 +575,7 @@ export function useMathPilotApp() {
     setShowReport,
     homeworkUploadOpen,
     setHomeworkUploadOpen,
+    wrongEscalation,
     mathFieldRef,
     update,
     startAction,

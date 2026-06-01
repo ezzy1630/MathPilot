@@ -101,8 +101,22 @@ export function resolveCodexSession(
 ): { sessionId: string; resume: boolean; state: MathPilotState } {
   const kind = codexSessionKindForTask(task)
   const sessionKey = `${kind}:${task.split(/\s+/)[0]?.toLowerCase() ?? 'task'}`
+  const canonicalKey =
+    kind === 'grading'
+      ? 'grading_session'
+      : kind === 'question_generation'
+        ? 'question_generation_session'
+        : kind === 'tutor'
+          ? 'tutor_session'
+          : kind === 'resource_search'
+            ? 'resource_search_session'
+            : kind === 'maintenance'
+              ? 'maintenance_session'
+              : kind === 'code_improvement'
+                ? 'code_improvement_session'
+                : sessionKey
   const sessionId = buildCodexSessionId(kind, task, problem, homeworkId)
-  const existing = state.codexSessions?.[sessionKey]
+  const existing = state.codexSessions?.[canonicalKey] ?? state.codexSessions?.[sessionKey]
   const resume = !forceNew && taskUsesSessionContinuity(task) && Boolean(existing?.sessionId)
   const effectiveId = resume && existing ? existing.sessionId : sessionId
   const next: MathPilotState = {
@@ -110,6 +124,7 @@ export function resolveCodexSession(
     codexSessions: {
       ...state.codexSessions,
       [sessionKey]: { sessionId: effectiveId, updatedAt: new Date().toISOString() },
+      [canonicalKey]: { sessionId: effectiveId, updatedAt: new Date().toISOString() },
     },
   }
   return { sessionId: effectiveId, resume, state: next }
@@ -193,8 +208,17 @@ export function wrapPacketForGemini(packet: string): string {
 }
 
 function previewAndHash(packet: string): { promptPreview: string; promptHash: string } {
-  const promptPreview = packet.slice(0, 420)
+  const sanitized = stripSecretsFromLog(packet)
+  const promptPreview = sanitized.slice(0, 420)
   return { promptPreview, promptHash: sha256HexSync(promptPreview) }
+}
+
+/** Remove likely secrets before persisting ai_calls prompt previews. */
+export function stripSecretsFromLog(text: string): string {
+  return text
+    .replace(/(?:api[_-]?key|token|secret|password|authorization)\s*[:=]\s*\S+/gi, '[redacted]')
+    .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, 'Bearer [redacted]')
+    .replace(/sk-[A-Za-z0-9]{8,}/g, 'sk-[redacted]')
 }
 
 export function logManualPacket(state: MathPilotState, task: string, packet: string): MathPilotState {

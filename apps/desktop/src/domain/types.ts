@@ -18,6 +18,11 @@ export type ActivityKind =
   | 'mixed_review'
   | 'resource_watch'
   | 'homework_review'
+  | 'retrieval_warmup'
+  | 'concept_input'
+  | 'worked_example'
+  | 'formula_recall'
+  | 'syllabus_task'
 
 export interface Skill {
   id: string
@@ -85,6 +90,8 @@ export interface AttemptInput {
   partialCredit?: number
   attemptNumber?: number
   feedbackSummary?: string
+  /** Links practice attempt to a resource the student watched beforehand. */
+  resourceId?: string
 }
 
 export interface AttemptRecord extends AttemptInput {
@@ -92,6 +99,10 @@ export interface AttemptRecord extends AttemptInput {
   createdAt: string
   masteryDelta: number
   confidence?: number
+  /** Fluency score change on the primary skill for this attempt. */
+  fluencyDelta?: number
+  /** 0–1 proxy from text-answer length when correct (conceptual retrieval). */
+  conceptualQuality?: number
 }
 
 export interface ReviewItem {
@@ -174,8 +185,11 @@ export interface HomeworkAnalysis {
   feedbackSummary: string
   rawImageSaved: boolean
   imagePath?: string
-  stepFeedback?: Array<{ step: string; correct: boolean; note: string }>
+  stepFeedback?: Array<{ step: string; correct: boolean; note: string; index?: number }>
   repairRecommendation?: { skillId: string; reason: string }
+  /** Structured steps from Codex with optional wrong-step index. */
+  steps?: Array<{ label: string; work: string; correct: boolean; note?: string }>
+  wrongStepIndex?: number
   detectedProblems?: Array<{
     label: string
     problemText: string
@@ -232,6 +246,15 @@ export interface MathPilotState {
   onboarded: boolean
   advancedMode: boolean
   sessionPace?: 'short' | 'normal' | 'deep' | 'low_energy' | 'high_focus' | 'custom'
+  /** Optional overrides when sessionPace is `custom`. */
+  customPaceAdjustments?: {
+    difficultyBias: number
+    videoPhaseWeight: number
+    reviewIntensity: number
+    introduceNewMaterial: boolean
+    problemBudget?: number
+    explanationLevel?: 'minimal' | 'normal' | 'high'
+  }
   skills: Record<string, Skill>
   mastery: Record<string, MasteryRecord>
   problems: Record<string, Problem>
@@ -264,6 +287,7 @@ export interface MathPilotState {
     difficultyBias?: number
     reviewIntensity?: number
     videoPhaseWeight?: number
+    explanationLevel?: 'minimal' | 'normal' | 'high'
   }
   testOut?: {
     skillId: string

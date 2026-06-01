@@ -3,6 +3,7 @@ import {
   phaseContentMode,
   sessionDifficultyBias,
 } from './dailySessionEngine'
+import { buildFormulaRecallProblem } from './formulaRecall'
 import { generateProblemForSkill } from './problemGenerator'
 import { pickInterleavedProblem } from './interleavingEngine'
 import { buildReviewProblem, inferReviewType } from './reviewItemEngine'
@@ -10,12 +11,17 @@ import { problemForSkill } from '../lib/mapHelpers'
 import type { ActivityKind, MathPilotState, Problem, ResourceRecord } from './types'
 
 const PHASE_TO_MODE: Partial<Record<ActivityKind, string>> = {
+  retrieval_warmup: 'mixed_review',
   mixed_review: 'mixed_review',
   guided_practice: 'guided_practice',
   independent_practice: 'independent_practice',
   quick_repair: 'quick_repair',
   resource_watch: 'guided_practice',
+  concept_input: 'guided_practice',
+  worked_example: 'guided_practice',
   homework_review: 'quick_repair',
+  formula_recall: 'formula_recall',
+  syllabus_task: 'guided_practice',
 }
 
 function difficultyMatchesBias(problem: Problem, bias: number, masteryScore: number): boolean {
@@ -45,18 +51,34 @@ export function resolveProblemForAction(
   const skillId = skillIds[0]
   if (!skillId) return { state }
 
-  const phase = phaseContentMode(currentSessionPhase(state) ?? actionKind)
-  const preferredMode = PHASE_TO_MODE[phase] ?? PHASE_TO_MODE[actionKind]
+  const rawPhase = currentSessionPhase(state) ?? actionKind
+  const phase = phaseContentMode(rawPhase)
+  const preferredMode = PHASE_TO_MODE[rawPhase] ?? PHASE_TO_MODE[phase] ?? PHASE_TO_MODE[actionKind]
   const difficultyBias = sessionDifficultyBias(state)
   const masteryScore = state.mastery[skillId]?.masteryScore ?? 0.4
 
-  if (phase === 'resource_watch' || actionKind === 'resource_watch') {
+  if (rawPhase === 'formula_recall' || actionKind === 'formula_recall') {
+    const built = buildFormulaRecallProblem(state, skillId, Date.now())
+    return { state: built.state, problemId: built.problem.id }
+  }
+
+  if (rawPhase === 'worked_example' || actionKind === 'worked_example') {
+    const example = resolveWorkedExampleProblem(state, skillId)
+    if (example) return { state, problemId: example.id }
+  }
+
+  if (phase === 'resource_watch' || actionKind === 'resource_watch' || rawPhase === 'concept_input') {
     const resource = pickResourceForSkill(state, skillId)
     const problemId = problemForSkill(state, skillId, 'guided_practice')
     return { state, problemId, resourceId: resource?.id }
   }
 
-  if (phase === 'mixed_review' || actionKind === 'mixed_review') {
+  if (
+    phase === 'mixed_review' ||
+    actionKind === 'mixed_review' ||
+    rawPhase === 'retrieval_warmup' ||
+    actionKind === 'retrieval_warmup'
+  ) {
     const reviewType = inferReviewType(state, skillId)
     const built = buildReviewProblem(state, skillId, reviewType, Date.now())
     if (built.problem) return { state: built.state, problemId: built.problem.id }
@@ -69,7 +91,7 @@ export function resolveProblemForAction(
     if (interleaved) return { state, problemId: interleaved.id }
   }
 
-  if (phase === 'guided_practice' || actionKind === 'guided_practice') {
+  if (phase === 'guided_practice' || actionKind === 'guided_practice' || rawPhase === 'syllabus_task') {
     const guided = Object.values(state.problems).find(
       (problem) =>
         problem.skillIds.includes(skillId) &&

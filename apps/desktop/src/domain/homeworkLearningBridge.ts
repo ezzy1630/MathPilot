@@ -5,6 +5,7 @@ export interface HomeworkStepFeedback {
   step: string
   correct: boolean
   note: string
+  index?: number
 }
 
 export interface HomeworkRepairRecommendation {
@@ -18,10 +19,25 @@ export interface HomeworkLearningInput {
   skillsAffected: string[]
   extractedWorkSummary: string
   stepFeedback?: HomeworkStepFeedback[]
+  steps?: HomeworkAnalysis['steps']
+  wrongStepIndex?: number
+  detectedProblems?: HomeworkAnalysis['detectedProblems']
 }
 
 export function inferStepFeedback(input: HomeworkLearningInput): HomeworkStepFeedback[] {
   if (input.stepFeedback?.length) return input.stepFeedback
+
+  if (input.steps?.length) {
+    return input.steps.map((step, index) => ({
+      step: step.label,
+      correct: typeof input.wrongStepIndex === 'number' ? index !== input.wrongStepIndex : step.correct,
+      note:
+        index === input.wrongStepIndex
+          ? step.note ?? 'This step is where the work diverges from the expected approach.'
+          : step.note ?? step.work,
+      index,
+    }))
+  }
 
   const steps: HomeworkStepFeedback[] = [
     {
@@ -31,6 +47,7 @@ export function inferStepFeedback(input: HomeworkLearningInput): HomeworkStepFee
         input.skillsAffected.length > 0
           ? `Mapped to ${input.skillsAffected.length} skill(s) in your graph.`
           : 'Could not map to a specific skill — review topic labels.',
+      index: 0,
     },
     {
       step: 'Method / setup',
@@ -41,6 +58,7 @@ export function inferStepFeedback(input: HomeworkLearningInput): HomeworkStepFee
           : input.mistakeTags.some((t) => t.includes('setup'))
             ? 'Check your initial equation or method choice before calculating.'
             : 'Verify the method matches the problem structure.',
+      index: 1,
     },
     {
       step: 'Execution',
@@ -51,6 +69,7 @@ export function inferStepFeedback(input: HomeworkLearningInput): HomeworkStepFee
           : input.correctness === 'unclear'
             ? 'Execution unclear — add clearer work or a text description.'
             : 'Steps look consistent with the expected approach.',
+      index: 2,
     },
   ]
   return steps
@@ -76,36 +95,71 @@ export function chooseRepairRecommendation(
   }
 }
 
+function learningSlices(input: HomeworkLearningInput): Array<{
+  correctness: HomeworkAnalysis['correctness']
+  mistakeTags: string[]
+  skillsAffected: string[]
+  summary: string
+}> {
+  if (input.detectedProblems?.length) {
+    return input.detectedProblems.map((problem) => ({
+      correctness: problem.correctness,
+      mistakeTags: problem.mistakeTags.length ? problem.mistakeTags : input.mistakeTags,
+      skillsAffected: input.skillsAffected,
+      summary: `${problem.label}: ${problem.problemText.slice(0, 120)}`,
+    }))
+  }
+  return [
+    {
+      correctness: input.correctness,
+      mistakeTags: input.mistakeTags,
+      skillsAffected: input.skillsAffected,
+      summary: input.extractedWorkSummary,
+    },
+  ]
+}
+
 export function applyHomeworkLearningUpdates(
   state: MathPilotState,
   input: HomeworkLearningInput,
 ): MathPilotState {
-  const skills = input.skillsAffected.filter((id) => state.skills[id])
-  if (!skills.length) return state
-
-  const correct = input.correctness === 'correct'
-  const problemId = `homework-evidence-${Date.now()}`
-
   let next = state
-  for (const skillId of skills) {
-    next = recordAttempt(next, {
-      problemId,
-      skillIds: [skillId],
-      answer: input.extractedWorkSummary.slice(0, 200),
-      correct,
-      mode: 'homework',
-      hintCount: 0,
-      seconds: 180,
-      mixed: skills.length > 1,
-      delayed: true,
-      mistakeTags: input.correctness !== 'correct' ? input.mistakeTags : undefined,
-    })
+  const slices = learningSlices(input)
+
+  for (const slice of slices) {
+    const skills = slice.skillsAffected.filter((id) => next.skills[id])
+    if (!skills.length) continue
+
+    const correct = slice.correctness === 'correct'
+    const problemId = `homework-evidence-${Date.now()}-${skills[0]}`
+
+    for (const skillId of skills) {
+      next = recordAttempt(next, {
+        problemId,
+        skillIds: [skillId],
+        answer: slice.summary.slice(0, 200),
+        correct,
+        mode: 'homework',
+        hintCount: 0,
+        seconds: 180,
+        mixed: skills.length > 1,
+        delayed: true,
+        mistakeTags: slice.correctness !== 'correct' ? slice.mistakeTags : undefined,
+        feedbackSummary:
+          typeof input.wrongStepIndex === 'number'
+            ? `Wrong at step ${input.wrongStepIndex + 1}`
+            : undefined,
+      })
+    }
   }
+
+  const touched = [...new Set(slices.flatMap((s) => s.skillsAffected))].filter((id) => state.skills[id])
+  if (!touched.length) return next
 
   return {
     ...next,
     changelog: [
-      `${new Date().toISOString()}: Homework learning loop updated mastery/review for ${skills.join(', ')}.`,
+      `${new Date().toISOString()}: Homework learning loop updated mastery/review for ${touched.join(', ')} (${slices.length} problem slice(s)).`,
       ...next.changelog,
     ],
   }
@@ -116,6 +170,7 @@ export function saveHomeworkAsWorkedExample(state: MathPilotState, analysisId: s
   if (!analysis || analysis.savedAsWorkedExample) return state
 
   const steps =
+    analysis.steps?.map((step) => `${step.label}: ${step.work}${step.note ? ` — ${step.note}` : ''}`) ??
     analysis.stepFeedback?.map((step) => `${step.step}: ${step.note}`) ??
     (analysis.extractedWorkSummary ? [analysis.extractedWorkSummary] : [analysis.problemText])
 

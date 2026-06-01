@@ -15,6 +15,20 @@ describe('reviewItemEngine', () => {
     expect(built.problem?.answerType).toBe('choice')
     expect(built.problem?.choices?.length).toBeGreaterThan(1)
   })
+
+  it('builds concept multiple-choice problems', () => {
+    const state = createInitialState('Calculus 1')
+    const built = buildReviewProblem(state, 'limits_intro', 'concept', 2)
+    expect(built.problem?.answerType).toBe('choice')
+    expect(built.problem?.expectedAnswer).toBeTruthy()
+  })
+
+  it('builds transfer problems in the same area', () => {
+    const state = createInitialState('Calculus 1')
+    const built = buildReviewProblem(state, 'related_rates', 'transfer', 3)
+    expect(built.problem?.source).toBe('review_transfer')
+    expect(built.problem?.skillIds.length).toBeGreaterThan(0)
+  })
 })
 
 describe('codexOfflineFallback', () => {

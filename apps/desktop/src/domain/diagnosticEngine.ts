@@ -1,6 +1,9 @@
 import { recordAttempt } from './learningEngine'
+import { shouldTriggerContinuingDiagnostic } from './continuingDiagnostics'
 import { problemBankForDiagnostic } from './problemBank'
 import type { AttemptInput, MathPilotState, Problem } from './types'
+
+export { shouldTriggerContinuingDiagnostic, type ContinuingDiagnosticTrigger } from './continuingDiagnostics'
 
 declare module './types' {
   interface DiagnosticSessionState {
@@ -33,81 +36,6 @@ export interface DiagnosticSummary {
   weak: string[]
   recommendedNext: string
   recommendedSkillIds: string[]
-}
-
-export interface ContinuingDiagnosticTrigger {
-  reason: string
-  skillIds: string[]
-  kind:
-    | 'mistake_pattern'
-    | 'hint_dependency'
-    | 'review_failure'
-    | 'homework_mistake'
-    | 'confidence_mismatch'
-}
-
-export function shouldTriggerContinuingDiagnostic(
-  state: MathPilotState,
-): ContinuingDiagnosticTrigger | undefined {
-  if (state.diagnostic && !state.diagnostic.completed) return undefined
-  if (!state.onboarded) return undefined
-
-  const recent = state.attempts.slice(0, 20)
-
-  const repeatedMistakes = Object.values(state.mistakePatterns).filter((pattern) => pattern.count >= 2)
-  if (repeatedMistakes.length) {
-    const top = repeatedMistakes.sort((a, b) => b.count - a.count)[0]
-    return {
-      kind: 'mistake_pattern',
-      reason: `Repeated mistake pattern: ${top.note}`,
-      skillIds: top.skillIds.slice(0, 3),
-    }
-  }
-
-  const hintFailures = recent.filter((a) => !a.correct && a.hintCount >= 2)
-  if (hintFailures.length >= 2) {
-    const skillIds = [...new Set(hintFailures.flatMap((a) => a.skillIds))].slice(0, 3)
-    return {
-      kind: 'hint_dependency',
-      reason: 'Multiple misses after heavy hint use — check whether the method is understood.',
-      skillIds,
-    }
-  }
-
-  const reviewFailures = recent.filter((a) => a.mode === 'review' && !a.correct)
-  if (reviewFailures.length >= 2) {
-    const skillIds = [...new Set(reviewFailures.flatMap((a) => a.skillIds))].slice(0, 3)
-    return {
-      kind: 'review_failure',
-      reason: 'Spaced review misses suggest retention gaps.',
-      skillIds,
-    }
-  }
-
-  const homework = state.homeworkAnalyses
-    .filter((analysis) => analysis.correctness !== 'correct' && analysis.skillsAffected.length)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
-  if (homework?.skillsAffected.length) {
-    return {
-      kind: 'homework_mistake',
-      reason: homework.feedbackSummary || 'Homework analysis flagged skills to re-check.',
-      skillIds: homework.skillsAffected.slice(0, 3),
-    }
-  }
-
-  const confidenceMismatch = recent.filter(
-    (a) => a.confidence !== undefined && ((a.confidence >= 4 && !a.correct) || (a.confidence <= 2 && a.correct)),
-  )
-  if (confidenceMismatch.length >= 3) {
-    const skillIds = [...new Set(confidenceMismatch.flatMap((a) => a.skillIds))].slice(0, 3)
-    return {
-      kind: 'confidence_mismatch',
-      reason: 'Confidence ratings do not match recent outcomes — a short diagnostic will recalibrate.',
-      skillIds,
-    }
-  }
-
-  return undefined
 }
 
 export function startContinuingDiagnostic(

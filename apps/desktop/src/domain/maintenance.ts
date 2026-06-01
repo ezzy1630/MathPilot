@@ -1,7 +1,9 @@
 import { applyMemoryCompression } from './memoryCompression'
 import { markProblemDeprecated } from './problemBank'
+import { addDays } from './learningEngine'
 import { upsertReviewItem } from './reviewScheduler'
 import { masteryState } from './learningEngine'
+import { appendSkillMaintenanceLog, writeSkillPatchPreview } from './skillFileSync'
 import type { MathPilotState, Skill } from './types'
 
 export interface MaintenanceRun {
@@ -49,17 +51,23 @@ function collectPrereqPathDuplicates(skills: Record<string, Skill>): string[] {
   return issues
 }
 
-function skillImprovementRecommendations(state: MathPilotState): string[] {
-  const recs: string[] = []
+function skillImprovementRecommendations(state: MathPilotState): Array<{ skillId: string; message: string }> {
+  const recs: Array<{ skillId: string; message: string }> = []
   for (const record of Object.values(state.mastery)) {
     if (record.masteryScore < 0.45 && record.recentFailures >= 2) {
       const name = state.skills[record.skillId]?.name ?? record.skillId
-      recs.push(`Consider patching teach/grade skills for ${name} — repeated failures (${record.recentFailures}).`)
+      recs.push({
+        skillId: record.skillId,
+        message: `Consider patching teach/grade skills for ${name} — repeated failures (${record.recentFailures}).`,
+      })
     }
   }
   for (const pattern of Object.values(state.mistakePatterns).slice(0, 8)) {
     if (pattern.count >= 4) {
-      recs.push(`Mistake pattern "${pattern.tag}" (${pattern.count}×) — review classify_mistake / quick repair skills.`)
+      recs.push({
+        skillId: pattern.skillIds[0] ?? 'general',
+        message: `Mistake pattern "${pattern.tag}" (${pattern.count}×) — review classify_mistake / quick repair skills.`,
+      })
     }
   }
   return recs
@@ -82,6 +90,7 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
   const resourceRankChanges: string[] = []
   const skillsUpdated: string[] = []
   const memoriesUpdated: string[] = []
+  const backupsCreated: string[] = []
 
   let next = state
 
@@ -90,10 +99,16 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
   if (compressed !== next) {
     const summary = (compressed as MathPilotState & { _compressionSummary?: string })._compressionSummary
     if (summary) {
-      memoriesUpdated.push('durable_notes.md')
+      memoriesUpdated.push('durable_notes.md', 'learning_model.md')
       if (typeof window !== 'undefined' && (window as Window & { __TAURI__?: unknown }).__TAURI__) {
         void import('@tauri-apps/api/core')
-          .then(({ invoke }) => invoke('append_memory_file', { filename: 'durable_notes.md', content: summary }))
+          .then(({ invoke }) => {
+            void invoke('append_memory_file', { filename: 'durable_notes.md', content: summary })
+            const learningSummary = (compressed as MathPilotState & { _learningModelSummary?: string })._learningModelSummary
+            if (learningSummary) {
+              void invoke('append_memory_file', { filename: 'learning_model.md', content: learningSummary })
+            }
+          })
           .catch(() => warnings.push('Could not append memory compression to durable_notes.md'))
       }
     }
@@ -113,7 +128,10 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
   jobsRun.push('skill_improvement')
   const recommendations = skillImprovementRecommendations(next)
   for (const rec of recommendations) {
-    changesMade.push(`Recommendation: ${rec}`)
+    changesMade.push(`Recommendation: ${rec.message}`)
+    skillsUpdated.push(rec.skillId)
+    void appendSkillMaintenanceLog(rec.message, 'system')
+    void writeSkillPatchPreview(rec.skillId, rec.message)
   }
   if (!recommendations.length) {
     changesMade.push('Skill improvement: no high-priority patches suggested.')
@@ -135,10 +153,12 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
     if (item.due < today) {
       queue = upsertReviewItem(queue, {
         ...item,
+        due: today,
+        intervalDays: Math.max(1, item.intervalDays),
         priority: Math.min(99, item.priority + 12),
-        reason: `${item.reason} (overdue bump)`,
+        reason: `${item.reason} (rescheduled overdue)`,
       })
-      reviewScheduleChanges.push(`Raised priority for overdue ${item.skillId}.`)
+      reviewScheduleChanges.push(`Rescheduled overdue ${item.skillId} to ${today}.`)
     }
   }
   next = { ...next, reviewQueue: queue }
@@ -174,8 +194,34 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
       skillsUpdated.push(record.skillId)
     }
   }
+
+  for (const skill of Object.values(next.skills)) {
+    for (const dependentId of skill.supports ?? []) {
+      const prereq = mastery[skill.id]
+      const dependent = mastery[dependentId]
+      if (!prereq || !dependent) continue
+      if (
+        prereq.masteryState === 'Mastered' &&
+        prereq.recentFailures >= 2 &&
+        dependent.recentFailures >= 1 &&
+        dependent.masteryScore < 0.55
+      ) {
+        mastery[skill.id] = {
+          ...prereq,
+          masteryScore: Math.max(0.55, prereq.masteryScore - 0.08),
+          masteryState: 'Solid',
+          reviewDue: addDays(1),
+        }
+        skillsUpdated.push(skill.id)
+        changesMade.push(
+          `Lowered mastered ${skill.name} due to recent failures blocking ${next.skills[dependentId]?.name ?? dependentId}.`,
+        )
+      }
+    }
+  }
+
   if (skillsUpdated.length) {
-    changesMade.push(`Fixed mastery state for ${skillsUpdated.length} skill(s).`)
+    changesMade.push(`Mastery/skill maintenance touched ${skillsUpdated.length} skill(s).`)
     next = { ...next, mastery }
   }
 
@@ -183,6 +229,7 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
   const backupPayload = JSON.stringify(next, null, 2)
   jobsRun.push('state_backup')
   changesMade.push(`Snapshot ${backupId} (${Math.round(backupPayload.length / 1024)} KB).`)
+  backupsCreated.push(backupId)
 
   if (typeof window !== 'undefined' && (window as Window & { __TAURI__?: unknown }).__TAURI__) {
     void import('@tauri-apps/api/core')
@@ -201,8 +248,8 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
     trigger,
     jobsRun,
     changesMade,
-    backupsCreated: [backupId],
-    skillsUpdated,
+    backupsCreated,
+    skillsUpdated: [...new Set(skillsUpdated)],
     memoriesUpdated,
     problemBankChanges,
     resourceRankChanges,

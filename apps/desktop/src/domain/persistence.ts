@@ -81,6 +81,7 @@ export async function syncAttemptRecord(attempt: AttemptRecord): Promise<void> {
       delayed: attempt.delayed,
       confidence: attempt.confidence ?? null,
       createdAt: attempt.createdAt,
+      resourceId: attempt.resourceId ?? null,
     })
   } catch {
     // best-effort incremental sync

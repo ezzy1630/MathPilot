@@ -71,6 +71,25 @@ export function primaryGraphExpression(problem: Problem): string {
   return graphPresetsForProblem(problem)[0]?.expression ?? 'y=x^2'
 }
 
+export type BuiltInGraphKind =
+  | 'function'
+  | 'tangent'
+  | 'riemann'
+  | 'sign_chart'
+  | 'taylor'
+  | 'slope_field'
+
+export function builtInGraphKindForSkill(skillId?: string): BuiltInGraphKind | null {
+  if (!skillId) return null
+  if (['taylor_series', 'taylor_polynomials', 'taylor_error'].includes(skillId)) return 'taylor'
+  if (['slope_fields', 'separable_de'].includes(skillId)) return 'slope_field'
+  if (['riemann_sums', 'definite_integrals', 'area_net_change'].includes(skillId)) return 'riemann'
+  if (['derivative_definition', 'tangent_instantaneous'].includes(skillId)) return 'tangent'
+  if (['concavity', 'extrema', 'curve_sketching', 'first_derivative_test', 'second_derivative_test'].includes(skillId))
+    return 'sign_chart'
+  return 'function'
+}
+
 export function externalGraphUrls(expression: string) {
   const expr = expression.replace(/^y=/, '')
   return {
