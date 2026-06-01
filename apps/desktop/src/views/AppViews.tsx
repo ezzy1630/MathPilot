@@ -41,6 +41,7 @@ import { attemptModeForActivity } from '../domain/activityAttemptMode'
 import { requiresShowWork } from '../domain/showWorkPolicy'
 import { applySyllabusUpload } from '../domain/syllabusUpload'
 import { MistakePatternsPanel } from '../components/MistakePatternsPanel'
+import { MasteryDimensionBars } from '../components/MasteryDimensionBars'
 import { TodayMasteryStrip } from '../components/TodayMasteryStrip'
 import { ResourceEffectivenessPanel } from '../components/ResourceEffectivenessPanel'
 import { chooseNextAction } from '../domain/learningEngine'
@@ -324,7 +325,7 @@ export function TodayView({
               {actionLabel}
             </Button>
             <Button variant="ghost" size="lg" icon={<Eye size={18} />} onClick={onWhy}>
-              Why
+              Why this now
             </Button>
             <Button
               variant="ghost"
@@ -568,6 +569,7 @@ export function ActivityView({
   generatePacket,
   requestHelp,
   codexBusy,
+  cancelCodex,
   mathFieldRef,
   startAction,
   diagnosticProgress,
@@ -602,6 +604,7 @@ export function ActivityView({
   generatePacket: (task: string) => void
   requestHelp: (task: string) => void
   codexBusy: boolean
+  cancelCodex?: () => void
   mathFieldRef: RefObject<MathfieldElement | null>
   startAction: (problemId?: string) => void
   diagnosticProgress?: string
@@ -695,9 +698,18 @@ export function ActivityView({
       label: 'Calculus',
       symbols: [
         { label: 'lim', value: '\\lim_{x\\to }' },
-        { label: 'Σ', value: '\\sum_{n=1}^{\\infty}' },
         { label: '∫', value: '\\int' },
         { label: 'd/dx', value: '\\frac{d}{dx}' },
+        { label: '∞', value: '\\infty' },
+      ],
+    },
+    {
+      label: 'Series',
+      symbols: [
+        { label: 'Σ', value: '\\sum_{n=1}^{\\infty}' },
+        { label: 'Σ_k', value: '\\sum_{k=0}^{\\infty}' },
+        { label: 'a_n', value: 'a_n' },
+        { label: 'S_n', value: 'S_n' },
       ],
     },
     {
@@ -714,22 +726,36 @@ export function ActivityView({
       symbols: [
         { label: 'π', value: '\\pi' },
         { label: 'θ', value: '\\theta' },
+        { label: 'α', value: '\\alpha' },
+        { label: 'β', value: '\\beta' },
+        { label: 'σ', value: '\\sigma' },
         { label: 'Δ', value: '\\Delta' },
-        { label: 'λ', value: '\\lambda' },
       ],
     },
     {
-      label: 'Linear',
+      label: 'Vectors',
       symbols: [
-        { label: 'vec', value: '\\vec{v}' },
-        { label: 'matrix', value: '\\begin{pmatrix}a\\\\b\\end{pmatrix}' },
+        { label: 'vec', value: '\\vec{}' },
         { label: '·', value: '\\cdot' },
         { label: '×', value: '\\times' },
+        { label: 'matrix', value: '\\begin{pmatrix}a\\\\b\\end{pmatrix}' },
+      ],
+    },
+    {
+      label: 'Parametric',
+      symbols: [
+        { label: 'x(t)', value: 'x\\left(t\\right)' },
+        { label: 'y(t)', value: 'y\\left(t\\right)' },
+        { label: 'dy/dx', value: '\\frac{dy/dt}{dx/dt}' },
+        { label: 'dt', value: '\\,dt' },
       ],
     },
     {
       label: 'Piecewise',
-      symbols: [{ label: 'cases', value: '\\begin{cases} & \\\\ & \\end{cases}' }],
+      symbols: [
+        { label: 'cases', value: '\\begin{cases} & \\\\ & \\end{cases}' },
+        { label: 'for', value: '\\quad\\text{for}\\quad' },
+      ],
     },
   ]
   const signChart = signChartForSkill(problem.skillIds[0])
@@ -744,7 +770,9 @@ export function ActivityView({
   const inspectorBody = feedback
     ? isDiagnostic
       ? 'Answer recorded. Keep moving so the map can calibrate.'
-      : feedback
+      : feedbackTone === 'correct'
+        ? feedback
+        : feedback
     : isDiagnostic
       ? 'Work cleanly. Diagnostics only need enough feedback to calibrate the map.'
       : 'Use a hint if you are blocked. If the setup feels unsteady, mark that you are lost.'
@@ -764,7 +792,11 @@ export function ActivityView({
             id.includes('integral') ||
             id.includes('riemann') ||
             id.includes('taylor') ||
-            id.includes('slope'),
+            id.includes('slope') ||
+            id.includes('series') ||
+            id.includes('polar') ||
+            id.includes('parametric') ||
+            id === 'related_rates',
         )),
   )
   const showWorkRequired = requiresShowWork(state, problem)
@@ -859,7 +891,7 @@ export function ActivityView({
               {!rawInput && (
                 <div className="math-toolbar compact" aria-label="Math input helpers">
                   {mathToolGroups
-                    .filter((group) => group.label === 'Core' || group.label === 'Calculus')
+                    .filter((group) => group.label === 'Core' || group.label === 'Calculus' || group.label === 'Series')
                     .map((group) => (
                     <div className="math-tool-group" key={group.label}>
                       <span>{group.label}</span>
@@ -880,7 +912,8 @@ export function ActivityView({
                           (group) =>
                             group.label === 'Trig' ||
                             group.label === 'Greek' ||
-                            group.label === 'Linear' ||
+                            group.label === 'Vectors' ||
+                            group.label === 'Parametric' ||
                             group.label === 'Piecewise',
                         )
                         .map((group) => (
@@ -1063,14 +1096,16 @@ export function ActivityView({
                 {attemptMode === 'review' && wrongEscalation! >= 2 && ' · explain-after-miss'}
               </p>
             )}
-            <section className="inspector-next">
-              <h4>Try next</h4>
-              <ul>
-                {(feedbackNextSteps?.length ? feedbackNextSteps : ['Recheck the setup before doing more algebra.']).map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ul>
-            </section>
+            {feedbackTone === 'correct' && (
+              <section className="inspector-next">
+                <h4>Try next</h4>
+                <ul>
+                  {(feedbackNextSteps?.length ? feedbackNextSteps : ['Try a similar problem without hints to lock in the skill.']).map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
             <div className="inspector-actions">
               <Button variant="ghost" size="sm" onClick={() => setShowSteps(!showSteps)}>
                 {showSteps ? 'Hide steps' : 'Add steps'}
@@ -1087,6 +1122,11 @@ export function ActivityView({
               >
                 {codexBusy ? 'Getting help...' : 'Ask Codex'}
               </Button>
+              {codexBusy && cancelCodex && (
+                <Button variant="ghost" size="sm" onClick={() => cancelCodex()}>
+                  Cancel Codex
+                </Button>
+              )}
               <Button
                 variant="secondary"
                 size="sm"
@@ -1333,12 +1373,15 @@ export function KnowledgeMap({
               {open &&
                 records.map(({ skill, mastery }) => (
                   <button
-                    className={`skill-row ${mastery.masteryScore < 0.4 ? 'weak' : ''} ${highlightSkillIds.includes(skill.id) ? 'weak' : ''}`}
+                    className={`skill-row ${mastery.masteryScore < 0.4 ? 'weak' : ''} ${highlightSkillIds.includes(skill.id) ? 'weak' : ''} ${state.advancedMode ? 'skill-row-advanced' : ''}`}
                     key={skill.id}
                     onClick={() => handleSkill(skill.id)}
                     aria-label={`${skill.name}, ${Math.round(mastery.masteryScore * 100)}% mastery, ${mastery.masteryState}`}
                   >
-                    <span>{skill.name}</span>
+                    <span className="skill-row-main">
+                      <span>{skill.name}</span>
+                      {state.advancedMode && <MasteryDimensionBars mastery={mastery} />}
+                    </span>
                     <MasteryBadge state={mastery.masteryState} />
                   </button>
                 ))}
@@ -1799,6 +1842,95 @@ export function SettingsView({
             </label>
           </div>
           <div className="settings-row">
+            <span>Study block reminder</span>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={state.preferences?.studyPlanReminderEnabled ?? false}
+                onChange={(event) =>
+                  update({
+                    ...state,
+                    preferences: mergePreferences(state, {
+                      studyPlanReminderEnabled: event.target.checked,
+                    }),
+                  })
+                }
+              />
+            </label>
+          </div>
+          <div className="settings-row">
+            <label htmlFor="study-block-time">Study block time</label>
+            <input
+              id="study-block-time"
+              type="time"
+              value={state.preferences?.studyBlockTime ?? '18:00'}
+              disabled={!state.preferences?.studyPlanReminderEnabled}
+              onChange={(event) =>
+                update({
+                  ...state,
+                  preferences: mergePreferences(state, {
+                    studyBlockTime: event.target.value,
+                  }),
+                })
+              }
+            />
+          </div>
+          <div className="settings-row settings-row-stack">
+            <span>Study block days</span>
+            <div className="study-block-days">
+              {[
+                { day: 0, label: 'Sun' },
+                { day: 1, label: 'Mon' },
+                { day: 2, label: 'Tue' },
+                { day: 3, label: 'Wed' },
+                { day: 4, label: 'Thu' },
+                { day: 5, label: 'Fri' },
+                { day: 6, label: 'Sat' },
+              ].map(({ day, label }) => {
+                const selected = (state.preferences?.studyBlockDays ?? [1, 2, 3, 4, 5]).includes(day)
+                return (
+                  <label key={day} className="study-block-day">
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      disabled={!state.preferences?.studyPlanReminderEnabled}
+                      onChange={(event) => {
+                        const current = state.preferences?.studyBlockDays ?? [1, 2, 3, 4, 5]
+                        const nextDays = event.target.checked
+                          ? [...new Set([...current, day])].sort((a, b) => a - b)
+                          : current.filter((value) => value !== day)
+                        update({
+                          ...state,
+                          preferences: mergePreferences(state, {
+                            studyBlockDays: nextDays,
+                          }),
+                        })
+                      }}
+                    />
+                    {label}
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+          <div className="settings-row">
+            <span>Plan to study today</span>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={state.plannedStudyToday === new Date().toISOString().slice(0, 10)}
+                onChange={(event) =>
+                  update({
+                    ...state,
+                    plannedStudyToday: event.target.checked
+                      ? new Date().toISOString().slice(0, 10)
+                      : undefined,
+                  })
+                }
+              />
+            </label>
+          </div>
+          <div className="settings-row">
             <span>Syllabus week</span>
             <select
               value={state.syllabus?.currentWeek ?? 1}
@@ -2035,6 +2167,9 @@ export function DeveloperView({
   onTestCodex,
   codexPingStatus,
   codexPingBusy,
+  codexBusy,
+  cancelCodex,
+  onImportResources,
   showFullPrompts,
   onToggleShowFullPrompts,
   onBatchVerifyBank,
@@ -2052,6 +2187,9 @@ export function DeveloperView({
   onTestCodex?: () => void
   codexPingStatus?: string | null
   codexPingBusy?: boolean
+  codexBusy?: boolean
+  cancelCodex?: () => void
+  onImportResources?: (json: string) => { ok: boolean; errors: string[]; imported: number }
   showFullPrompts?: boolean
   onToggleShowFullPrompts?: (enabled: boolean) => void
   onBatchVerifyBank?: () => void
@@ -2065,6 +2203,9 @@ export function DeveloperView({
   const [deprecateId, setDeprecateId] = useState('')
   const [deprecateReason, setDeprecateReason] = useState('manual review')
   const [inspectSkillId, setInspectSkillId] = useState(Object.keys(state.skills)[0] ?? '')
+  const [resourceImportDraft, setResourceImportDraft] = useState('')
+  const [resourceImportStatus, setResourceImportStatus] = useState<string | null>(null)
+  const [resourceImportErrors, setResourceImportErrors] = useState<string[]>([])
 
   useEffect(() => {
     void listBackups().then(setBackups)
@@ -2106,6 +2247,11 @@ export function DeveloperView({
           {onBatchVerifyBank && (
             <button type="button" className="secondary" disabled={batchVerifyBusy} onClick={onBatchVerifyBank}>
               {batchVerifyBusy ? 'Verifying bank…' : 'Batch verify bank'}
+            </button>
+          )}
+          {codexBusy && cancelCodex && (
+            <button type="button" className="secondary" onClick={() => cancelCodex()}>
+              Cancel Codex
             </button>
           )}
         </div>
@@ -2194,6 +2340,60 @@ export function DeveloperView({
           >
             Mark deprecated
           </button>
+        </div>
+        <div className="panel">
+          <h2>Import resources</h2>
+          <p className="muted">Paste a JSON array of ResourceRecord objects to merge into state.resources.</p>
+          <textarea
+            className="syllabus-upload"
+            rows={8}
+            placeholder='[{"id":"custom-video","title":"…","source":"…","url":"https://…","skillIds":["chain_rule"],"duration":"10 min","format":"video","effectivenessScore":0.7,"notes":"…"}]'
+            value={resourceImportDraft}
+            onChange={(e) => setResourceImportDraft(e.target.value)}
+            aria-label="Resource import JSON"
+          />
+          <div className="action-row">
+            <button
+              type="button"
+              className="secondary"
+              disabled={!resourceImportDraft.trim() || !onImportResources}
+              onClick={() => {
+                if (!onImportResources) return
+                const result = onImportResources(resourceImportDraft)
+                setResourceImportErrors(result.errors)
+                setResourceImportStatus(
+                  result.ok
+                    ? `Imported ${result.imported} resource${result.imported === 1 ? '' : 's'}.`
+                    : 'Import failed.',
+                )
+                if (result.ok) setResourceImportDraft('')
+              }}
+            >
+              Import resources
+            </button>
+            <label className="secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="file"
+                accept="application/json,.json"
+                aria-label="Import resources from JSON file"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (!file) return
+                  void file.text().then((text) => setResourceImportDraft(text))
+                  event.target.value = ''
+                }}
+              />
+              Load JSON file
+            </label>
+          </div>
+          {resourceImportStatus && <p className="muted">{resourceImportStatus}</p>}
+          {resourceImportErrors.length > 0 && (
+            <ul className="log-list">
+              {resourceImportErrors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
       <section className="two-column">

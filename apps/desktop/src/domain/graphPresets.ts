@@ -15,8 +15,51 @@ export function graphPresetsForProblem(problem: Problem): GraphPreset[] {
   switch (skillId) {
     case 'related_rates':
       return [
+        { label: 'Related-rates setup', expression: 'r=5', notes: 'Label known rates; differentiate the constraint equation.' },
         { label: 'Expanding circle r(t)', expression: 'r=5', notes: 'Radius vs time — relate dA/dt to dr/dt.' },
         { label: 'Area A = πr²', expression: 'y=pi*x^2', notes: 'Area as function of radius.' },
+      ]
+    case 'series_intro':
+    case 'geometric_series':
+      return [
+        {
+          label: 'Partial sums S_n (Σ 1/2^k)',
+          expression: 'y=1-0.5^x',
+          notes: 'S_n approaches 1 as n grows — geometric series with |r|<1.',
+        },
+        {
+          label: 'Terms a_n = (1/2)^n',
+          expression: 'y=0.5^x',
+          domain: [0, 12],
+          notes: 'Term size shrinks; partial sums accumulate.',
+        },
+      ]
+    case 'polar_coordinates':
+    case 'polar_area':
+      return [
+        {
+          label: 'r = 1 + cos θ',
+          expression: 'y=1+cos(x)',
+          notes: 'Polar curve sampled to Cartesian x = r cos θ, y = r sin θ.',
+        },
+        {
+          label: 'Circle r = 1',
+          expression: 'y=1',
+          notes: 'Constant radius — area element (1/2) r² dθ.',
+        },
+      ]
+    case 'parametric_equations':
+      return [
+        {
+          label: 'Circle: x = cos t, y = sin t',
+          expression: 'y=sin(x)',
+          notes: 'Parametric trace for t ∈ [0, 2π].',
+        },
+        {
+          label: 'Ellipse sample',
+          expression: 'y=0.5*sin(x)',
+          notes: 'x = cos t, y = (1/2) sin t.',
+        },
       ]
     case 'concavity':
     case 'curve_sketching':
@@ -106,19 +149,34 @@ export type BuiltInGraphKind =
   | 'sign_chart'
   | 'taylor'
   | 'slope_field'
+  | 'series_partial_sums'
+  | 'polar'
+  | 'parametric'
+  | 'related_rates_diagram'
 
 export interface BuiltInGraphPresetProps {
   kind: BuiltInGraphKind
-  fn: (x: number) => number
-  domain: [number, number]
+  fn?: (x: number) => number
+  domain?: [number, number]
   tangentAt?: number
   taylorCoeffs?: number[]
   signIntervals?: Array<{ from: number; to: number; sign: '+' | '-' | '0' }>
   title?: string
+  /** Common ratio r for Σ r^k partial sums (default 1/2). */
+  seriesRatio?: number
+  seriesTerms?: number
+  polarR?: (theta: number) => number
+  parametricX?: (t: number) => number
+  parametricY?: (t: number) => number
+  parametricDomain?: [number, number]
 }
 
 export function builtInGraphKindForSkill(skillId?: string): BuiltInGraphKind | null {
   if (!skillId) return null
+  if (['series_intro', 'geometric_series'].includes(skillId)) return 'series_partial_sums'
+  if (['polar_coordinates', 'polar_area'].includes(skillId)) return 'polar'
+  if (['parametric_equations'].includes(skillId)) return 'parametric'
+  if (skillId === 'related_rates') return 'related_rates_diagram'
   if (['taylor_series', 'taylor_polynomials', 'taylor_error'].includes(skillId)) return 'taylor'
   if (['slope_fields', 'separable_de'].includes(skillId)) return 'slope_field'
   if (['riemann_sums', 'definite_integrals', 'area_net_change'].includes(skillId)) return 'riemann'
@@ -126,6 +184,13 @@ export function builtInGraphKindForSkill(skillId?: string): BuiltInGraphKind | n
   if (['concavity', 'extrema', 'curve_sketching', 'first_derivative_test', 'second_derivative_test'].includes(skillId))
     return 'sign_chart'
   return 'function'
+}
+
+/** Partial sum S_n = Σ_{k=1}^{n} r^k for geometric-style terms (e.g. r = 1/2). */
+export function partialSumGeometric(n: number, ratio: number): number {
+  if (n <= 0) return 0
+  if (Math.abs(ratio - 1) < 1e-9) return n
+  return (ratio * (1 - ratio ** n)) / (1 - ratio)
 }
 
 export function externalGraphUrls(expression: string) {
@@ -170,8 +235,43 @@ export function builtInGraphPropsForProblem(problem: Problem, presetIndex = 0): 
   const preset = presets[presetIndex] ?? presets[0]
   if (!preset) return null
 
-  const fn = expressionToFn(preset.expression)
   const domain = preset.domain ?? DEFAULT_DOMAIN
+  const fn = preset.expression ? expressionToFn(preset.expression) : undefined
+  const title = preset.label
+
+  if (kind === 'series_partial_sums') {
+    return {
+      kind,
+      title,
+      seriesRatio: 0.5,
+      seriesTerms: 12,
+      domain: [0, 13],
+    }
+  }
+
+  if (kind === 'polar') {
+    return {
+      kind,
+      title,
+      polarR: (theta: number) => 1 + Math.cos(theta),
+    }
+  }
+
+  if (kind === 'parametric') {
+    return {
+      kind,
+      title,
+      parametricX: (t: number) => Math.cos(t),
+      parametricY: (t: number) => Math.sin(t),
+      parametricDomain: [0, 2 * Math.PI],
+    }
+  }
+
+  if (kind === 'related_rates_diagram') {
+    return { kind, title }
+  }
+
+  if (!fn) return null
 
   return {
     kind,
@@ -187,6 +287,6 @@ export function builtInGraphPropsForProblem(problem: Problem, presetIndex = 0): 
             { from: 0, to: domain[1], sign: '+' },
           ]
         : undefined),
-    title: preset.label,
+    title,
   }
 }
