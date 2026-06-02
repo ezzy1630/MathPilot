@@ -30,7 +30,7 @@ export const MathInput = forwardRef<MathfieldElement | null, MathInputProps>(fun
     field.removeExtraneousParentheses = true
     field.mathVirtualKeyboardPolicy = 'auto'
     field.inlineShortcutTimeout = 400
-    field.inlineShortcuts = mergeMathInlineShortcuts({ ...MathfieldElement.inlineShortcuts })
+    field.inlineShortcuts = mergeMathInlineShortcuts({ ...field.inlineShortcuts })
     field.placeholder = placeholder ?? 'Type your answer (try sqrt, sin, pi, / for fractions)'
   }, [placeholder])
 
