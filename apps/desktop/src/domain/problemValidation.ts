@@ -1,5 +1,6 @@
 import { checkAnswerAsync } from './mathEngine'
 import { checkAnswerSymbolic, verifyCalculusSymbolic } from './symbolicCheck'
+import type { DiagnosticProbeIntent } from './diagnosticBatchPlan'
 import type { Problem } from './types'
 
 export interface ValidateProblemResult {
@@ -94,4 +95,31 @@ export async function validateProblemAnswer(problem: Problem): Promise<ValidateP
   }
 
   return { ok, symbolic, calculus }
+}
+
+/** Gate diagnostic candidates before they enter the live queue. */
+export async function validateDiagnosticCandidate(
+  problem: Problem,
+  probe?: DiagnosticProbeIntent,
+): Promise<ValidateProblemResult> {
+  if (!problem.prompt.trim()) {
+    return { ok: false, symbolic: 'skipped', calculus: 'skipped', reason: 'empty_prompt' }
+  }
+  if (!problem.expectedAnswer.trim()) {
+    return { ok: false, symbolic: 'skipped', calculus: 'skipped', reason: 'empty_answer' }
+  }
+  if (probe && !problem.skillIds.includes(probe.skillId)) {
+    return { ok: false, symbolic: 'skipped', calculus: 'skipped', reason: 'skill_mismatch' }
+  }
+  if (problem.answerType === 'choice') {
+    const choices = problem.choices ?? []
+    if (choices.length < 2) {
+      return { ok: false, symbolic: 'skipped', calculus: 'skipped', reason: 'choice_too_few' }
+    }
+    return { ok: true, symbolic: 'skipped', calculus: 'skipped', reason: 'choice_problem' }
+  }
+  if (problem.answerType === 'text') {
+    return { ok: true, symbolic: 'skipped', calculus: 'skipped', reason: 'text_answer' }
+  }
+  return validateProblemAnswer(problem)
 }

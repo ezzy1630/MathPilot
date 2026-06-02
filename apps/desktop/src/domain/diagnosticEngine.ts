@@ -1,7 +1,10 @@
 import { recordAttempt } from './learningEngine'
 import { shouldTriggerContinuingDiagnostic } from './continuingDiagnostics'
 import { problemBankForDiagnostic } from './problemBank'
+import { trackAnsweredProblem } from './diagnosticProbeResolver'
 import type { AttemptInput, MathPilotState, Problem } from './types'
+import type { DiagnosticPlanHistoryEntry } from './diagnosticBatchPlan'
+import type { DiagnosticQuestionKind } from './diagnosticQuestionMix'
 
 export { shouldTriggerContinuingDiagnostic, type ContinuingDiagnosticTrigger } from './continuingDiagnostics'
 
@@ -10,6 +13,12 @@ declare module './types' {
     continuing?: boolean
     triggerReason?: string
     skillProbes?: Record<string, SkillProbeCounts>
+    suspectedWeakSkills?: string[]
+    planHistory?: DiagnosticPlanHistoryEntry[]
+    shownProblemIds?: string[]
+    shownPromptHashes?: string[]
+    kindsBySkill?: Record<string, DiagnosticQuestionKind[]>
+    lastPlanSource?: 'codex' | 'deterministic'
   }
 }
 
@@ -33,11 +42,17 @@ export interface DiagnosticSession {
   queue: string[]
   weakSkills: string[]
   strongSkills: string[]
-  skillProbes: Record<string, SkillProbeCounts>
+  suspectedWeakSkills?: string[]
+  skillProbes?: Record<string, SkillProbeCounts>
+  planHistory?: DiagnosticPlanHistoryEntry[]
+  shownProblemIds?: string[]
+  shownPromptHashes?: string[]
+  kindsBySkill?: Record<string, DiagnosticQuestionKind[]>
   completed: boolean
   summary?: DiagnosticSummary
   continuing?: boolean
   triggerReason?: string
+  lastPlanSource?: 'codex' | 'deterministic'
 }
 
 export interface DiagnosticSummary {
@@ -45,6 +60,19 @@ export interface DiagnosticSummary {
   weak: string[]
   recommendedNext: string
   recommendedSkillIds: string[]
+}
+
+function emptyProbeTracking(): Pick<
+  DiagnosticSession,
+  'suspectedWeakSkills' | 'planHistory' | 'shownProblemIds' | 'shownPromptHashes' | 'kindsBySkill'
+> {
+  return {
+    suspectedWeakSkills: [],
+    planHistory: [],
+    shownProblemIds: [],
+    shownPromptHashes: [],
+    kindsBySkill: {},
+  }
 }
 
 export function startContinuingDiagnostic(
@@ -70,6 +98,7 @@ export function startContinuingDiagnostic(
     completed: false,
     continuing: true,
     triggerReason: trigger?.reason,
+    ...emptyProbeTracking(),
   }
   return {
     state: { ...state, diagnostic: session },
@@ -126,6 +155,7 @@ export function startDiagnostic(state: MathPilotState): { state: MathPilotState;
     strongSkills: [],
     skillProbes: {},
     completed: false,
+    ...emptyProbeTracking(),
   }
   return {
     state: { ...state, diagnostic: session },
@@ -133,7 +163,9 @@ export function startDiagnostic(state: MathPilotState): { state: MathPilotState;
   }
 }
 
-export function diagnosticConfidenceMet(session: DiagnosticSession): boolean {
+export function diagnosticConfidenceMet(
+  session: Pick<DiagnosticSession, 'skillProbes'>,
+): boolean {
   const probed = Object.values(session.skillProbes ?? {}).filter(
     (counts) => counts.attempts >= DIAGNOSTIC_CONFIDENCE_MIN_ATTEMPTS_PER_SKILL,
   )
@@ -144,17 +176,24 @@ export function diagnosticConfidenceMet(session: DiagnosticSession): boolean {
 export function skillSelectionWeight(
   state: MathPilotState,
   skillId: string,
-  session: Pick<DiagnosticSession, 'weakSkills' | 'strongSkills' | 'skillProbes'>,
+  session: Pick<DiagnosticSession, 'weakSkills' | 'strongSkills' | 'suspectedWeakSkills'> & {
+    skillProbes?: Record<string, SkillProbeCounts>
+  },
 ): number {
   const probes = session.skillProbes?.[skillId]
   let weight = 1
 
   if (probes && probes.correct >= 2) weight *= 0.35
   if (session.weakSkills.includes(skillId)) weight *= 1.5
+  if (session.suspectedWeakSkills?.includes(skillId)) weight *= 1.35
 
   for (const weakId of session.weakSkills) {
     const weakSkill = state.skills[weakId]
     if (weakSkill?.prerequisites.includes(skillId)) weight *= 1.65
+  }
+  for (const weakId of session.suspectedWeakSkills ?? []) {
+    const weakSkill = state.skills[weakId]
+    if (weakSkill?.prerequisites.includes(skillId)) weight *= 1.45
   }
 
   if (session.strongSkills.includes(skillId) && !session.weakSkills.includes(skillId)) {
@@ -180,10 +219,43 @@ function recordSkillProbes(
   return next
 }
 
+function updateWeakStrongSets(
+  session: DiagnosticSession,
+  skillIds: string[],
+  correct: boolean,
+): Pick<DiagnosticSession, 'weakSkills' | 'strongSkills' | 'suspectedWeakSkills'> {
+  const weak = new Set(session.weakSkills)
+  const strong = new Set(session.strongSkills)
+  const suspected = new Set(session.suspectedWeakSkills ?? [])
+
+  for (const skillId of skillIds) {
+    if (correct) {
+      suspected.delete(skillId)
+      if (!weak.has(skillId)) strong.add(skillId)
+    } else {
+      strong.delete(skillId)
+      if (weak.has(skillId) || suspected.has(skillId)) {
+        weak.add(skillId)
+        suspected.delete(skillId)
+      } else {
+        suspected.add(skillId)
+      }
+    }
+  }
+
+  return {
+    weakSkills: [...weak],
+    strongSkills: [...strong],
+    suspectedWeakSkills: [...suspected],
+  }
+}
+
 export function sortSkillsByDiagnosticWeight(
   state: MathPilotState,
   skillIds: string[],
-  session: Pick<DiagnosticSession, 'weakSkills' | 'strongSkills' | 'skillProbes'>,
+  session: Pick<DiagnosticSession, 'weakSkills' | 'strongSkills' | 'suspectedWeakSkills'> & {
+    skillProbes?: Record<string, SkillProbeCounts>
+  },
 ): string[] {
   return [...skillIds].sort((a, b) => {
     const weightDiff = skillSelectionWeight(state, b, session) - skillSelectionWeight(state, a, session)
@@ -204,6 +276,7 @@ export function submitDiagnosticAnswer(
   problemId: string,
   answer: string,
   correct: boolean,
+  elapsedSeconds = 90,
 ): MathPilotState {
   const session = state.diagnostic
   if (!session || session.completed) return state
@@ -218,27 +291,37 @@ export function submitDiagnosticAnswer(
     correct,
     mode: 'diagnostic',
     hintCount: 0,
-    seconds: 90,
+    seconds: elapsedSeconds,
     mixed: true,
     delayed: false,
     mistakeTags: correct ? undefined : ['diagnostic:needs_confirmation'],
   }
 
   let next = recordAttempt(state, attemptInput)
-  const weak = new Set(session.weakSkills)
-  const strong = new Set(session.strongSkills)
-
-  for (const skillId of problem.skillIds) {
-    if (correct) strong.add(skillId)
-    else weak.add(skillId)
-  }
-
+  const weakStrong = updateWeakStrongSets(session, problem.skillIds, correct)
   const skillProbes = recordSkillProbes(session.skillProbes ?? {}, problem.skillIds, correct)
-  const sessionSnapshot = {
+
+  const probeCtx = trackAnsweredProblem(
+    {
+      weakSkills: weakStrong.weakSkills,
+      strongSkills: weakStrong.strongSkills,
+      suspectedWeakSkills: weakStrong.suspectedWeakSkills,
+      skillProbes,
+      shownProblemIds: session.shownProblemIds,
+      shownPromptHashes: session.shownPromptHashes,
+      kindsBySkill: session.kindsBySkill,
+      continuing: session.continuing,
+    },
+    problem,
+  )
+
+  const sessionSnapshot: DiagnosticSession = {
     ...session,
-    weakSkills: [...weak],
-    strongSkills: [...strong],
+    ...weakStrong,
     skillProbes,
+    shownProblemIds: probeCtx.shownProblemIds ?? [],
+    shownPromptHashes: probeCtx.shownPromptHashes ?? [],
+    kindsBySkill: probeCtx.kindsBySkill ?? {},
   }
 
   const answeredCount = session.answeredCount + 1
@@ -249,20 +332,13 @@ export function submitDiagnosticAnswer(
     currentIndex >= session.queue.length ||
     confidenceStop
 
-  let queue = session.queue
-  const shouldReprioritize =
-    !completed &&
-    !session.continuing &&
-    (!correct || answeredCount % 3 === 0)
-  if (shouldReprioritize) {
-    queue = reprioritizeDiagnosticQueue(next, sessionSnapshot, currentIndex)
-  }
-
   let summary = session.summary
   if (completed) {
-    summary = buildDiagnosticSummary(next, [...weak], [...strong])
+    summary = buildDiagnosticSummary(next, sessionSnapshot.weakSkills, sessionSnapshot.strongSkills)
+    const weakSet = new Set(sessionSnapshot.weakSkills)
+    const strongSet = new Set(sessionSnapshot.strongSkills)
     if (!session.continuing) {
-      next = applyDiagnosticMasterySignals(next, weak, strong)
+      next = applyDiagnosticMasterySignals(next, weakSet, strongSet)
       next = {
         ...next,
         onboarded: true,
@@ -288,56 +364,16 @@ export function submitDiagnosticAnswer(
       ...session,
       answeredCount,
       currentIndex,
-      queue,
-      weakSkills: [...weak],
-      strongSkills: [...strong],
+      queue: session.queue,
+      ...weakStrong,
       skillProbes,
+      shownProblemIds: probeCtx.shownProblemIds,
+      shownPromptHashes: probeCtx.shownPromptHashes,
+      kindsBySkill: probeCtx.kindsBySkill,
       completed,
       summary,
     },
   }
-}
-
-function reprioritizeDiagnosticQueue(
-  state: MathPilotState,
-  session: DiagnosticSession,
-  answeredThroughIndex: number,
-): string[] {
-  const prefix = session.queue.slice(0, answeredThroughIndex)
-  const prefixIds = new Set(prefix)
-
-  const pool = problemBankForDiagnostic(state)
-  const bySkill = new Map<string, string[]>()
-  for (const problem of pool) {
-    for (const skillId of problem.skillIds) {
-      const list = bySkill.get(skillId) ?? []
-      if (!list.includes(problem.id)) list.push(problem.id)
-      bySkill.set(skillId, list)
-    }
-  }
-
-  const orderedSkills = sortSkillsByDiagnosticWeight(state, Object.keys(state.skills), session)
-
-  const rebuilt = [...prefix]
-  const used = new Set(prefixIds)
-
-  for (const skillId of orderedSkills) {
-    for (const problemId of bySkill.get(skillId) ?? []) {
-      if (used.has(problemId)) continue
-      rebuilt.push(problemId)
-      used.add(problemId)
-      if (rebuilt.length >= session.targetCount) return rebuilt
-    }
-  }
-
-  for (const problem of pool) {
-    if (used.has(problem.id)) continue
-    rebuilt.push(problem.id)
-    used.add(problem.id)
-    if (rebuilt.length >= session.targetCount) break
-  }
-
-  return rebuilt.slice(0, session.targetCount)
 }
 
 function buildAdaptiveQueue(state: MathPilotState, pool: Problem[], target: number): string[] {
@@ -350,7 +386,12 @@ function buildAdaptiveQueue(state: MathPilotState, pool: Problem[], target: numb
     }
   }
 
-  const emptySession = { weakSkills: [] as string[], strongSkills: [] as string[], skillProbes: {} }
+  const emptySession = {
+    weakSkills: [] as string[],
+    strongSkills: [] as string[],
+    suspectedWeakSkills: [] as string[],
+    skillProbes: {},
+  }
   const ordered = sortSkillsByDiagnosticWeight(state, Object.keys(state.skills), emptySession)
 
   const queue: string[] = []
