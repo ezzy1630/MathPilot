@@ -72,6 +72,29 @@
     }
   }
 
+  @keyframes mp-plan-pulse {
+    0%,
+    100% {
+      opacity: 0.88;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .confidence-chip[aria-pressed='true'] {
+    animation: mp-chip-select 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes mp-chip-select {
+    from {
+      transform: scale(0.96);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
   @keyframes mp-modal-enter {
     from {
       opacity: 0;

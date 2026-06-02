@@ -18,6 +18,7 @@ import {
   startDiagnostic,
   submitDiagnosticAnswer,
 } from '../domain/diagnosticEngine'
+import { refreshDiagnosticPlanAsync, shouldRunDiagnosticPlanner } from '../domain/diagnosticPlanner'
 import { startDailySession, advanceDailySession } from '../domain/dailySessionEngine'
 import { analyzeHomeworkDeep } from '../domain/homeworkAnalysis'
 import { saveHomeworkAsWorkedExample } from '../domain/homeworkLearningBridge'
@@ -96,6 +97,7 @@ export function useMathPilotApp() {
   const [lostOpen, setLostOpen] = useState(false)
   const [showSteps, setShowSteps] = useState(false)
   const [codexBusy, setCodexBusy] = useState(false)
+  const [diagnosticPlanning, setDiagnosticPlanning] = useState(false)
   const [codexCallId, setCodexCallId] = useState<string | null>(null)
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome')
   const [expandedAreas, setExpandedAreas] = useState<Record<string, boolean>>({})
@@ -138,6 +140,7 @@ export function useMathPilotApp() {
           theme: 'system',
           confidencePrompts: 'review_only',
           enableCodexProblemGen: true,
+          enableAdaptiveDiagnosticCodex: true,
           enableMaintenanceCurator: true,
         },
         syllabus: loaded.syllabus ?? defaultSyllabus(loaded.currentFocus),
@@ -408,6 +411,13 @@ export function useMathPilotApp() {
     void syncAttemptRecord(merged.attempts[0])
     void syncSkillMasteryNotes(merged, activeProblem.skillIds)
 
+    if (merged.diagnostic && !merged.diagnostic.completed && shouldRunDiagnosticPlanner(merged.diagnostic)) {
+      setDiagnosticPlanning(true)
+      void refreshDiagnosticPlanAsync(merged)
+        .then((planned) => update(planned))
+        .finally(() => setDiagnosticPlanning(false))
+    }
+
     if (next.diagnostic?.completed && next.diagnostic.summary) {
       const afterDiagnostic = next.diagnostic.continuing
         ? clearContinuingDiagnosticPending({ ...next })
@@ -650,6 +660,7 @@ export function useMathPilotApp() {
     showSteps,
     setShowSteps,
     codexBusy,
+    diagnosticPlanning,
     codexCallId,
     cancelCodex,
     importResources,

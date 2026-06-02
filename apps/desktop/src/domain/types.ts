@@ -326,6 +326,8 @@ export interface MathPilotState {
     notificationsEnabled: boolean
     reportsMode: 'on_demand_only'
     enableCodexProblemGen?: boolean
+    /** When true (default), Codex reprioritizes diagnostic skills every few answers. */
+    enableAdaptiveDiagnosticCodex?: boolean
     /** When true (default), run Codex maintenance_curator after deterministic maintenance. */
     enableMaintenanceCurator?: boolean
     activeVideoMode: 'never' | 'sometimes' | 'active'

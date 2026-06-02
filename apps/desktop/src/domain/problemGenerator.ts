@@ -288,11 +288,13 @@ export async function generateProblemViaCodexAsync(
   state: MathPilotState,
   skillId: string,
   seed = Date.now(),
+  force = false,
 ): Promise<{ state: MathPilotState; record: GeneratedProblemRecord } | null> {
-  const enableCodex = Boolean(
-    (state.preferences as { enableCodexProblemGen?: boolean } | undefined)?.enableCodexProblemGen,
-  )
-  if (!state.developerModeEnabled && !enableCodex) return null
+  const prefs = state.preferences as { enableCodexProblemGen?: boolean; enableAdaptiveDiagnosticCodex?: boolean } | undefined
+  const enableCodex = Boolean(prefs?.enableCodexProblemGen)
+  const adaptiveDiagnostic =
+    Boolean(state.diagnostic && !state.diagnostic.completed && prefs?.enableAdaptiveDiagnosticCodex !== false)
+  if (!force && !state.developerModeEnabled && !enableCodex && !adaptiveDiagnostic) return null
 
   const { invokeCodexForTask } = await import('./aiAdapter')
   const stubProblem: Problem = {

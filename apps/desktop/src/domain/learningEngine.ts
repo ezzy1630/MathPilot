@@ -121,6 +121,7 @@ export function createInitialState(currentFocus: CourseFocus): MathPilotState {
       notificationsEnabled: false,
       reportsMode: 'on_demand_only',
       enableCodexProblemGen: true,
+      enableAdaptiveDiagnosticCodex: true,
       enableMaintenanceCurator: true,
       activeVideoMode: 'sometimes',
       theme: 'system',

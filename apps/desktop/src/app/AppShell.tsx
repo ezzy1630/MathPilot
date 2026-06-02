@@ -631,6 +631,7 @@ export function AppShell() {
             analyzeHomework={analyzeHomework}
             homeworkAnalyzing={homeworkAnalyzing}
             wrongEscalation={app.wrongEscalation}
+            diagnosticPlanning={app.diagnosticPlanning}
           />
         )}
         {view === 'map' && showMain && action && (

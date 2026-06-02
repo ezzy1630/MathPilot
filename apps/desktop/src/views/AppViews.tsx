@@ -612,6 +612,7 @@ export function ActivityView({
   analyzeHomework,
   homeworkAnalyzing,
   wrongEscalation = 0,
+  diagnosticPlanning = false,
 }: {
   problem?: Problem
   state: MathPilotState
@@ -650,6 +651,7 @@ export function ActivityView({
   ) => void | Promise<void>
   homeworkAnalyzing?: boolean
   wrongEscalation?: number
+  diagnosticPlanning?: boolean
 }) {
   const [rawInput, setRawInput] = useState(false)
   const [graphOpen, setGraphOpen] = useState(false)
@@ -854,6 +856,12 @@ export function ActivityView({
           <span className="activity-header-meta">{sessionLabel}</span>
         </div>
       </header>
+
+      {diagnosticPlanning && isDiagnostic && (
+        <p className="diagnostic-plan-banner" role="status" aria-live="polite">
+          Adapting the next questions from your answers…
+        </p>
+      )}
 
       {sessionPhase === 'resource_watch' && videoResource && (
         <VideoEmbed
@@ -2223,6 +2231,31 @@ export function DeveloperView({
                   confidencePrompts: state.preferences?.confidencePrompts ?? 'review_only',
                   ...state.preferences,
                   enableCodexProblemGen: e.target.checked,
+                },
+              })
+            }
+          />
+        </label>
+      </div>
+      <div className="settings-row" style={{ marginBottom: 16 }}>
+        <span>Adaptive diagnostic planning (Codex every few answers)</span>
+        <label className="toggle">
+          <input
+            type="checkbox"
+            checked={state.preferences?.enableAdaptiveDiagnosticCodex ?? true}
+            onChange={(e) =>
+              onUpdateState?.({
+                ...state,
+                preferences: {
+                  tone: state.preferences?.tone ?? 'direct',
+                  gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
+                  notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
+                  reportsMode: 'on_demand_only',
+                  activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
+                  theme: state.preferences?.theme ?? 'system',
+                  confidencePrompts: state.preferences?.confidencePrompts ?? 'review_only',
+                  ...state.preferences,
+                  enableAdaptiveDiagnosticCodex: e.target.checked,
                 },
               })
             }

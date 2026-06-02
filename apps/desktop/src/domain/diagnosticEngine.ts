@@ -180,7 +180,7 @@ function recordSkillProbes(
   return next
 }
 
-function sortSkillsByDiagnosticWeight(
+export function sortSkillsByDiagnosticWeight(
   state: MathPilotState,
   skillIds: string[],
   session: Pick<DiagnosticSession, 'weakSkills' | 'strongSkills' | 'skillProbes'>,

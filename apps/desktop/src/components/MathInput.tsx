@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, type FormEvent } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type FormEvent } from 'react'
 import 'mathlive'
 import { MathfieldElement } from 'mathlive'
 import { mergeMathInlineShortcuts } from '../lib/mathInlineShortcuts'
@@ -13,11 +13,14 @@ interface MathInputProps {
 }
 
 export const MathInput = forwardRef<MathfieldElement | null, MathInputProps>(function MathInput(
-  { value, onChange, placeholder, disabled },
+  { value, onChange, placeholder = 'Type your answer', disabled },
   forwardedRef,
 ) {
   const ref = useRef<MathfieldElement | null>(null)
+  const [focused, setFocused] = useState(false)
   useImperativeHandle(forwardedRef, () => ref.current as MathfieldElement)
+
+  const showPlaceholder = !value.trim() && !focused
 
   useEffect(() => {
     const field = ref.current
@@ -31,8 +34,8 @@ export const MathInput = forwardRef<MathfieldElement | null, MathInputProps>(fun
     field.mathVirtualKeyboardPolicy = 'auto'
     field.inlineShortcutTimeout = 400
     field.inlineShortcuts = mergeMathInlineShortcuts({ ...field.inlineShortcuts })
-    field.placeholder = placeholder ? `\\text{${placeholder}}` : '\\text{Type your answer}'
-  }, [placeholder])
+    field.placeholder = ''
+  }, [])
 
   useEffect(() => {
     const field = ref.current
@@ -43,14 +46,23 @@ export const MathInput = forwardRef<MathfieldElement | null, MathInputProps>(fun
   }, [value])
 
   return (
-    <math-field
-      ref={ref}
-      className="math-input"
-      aria-label={placeholder ?? 'Math answer'}
-      read-only={disabled}
-      onInput={(event: FormEvent<MathfieldElement>) => {
-        onChange(event.currentTarget.value)
-      }}
-    />
+    <div className={`math-input-shell${focused ? ' is-focused' : ''}${showPlaceholder ? ' is-empty' : ''}`}>
+      {showPlaceholder && (
+        <span className="math-input-placeholder" aria-hidden="true">
+          {placeholder}
+        </span>
+      )}
+      <math-field
+        ref={ref}
+        className="math-input"
+        aria-label={placeholder}
+        read-only={disabled}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onInput={(event: FormEvent<MathfieldElement>) => {
+          onChange(event.currentTarget.value)
+        }}
+      />
+    </div>
   )
 })

@@ -1511,8 +1511,30 @@ math-field.math-display-compact {
   font-family: var(--mp-font-mono);
 }
 
+.math-input-shell {
+  position: relative;
+  width: 100%;
+}
+
+.math-input-placeholder {
+  position: absolute;
+  left: 17px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--mp-text-tertiary);
+  font-size: 1.0625rem;
+  line-height: 1.4;
+  z-index: 1;
+  user-select: none;
+}
+
+.math-input-shell.is-focused .math-input-placeholder {
+  opacity: 0.72;
+}
+
 .math-input,
-math-field.math-input {
+.math-input-shell math-field.math-input {
   display: block;
   width: 100%;
   min-height: 72px;
@@ -1524,15 +1546,25 @@ math-field.math-input {
   line-height: 1.5;
   transition:
     border-color var(--mp-transition),
-    box-shadow var(--mp-transition),
-    background var(--mp-transition);
+    box-shadow var(--mp-transition);
 }
 
+.math-input-shell.is-focused math-field.math-input:focus-within,
 math-field.math-input:focus-within {
   outline: none;
-  border-color: color-mix(in srgb, var(--mp-accent) 45%, var(--mp-border-strong));
+  border-color: color-mix(in srgb, var(--mp-accent) 40%, var(--mp-border-strong));
   box-shadow: 0 0 0 3px var(--mp-focus-ring);
-  background: var(--mp-bg-elevated);
+}
+
+.diagnostic-plan-banner {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: var(--mp-radius-md);
+  border: 1px solid color-mix(in srgb, var(--mp-accent) 28%, var(--mp-border));
+  background: color-mix(in srgb, var(--mp-accent) 8%, var(--mp-surface));
+  color: var(--mp-text-secondary);
+  font-size: var(--mp-text-sm);
+  animation: mp-plan-pulse 1.4s ease-in-out infinite;
 }
 
 .math-input-hint {
@@ -1546,8 +1578,10 @@ math-field {
   --hue: 220;
   --primary: var(--mp-text);
   --text-font-family: var(--mp-font);
-  --contains-highlight-background-color: var(--mp-accent-soft);
-  --placeholder-color: var(--mp-text-tertiary);
+  --contains-highlight-background-color: transparent;
+  --selection-background-color: color-mix(in srgb, var(--mp-accent) 22%, transparent);
+  --selection-color: var(--mp-text);
+  --placeholder-color: transparent;
   --caret-color: var(--mp-text);
   color: var(--mp-text);
   font-style: normal;
@@ -1556,13 +1590,15 @@ math-field {
 .theme-dark math-field.math-input,
 .theme-dark math-field.math-display {
   color-scheme: dark;
-  --contains-highlight-background-color: var(--mp-accent-soft);
+  --contains-highlight-background-color: transparent;
+  --selection-background-color: color-mix(in srgb, var(--mp-accent) 24%, transparent);
   background: var(--mp-surface-inset);
   color: var(--mp-text);
 }
 
+.theme-dark .math-input-shell.is-focused math-field.math-input:focus-within,
 .theme-dark math-field.math-input:focus-within {
-  background: var(--mp-bg-elevated);
+  background: var(--mp-surface-inset);
 }
 
 
