@@ -251,7 +251,7 @@ export function AppShell() {
   const showMain = appState.onboarded || appState.diagnostic?.completed
 
   function navigate(nextView: AppView) {
-    if (hasActiveDiagnostic && !showMain && nextView !== 'activity' && nextView !== 'today') {
+    if (hasActiveDiagnostic && !showMain && nextView !== 'activity' && nextView !== 'today' && nextView !== 'settings') {
       setView('activity')
       return
     }
@@ -362,18 +362,16 @@ export function AppShell() {
             onClick={() => navigate('map')}
           />
         )}
+        <NavButton
+          active={view === 'settings'}
+          icon={<Settings size={19} />}
+          label="Settings"
+          onClick={() => navigate('settings')}
+        />
         <div className="rail-spacer" />
         <button type="button" className="rail-hint" onClick={() => setPaletteOpen(true)} title="Command palette (⌘K)">
           ⌘K
         </button>
-        {showMain && (
-          <NavButton
-            active={view === 'settings'}
-            icon={<Settings size={19} />}
-            label="Settings"
-            onClick={() => navigate('settings')}
-          />
-        )}
       </aside>
 
       {paletteOpen && (
@@ -661,7 +659,11 @@ export function AppShell() {
             update={update}
             chooseFocus={chooseFocus}
             reset={() => {
-              void resetPersistedState(appState.currentFocus).then((fresh) => update(fresh))
+              void resetPersistedState(appState.currentFocus).then((fresh) => {
+                setOnboardingStep('welcome')
+                setView('today')
+                update(fresh)
+              })
             }}
             openDeveloper={() => setView('developer')}
             codexPaste={codexPaste}

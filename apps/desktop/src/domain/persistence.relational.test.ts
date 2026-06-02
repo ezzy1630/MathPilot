@@ -100,4 +100,9 @@ describe('relational persistence parity', () => {
     expect(hydrated.developerState?.lastTestRun?.ok).toBe(true)
     expect(hydrated.codeChangeProposals?.[0]?.status).toBe('pending_approval')
   })
+
+  it('ignores corrupt relational localStorage instead of crashing startup', () => {
+    memoryStore.set('mathpilot.relational.v1.mastery', '{not-json')
+    expect(loadRelationalLocal()).toBeNull()
+  })
 })

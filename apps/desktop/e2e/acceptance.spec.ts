@@ -123,6 +123,23 @@ test.describe('MathPilot acceptance', () => {
     await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible({ timeout: 15_000 })
   })
 
+  test('settings remains reachable during first diagnostic recovery flow', async ({ page }) => {
+    await page.addInitScript(() => localStorage.clear())
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Set up your calculus desk' })).toBeVisible({ timeout: 15_000 })
+    await page.getByRole('button', { name: 'Continue' }).click()
+    await page.getByRole('button', { name: 'Calculus 1' }).click()
+    await page.getByRole('button', { name: 'Start adaptive diagnostic' }).click()
+    await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible({ timeout: 15_000 })
+
+    page.on('dialog', (dialog) => dialog.accept())
+    await page.getByRole('button', { name: 'Settings' }).click()
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+    await page.getByPlaceholder('Type RESET to confirm wipe').fill('RESET')
+    await page.getByRole('button', { name: 'Reset local profile' }).click()
+    await expect(page.getByRole('heading', { name: 'Set up your calculus desk' })).toBeVisible()
+  })
+
   test('onboarded user continues to activity and opens map', async ({ page }) => {
     await page.addInitScript(seedOnboardedState)
     await page.goto('/')
@@ -158,6 +175,8 @@ test.describe('MathPilot acceptance', () => {
     await page.addInitScript(seedOnboardedState)
     await page.goto('/')
     await page.getByRole('button', { name: 'Settings' }).click()
+    await expect(page.getByRole('heading', { name: 'Runtime' })).toBeVisible()
+    await expect(page.getByText(/Browser preview uses deterministic math fallbacks|SymPy checker ready/)).toBeVisible()
     const textarea = page.getByRole('textbox', { name: /Paste syllabus lines/i })
     await textarea.fill('Week 1: Limits and continuity\nMidterm 3/15\nWeek 2: Chain rule derivatives')
     await textarea.blur()

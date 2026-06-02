@@ -383,15 +383,20 @@ function buildAdaptiveQueue(state: MathPilotState, pool: Problem[], target: numb
   const queue: string[] = []
   const used = new Set<string>()
 
-  for (const skillId of ordered) {
-    const candidates = bySkill.get(skillId) ?? []
-    for (const problem of candidates) {
-      if (queue.length >= target) break
-      if (used.has(problem.id)) continue
+  let pass = 0
+  while (queue.length < target) {
+    let addedThisPass = false
+    for (const skillId of ordered) {
+      const candidates = bySkill.get(skillId) ?? []
+      const problem = candidates[pass]
+      if (!problem || used.has(problem.id)) continue
       used.add(problem.id)
       queue.push(problem.id)
+      addedThisPass = true
+      if (queue.length >= target) break
     }
-    if (queue.length >= target) break
+    if (!addedThisPass) break
+    pass += 1
   }
 
   while (queue.length < target) {

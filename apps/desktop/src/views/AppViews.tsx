@@ -71,6 +71,7 @@ import { markProblemDeprecated } from '../domain/problemBank'
 import { groupByArea, problemForSkill, readiness, areaReadiness } from '../lib/mapHelpers'
 import { Button, MasteryBadge, Modal, SegmentedControl } from '@mathpilot/ui'
 import { CustomPaceModal } from '../components/CustomPaceModal'
+import { isTauriRuntime } from '../lib/nativeChrome'
 import type { CourseFocus, MathPilotState, Problem, ResourceRecord } from '../domain/types'
 import type { AppView } from '../app/types'
 
@@ -1617,9 +1618,35 @@ export function SettingsView({
   const [resetConfirm, setResetConfirm] = useState('')
   const [syllabusDraft, setSyllabusDraft] = useState('')
   const [bevelDraft, setBevelDraft] = useState('')
+  const [runtimeStatus, setRuntimeStatus] = useState(() =>
+    isTauriRuntime()
+      ? 'Checking math runtime...'
+      : 'Browser preview uses deterministic math fallbacks. Installed builds run the bundled SymPy checker.',
+  )
   const mapping = state.syllabusMapping ?? []
   const syllabusDates = state.syllabus?.extractedDates ?? []
   const syllabusExams = state.syllabus?.extractedExams ?? []
+
+  useEffect(() => {
+    if (!isTauriRuntime()) return
+    let cancelled = false
+    void import('@tauri-apps/api/core')
+      .then(({ invoke }) => invoke<{ sympy: boolean; python: string }>('runtime_self_test'))
+      .then((result) => {
+        if (cancelled) return
+        setRuntimeStatus(
+          result.sympy
+            ? `SymPy checker ready (${result.python}).`
+            : `SymPy checker unavailable (${result.python}). Reinstall the release bundle or rebuild the Python runtime.`,
+        )
+      })
+      .catch(() => {
+        if (!cancelled) setRuntimeStatus('Math runtime self-test failed. Reinstall the release bundle.')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function toggleMappingTopic(topic: string, accepted: boolean) {
     if (!state.syllabusMapping?.length) return
@@ -1980,6 +2007,11 @@ export function SettingsView({
         </div>
 
         <div className="settings-group">
+          <h2>Runtime</h2>
+          <p className="muted">{runtimeStatus}</p>
+        </div>
+
+        <div className="settings-group">
           <h2>Keyboard shortcuts</h2>
           <dl className="keyboard-shortcuts-list">
             <div className="settings-row">
@@ -2105,7 +2137,7 @@ export function SettingsView({
                 }}
               >
                 <RotateCcw size={18} />
-                Reset
+                Reset local profile
               </button>
             </div>
           </div>

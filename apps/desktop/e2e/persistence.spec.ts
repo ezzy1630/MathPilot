@@ -41,7 +41,7 @@ test.describe('persistence (browser dev)', () => {
     await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
     await page.getByRole('button', { name: 'Settings' }).click()
     await page.getByPlaceholder('Type RESET to confirm wipe').fill('RESET')
-    await page.getByRole('button', { name: /^reset$/i }).click()
+    await page.getByRole('button', { name: 'Reset local profile' }).click()
     await expect(page.getByRole('heading', { name: 'Set up your calculus desk' })).toBeVisible({
       timeout: 15_000,
     })

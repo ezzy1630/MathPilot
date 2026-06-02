@@ -6,6 +6,16 @@ function key(table: string) {
   return `${PREFIX}.${table}`
 }
 
+function parseStoredJson<T>(table: string, fallback: T): T | null {
+  const raw = localStorage.getItem(key(table))
+  if (raw === null) return fallback
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    return null
+  }
+}
+
 /** Web/dev fallback mirroring SQLite table layout in localStorage. */
 export function saveRelationalLocal(state: MathPilotState) {
   localStorage.setItem(
@@ -58,18 +68,30 @@ export function saveRelationalLocal(state: MathPilotState) {
 }
 
 export function loadRelationalLocal(): Partial<MathPilotState> | null {
-  const mastery = localStorage.getItem(key('mastery'))
-  if (!mastery) return null
-  const settings = JSON.parse(localStorage.getItem(key('settings')) ?? '{}') as Partial<MathPilotState>
+  if (!localStorage.getItem(key('mastery'))) return null
+  const settings = parseStoredJson<Partial<MathPilotState>>('settings', {})
+  const mastery = parseStoredJson<MathPilotState['mastery']>('mastery', {})
+  const reviewQueue = parseStoredJson<MathPilotState['reviewQueue']>('review', [])
+  const problems = parseStoredJson<MathPilotState['problems']>('problems', {})
+  const attempts = parseStoredJson<MathPilotState['attempts']>('attempts', [])
+  const homeworkAnalyses = parseStoredJson<MathPilotState['homeworkAnalyses']>('homework', [])
+  const changelog = parseStoredJson<MathPilotState['changelog']>('changelog', [])
   const skillsRaw = localStorage.getItem(key('skills'))
+  const skills = skillsRaw === null ? undefined : parseStoredJson<MathPilotState['skills']>('skills', {})
+
+  if (!settings || !mastery || !reviewQueue || !problems || !attempts || !homeworkAnalyses || !changelog) {
+    return null
+  }
+  if (skillsRaw !== null && !skills) return null
+
   return {
     ...settings,
-    mastery: JSON.parse(mastery),
-    reviewQueue: JSON.parse(localStorage.getItem(key('review')) ?? '[]'),
-    problems: JSON.parse(localStorage.getItem(key('problems')) ?? '{}'),
-    attempts: JSON.parse(localStorage.getItem(key('attempts')) ?? '[]'),
-    homeworkAnalyses: JSON.parse(localStorage.getItem(key('homework')) ?? '[]'),
-    changelog: JSON.parse(localStorage.getItem(key('changelog')) ?? '[]'),
-    skills: skillsRaw ? JSON.parse(skillsRaw) : undefined,
+    mastery,
+    reviewQueue,
+    problems,
+    attempts,
+    homeworkAnalyses,
+    changelog,
+    skills: skills ?? undefined,
   }
 }

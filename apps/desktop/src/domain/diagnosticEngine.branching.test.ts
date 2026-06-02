@@ -69,4 +69,17 @@ describe('diagnostic branching', () => {
     expect(state.diagnostic?.completed).toBe(true)
     expect(state.diagnostic?.answeredCount).toBeLessThan(session.targetCount)
   })
+
+  it('starts Calculus 2 diagnostics with course-appropriate probes', () => {
+    const state = startDiagnostic(createInitialState('Calculus 2')).state
+    const queuedSkills = new Set(
+      state.diagnostic!.queue.flatMap((problemId) => state.problems[problemId]?.skillIds ?? []),
+    )
+
+    expect(state.diagnostic?.queue).toHaveLength(25)
+    expect(queuedSkills.has('chain_rule')).toBe(false)
+    expect(queuedSkills.has('integration_by_parts')).toBe(true)
+    expect(queuedSkills.has('trig_integrals')).toBe(true)
+    expect(queuedSkills.size).toBeGreaterThan(10)
+  })
 })
