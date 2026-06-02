@@ -115,6 +115,17 @@ export function createInitialState(currentFocus: CourseFocus): MathPilotState {
     resourceEvents: [],
     aiCalls: [],
     homeworkAnalyses: [],
+    preferences: {
+      tone: 'warm',
+      gamificationLevel: 'minimal',
+      notificationsEnabled: false,
+      reportsMode: 'on_demand_only',
+      enableCodexProblemGen: true,
+      enableMaintenanceCurator: true,
+      activeVideoMode: 'sometimes',
+      theme: 'system',
+      confidencePrompts: 'review_only',
+    },
     changelog: [`${todayIso()}: MathPilot local profile created for ${currentFocus}.`],
   }
 }

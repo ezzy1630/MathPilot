@@ -42,7 +42,7 @@ export function clusterHomeworkDeterministic(state: MathPilotState): Determinist
     summaryBullets.push(`${skillName} — ${tag} (${row.count}× in recent homework)`)
   }
 
-  let homeworkAnalyses = [...state.homeworkAnalyses]
+  const homeworkAnalyses = [...state.homeworkAnalyses]
   const latest = homeworkAnalyses[0]
   if (latest && latest.correctness !== 'correct' && !latest.repairRecommendation) {
     const repair = chooseRepairRecommendation(state, latest.skillsAffected, latest.mistakeTags)

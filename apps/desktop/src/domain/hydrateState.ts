@@ -37,7 +37,7 @@ export function hydrateState(partial: Partial<MathPilotState> & { currentFocus?:
     onboarded: partial.onboarded ?? false,
     advancedMode: partial.advancedMode ?? false,
     profileName: partial.profileName ?? base.profileName,
-    preferences: partial.preferences,
+    preferences: { ...base.preferences!, ...(partial.preferences ?? {}) },
     studyPlan: partial.studyPlan,
     syllabus: partial.syllabus,
     mapViewMode: partial.mapViewMode,

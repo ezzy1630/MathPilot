@@ -118,7 +118,7 @@ export async function runHomeworkClusterCurator(state: MathPilotState): Promise<
     }
   }
 
-  let homeworkAnalyses = [...next.homeworkAnalyses]
+  const homeworkAnalyses = [...next.homeworkAnalyses]
   for (const rec of payload.repair_recommendations ?? []) {
     const skillId = rec.skill_id.trim()
     if (!skillId || !next.skills[skillId]) continue

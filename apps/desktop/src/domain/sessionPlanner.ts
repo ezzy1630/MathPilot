@@ -28,7 +28,7 @@ const PHASE_TO_MODE: Partial<Record<ActivityKind, string>> = {
 type SessionPreferences = MathPilotState['preferences'] & { enableCodexProblemGen?: boolean }
 
 function codexProblemGenEnabled(state: MathPilotState): boolean {
-  return Boolean((state.preferences as SessionPreferences | undefined)?.enableCodexProblemGen)
+  return (state.preferences as SessionPreferences | undefined)?.enableCodexProblemGen !== false
 }
 
 function difficultyMatchesBias(problem: Problem, bias: number, masteryScore: number): boolean {

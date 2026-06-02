@@ -130,7 +130,7 @@ test.describe('MathPilot acceptance', () => {
     const recommendation = page.getByRole('region', { name: 'Recommended next move' })
     await expect(recommendation.locator('p.eyebrow').filter({ hasText: /^Continue$/ })).toBeVisible()
     await expect(page.getByTestId('today-continue')).toBeVisible()
-    await expect(recommendation.getByRole('button', { name: 'Why', exact: true })).toBeVisible()
+    await expect(recommendation.getByRole('button', { name: 'Why this now', exact: true })).toBeVisible()
     await expect(page.getByTestId('today-adjust')).toBeVisible()
     await page.getByTestId('today-continue').click()
     await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible({ timeout: 15_000 })

@@ -1,6 +1,7 @@
 use crate::migrations;
 use crate::relational;
 use rusqlite::{params, Connection};
+use std::env;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
@@ -72,6 +73,33 @@ fn read_codex_output(mut child: Child) -> CodexIoResult {
         stderr,
         ok,
     }
+}
+
+fn codex_command_candidates() -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+
+    if let Some(path) = env::var_os("PATH") {
+        for dir in env::split_paths(&path) {
+            candidates.push(dir.join("codex"));
+        }
+    }
+
+    if let Some(home) = env::var_os("HOME").map(PathBuf::from) {
+        candidates.push(home.join(".local").join("bin").join("codex"));
+        candidates.push(home.join("bin").join("codex"));
+    }
+
+    candidates.push(PathBuf::from("/opt/homebrew/bin/codex"));
+    candidates.push(PathBuf::from("/usr/local/bin/codex"));
+    candidates.push(PathBuf::from("codex"));
+    candidates
+}
+
+fn resolve_codex_command() -> PathBuf {
+    codex_command_candidates()
+        .into_iter()
+        .find(|candidate| candidate.exists())
+        .unwrap_or_else(|| PathBuf::from("codex"))
 }
 
 pub struct DbState(pub Mutex<Connection>);
@@ -453,7 +481,8 @@ pub fn invoke_codex(
     let timeout = Duration::from_secs(timeout_secs.unwrap_or(120));
     let call_id = call_id.unwrap_or_else(|| format!("codex-{}", chrono::Utc::now().timestamp_millis()));
 
-    let mut child = match Command::new("codex")
+    let codex_command = resolve_codex_command();
+    let mut child = match Command::new(&codex_command)
         .arg("exec")
         .arg("--skip-git-repo-check")
         .arg(&task)
@@ -467,7 +496,10 @@ pub fn invoke_codex(
             return Ok(CodexResult {
                 ok: false,
                 stdout: String::new(),
-                stderr: format!("Codex CLI not available ({e}). Use manual prompt packet mode."),
+                stderr: format!(
+                    "Codex CLI not available at {} ({e}). Install/sign in to Codex CLI, or use manual prompt packet mode.",
+                    codex_command.display()
+                ),
                 timed_out: false,
                 cancelled: false,
             });
@@ -784,7 +816,7 @@ fn ocr_homework_image_python(app: &AppHandle, image_path: String) -> Result<Stri
 }
 
 #[tauri::command]
-pub fn ocr_homework_image(app: AppHandle, image_path: String) -> Result<String, String> {
+pub fn ocr_homework_image(_app: AppHandle, image_path: String) -> Result<String, String> {
     #[cfg(all(target_os = "macos", not(debug_assertions)))]
     {
         return crate::ocr_macos::recognize_text(&image_path);
@@ -794,7 +826,7 @@ pub fn ocr_homework_image(app: AppHandle, image_path: String) -> Result<String, 
     {
         match crate::ocr_macos::recognize_text(&image_path) {
             Ok(result) if ocr_result_ok(&result) => Ok(result),
-            _ => ocr_homework_image_python(&app, image_path),
+            _ => ocr_homework_image_python(&_app, image_path),
         }
     }
 

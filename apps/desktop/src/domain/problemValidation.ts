@@ -55,8 +55,8 @@ export async function validateProblemAnswer(problem: Problem): Promise<ValidateP
   const variables = ['x']
   const expected = problem.expectedAnswer
 
-  let symbolic: ValidateProblemResult['symbolic'] = 'skipped'
   const symbolicProbe = await checkAnswerSymbolic(expected, expected, variables)
+  let symbolic: ValidateProblemResult['symbolic']
   if (symbolicProbe?.correct) {
     symbolic = 'passed'
   } else {

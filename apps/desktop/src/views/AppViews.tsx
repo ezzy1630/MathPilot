@@ -2288,7 +2288,7 @@ export function DeveloperView({
         <label className="toggle">
           <input
             type="checkbox"
-            checked={state.preferences?.enableCodexProblemGen ?? false}
+            checked={state.preferences?.enableCodexProblemGen ?? true}
             onChange={(e) =>
               onUpdateState?.({
                 ...state,

@@ -137,6 +137,7 @@ export function useMathPilotApp() {
           activeVideoMode: 'sometimes',
           theme: 'system',
           confidencePrompts: 'review_only',
+          enableCodexProblemGen: true,
           enableMaintenanceCurator: true,
         },
         syllabus: loaded.syllabus ?? defaultSyllabus(loaded.currentFocus),
@@ -160,14 +161,16 @@ export function useMathPilotApp() {
     void maybeNotifyPlannedStudy(state)
   }, [state])
 
+  const latestMaintenanceRunId = state?.maintenanceRuns?.[0]?.id
+
   useEffect(() => {
-    if (!state?.maintenanceRuns?.[0]) return
-    const runId = state.maintenanceRuns[0].id
+    if (!state || !latestMaintenanceRunId) return
+    const runId = latestMaintenanceRunId
     if (runId === lastMaintenanceRunIdRef.current) return
     lastMaintenanceRunIdRef.current = runId
     if (!shouldRunMaintenanceCurator(state)) return
     void runMaintenanceCurator(state).then((curated) => update(curated))
-  }, [state?.maintenanceRuns?.[0]?.id])
+  }, [latestMaintenanceRunId, state])
 
   function scheduleContinuingDiagnosticCurator(prev: MathPilotState, next: MathPilotState) {
     if (!shouldScheduleContinuingDiagnosticCurator(prev, next)) return next
@@ -435,7 +438,7 @@ export function useMathPilotApp() {
       resume,
     })
     setPacket(draft)
-    if (manualOnly || state.developerModeEnabled) {
+    if (manualOnly) {
       update(logManualPacket(sessionState, task, draft))
       return
     }

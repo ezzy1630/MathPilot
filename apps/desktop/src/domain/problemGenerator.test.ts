@@ -105,20 +105,20 @@ describe('problemGenerator', () => {
     expect(result!.state.problems[result!.record.problem.id]).toBeTruthy()
   })
 
-  it('skips codex generation without developer mode or preference', async () => {
-    const state = createInitialState('Calculus 1')
-    const result = await generateProblemViaCodexAsync(state, 'chain_rule', 1)
-    expect(result).toBeNull()
-  })
-
-  it('allows codex generation when enableCodexProblemGen preference is set', async () => {
+  it('skips codex generation when explicitly disabled', async () => {
     const state = {
       ...createInitialState('Calculus 1'),
       preferences: {
         ...createInitialState('Calculus 1').preferences!,
-        enableCodexProblemGen: true,
+        enableCodexProblemGen: false,
       },
     }
+    const result = await generateProblemViaCodexAsync(state, 'chain_rule', 1)
+    expect(result).toBeNull()
+  })
+
+  it('allows codex generation by default', async () => {
+    const state = createInitialState('Calculus 1')
     const result = await generateProblemViaCodexAsync(state, 'chain_rule', 2)
     expect(result).not.toBeNull()
     expect(result!.record.problem.source).toBe('codex_generated')
