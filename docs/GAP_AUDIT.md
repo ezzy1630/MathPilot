@@ -2,7 +2,9 @@
 
 **Updated:** 2026-06-01 (main branch — spec completion pass)  
 **Source spec:** [`MathPilot_spec.md`](../MathPilot_spec.md) §0–§30  
-**Status:** **COMPLETE** — every spec section is implemented or honestly marked N/A (HealthKit only).
+**Status:** **Implementation complete (inventory)** — code paths exist for every spec section or are marked N/A (HealthKit only). This is **not** production certification.
+
+**Production-ready for daily use** requires a separate evidence pass: [`PRODUCTION_CERTIFICATION.md`](PRODUCTION_CERTIFICATION.md). Do not treat **COMPLETE** below as “ship without manual QA on `/Applications/MathPilot.app`.”
 
 ---
 
@@ -16,6 +18,7 @@ pnpm test:e2e
 ```
 
 Manual Tauri pass: [`docs/MANUAL_QA_CHECKLIST.md`](MANUAL_QA_CHECKLIST.md)
+Daily-driver sign-off: [`docs/PRODUCTION_CERTIFICATION.md`](PRODUCTION_CERTIFICATION.md)
 
 ---
 

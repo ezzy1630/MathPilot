@@ -64,6 +64,7 @@ export function WhyPanel({
             className="secondary"
             onClick={onRefreshCoachInsight}
             disabled={coachInsightRefreshing}
+            aria-busy={coachInsightRefreshing || undefined}
             data-testid="why-refresh-coach-insight"
           >
             {coachInsightRefreshing ? 'Refreshing…' : 'Refresh coach insight'}

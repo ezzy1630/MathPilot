@@ -37,7 +37,7 @@ export function Button({
       {...rest}
     >
       {icon}
-      {!iconOnly && <span>{loading ? 'Working...' : children}</span>}
+      {!iconOnly && <span className={loading ? 'mp-btn-label-loading' : undefined}>{children}</span>}
     </button>
   )
 }

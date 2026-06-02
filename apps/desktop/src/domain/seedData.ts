@@ -223,7 +223,12 @@ export function expandDiagnosticProblems(course: CourseFocus): Problem[] {
   return [...base, ...mix.filter((p) => !ids.has(p.id))]
 }
 
+const allProblemsCache: Partial<Record<CourseFocus, Problem[]>> = {}
+
 export function allProblems(course: CourseFocus): Problem[] {
+  const cached = allProblemsCache[course]
+  if (cached) return cached
+
   const ids = new Set(problems.map((p) => p.id))
   const merged = [...problems]
   for (const generated of expandDiagnosticProblems(course)) {
@@ -238,5 +243,7 @@ export function allProblems(course: CourseFocus): Problem[] {
       merged.push(bank)
     }
   }
-  return enrichProblems(merged)
+  const all = enrichProblems(merged)
+  allProblemsCache[course] = all
+  return all
 }

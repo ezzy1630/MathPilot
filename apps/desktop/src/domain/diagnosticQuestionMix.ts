@@ -1,4 +1,6 @@
-import type { Problem } from './types'
+import { skillsForCourse } from './courseGraph'
+import { ensureDiagnosticMixCoverage } from './diagnosticMixFallback'
+import type { Problem, Skill } from './types'
 import { enrichProblems } from '../lib/problemLatex'
 
 export type DiagnosticQuestionKind = 'procedural' | 'choice' | 'graph' | 'error_identification'
@@ -589,10 +591,19 @@ const MIX: DiagnosticMixSpec[] = [
   },
 ]
 
+function resolveSkills(skillIds: string[]): Skill[] {
+  const byId = new Map<string, Skill>()
+  for (const focus of ['Calculus 1', 'Calculus 2'] as const) {
+    for (const skill of skillsForCourse(focus)) byId.set(skill.id, skill)
+  }
+  return skillIds.map((id) => byId.get(id)).filter((s): s is Skill => Boolean(s))
+}
+
 export function diagnosticMixForSkills(skillIds: string[]): Problem[] {
   const set = new Set(skillIds)
+  const mix = ensureDiagnosticMixCoverage(MIX, resolveSkills(skillIds))
   return enrichProblems(
-    MIX.filter((spec) => set.has(spec.skillId)).map((spec, index) => ({
+    mix.filter((spec) => set.has(spec.skillId)).map((spec, index) => ({
       id: `diag-mix-${spec.skillId}-${spec.kind}-${index}`,
       title: spec.title,
       prompt: spec.prompt,

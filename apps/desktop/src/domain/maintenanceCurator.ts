@@ -1,4 +1,5 @@
 import { ensureMemoryLoaded, invokeCodexForTask } from './aiAdapter'
+import { withCuratorCodexNotice } from './codexConfig'
 import { parseMaintenanceCuratorResponse } from './codexParser'
 import { buildLearnerSnapshot, topMistakeSkillIds } from './curatorContext'
 import { loadSkillsForPrompt } from './skillLoader'
@@ -141,12 +142,15 @@ export async function runMaintenanceCurator(state: MathPilotState): Promise<Math
 
   if (!result.ok || result.mode !== 'codex_cli') {
     await appendCuratorMemories(deterministic)
-    return patchLatestMaintenanceRun(logged, run.id, {
+    const noticed = withCuratorCodexNotice(logged, 'Maintenance curator', result, true)
+    return patchLatestMaintenanceRun(noticed, run.id, {
       codexSummary: deterministic.changelog_summary ?? maintenanceCuratorFallbackSummary(run),
     })
   }
 
-  const payload = parseMaintenanceCuratorResponse(result.stdout) ?? deterministic
+  const parsed = parseMaintenanceCuratorResponse(result.stdout)
+  const noticed = withCuratorCodexNotice(logged, 'Maintenance curator', result, Boolean(parsed))
+  const payload = parsed ?? deterministic
   await appendCuratorMemories(payload)
 
   const summary =
@@ -157,7 +161,7 @@ export async function runMaintenanceCurator(state: MathPilotState): Promise<Math
     ].join(' ') ||
     maintenanceCuratorFallbackSummary(run)
 
-  return patchLatestMaintenanceRun(logged, run.id, {
+  return patchLatestMaintenanceRun(noticed, run.id, {
     codexSummary: summary,
     warnings: payload.warnings,
     coachInsight: mergeCoachInsight(logged, payload.coach_narrative),

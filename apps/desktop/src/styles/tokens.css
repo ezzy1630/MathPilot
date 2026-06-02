@@ -1,24 +1,26 @@
 :root {
-  --mp-bg: #f4f4f5;
+  --mp-bg: #f3f3f4;
   --mp-bg-elevated: #ffffff;
-  --mp-bg-muted: #e4e4e7;
+  --mp-bg-muted: #e3e3e6;
   --mp-bg-subtle: #fafafa;
   --mp-text: #18181b;
   --mp-text-secondary: #3f3f46;
   --mp-text-tertiary: #52525b;
-  --mp-accent: #2563eb;
-  --mp-accent-hover: #1d4ed8;
+  --mp-text-muted: #71717a;
+  /* Slightly cooler primary accent — calm, not SaaS-purple */
+  --mp-accent: #1e4ec8;
+  --mp-accent-hover: #1a439f;
   --mp-on-accent: #ffffff;
-  --mp-accent-soft: rgba(37, 99, 235, 0.1);
-  --mp-accent-2: #a16207;
+  --mp-accent-soft: rgba(30, 78, 200, 0.1);
+  --mp-accent-2: #8f5f14;
   --mp-ink-panel: #18181b;
   --mp-success: #15803d;
   --mp-warning: #b45309;
   --mp-danger: #dc2626;
   --mp-border: rgba(24, 24, 27, 0.1);
   --mp-border-strong: rgba(24, 24, 27, 0.16);
-  --mp-shadow-sm: none;
-  --mp-shadow: none;
+  --mp-shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.04);
+  --mp-shadow: 0 2px 8px rgba(24, 24, 27, 0.06);
   --mp-shadow-lg: 0 16px 40px rgba(24, 24, 27, 0.12);
   --mp-radius-sm: 8px;
   --mp-radius-md: 10px;
@@ -26,12 +28,18 @@
   --mp-radius-pill: 999px;
   --mp-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
   --mp-font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
-  --mp-text-xs: 0.75rem;
+  /* Tighter type scale */
+  --mp-text-xs: 0.6875rem;
   --mp-text-sm: 0.8125rem;
-  --mp-text-base: 0.9375rem;
-  --mp-text-lg: 1.0625rem;
-  --mp-text-xl: 1.25rem;
-  --mp-text-2xl: 1.5rem;
+  --mp-text-base: 0.875rem;
+  --mp-text-lg: 1rem;
+  --mp-text-xl: 1.125rem;
+  --mp-text-2xl: 1.3125rem;
+  --mp-text-display: 1.625rem;
+  --mp-text-hero: 1.4375rem;
+  --mp-text-math: 1.375rem;
+  --mp-accent-emphasis: var(--mp-accent);
+  --mp-link: var(--mp-accent-emphasis);
   --mp-font-weight-medium: 500;
   --mp-font-weight-semibold: 600;
   --mp-font-weight-bold: 650;
@@ -40,26 +48,33 @@
   --mp-line-body: 1.5;
   --mp-mastery-unknown: #71717a;
   --mp-mastery-weak: #ea580c;
-  --mp-mastery-learning: #2563eb;
+  --mp-mastery-learning: #1e4ec8;
   --mp-mastery-solid: #16a34a;
   --mp-mastery-mastered: #0f766e;
   --mp-mastery-review: #dc2626;
-  --mp-transition: 0.18s cubic-bezier(0.25, 0.1, 0.25, 1);
+  --mp-ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --mp-ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+  --mp-duration-fast: 0.14s;
+  --mp-duration-normal: 0.2s;
+  --mp-duration-slow: 0.32s;
+  --mp-transition: var(--mp-duration-normal) var(--mp-ease-standard);
   --mp-rail-width: 200px;
   --mp-page-max: 920px;
   --mp-titlebar-height: 28px;
   --mp-traffic-light-inset: 80px;
   --mp-titlebar-height-macos: 54px;
   --mp-sidebar-top-inset: 64px;
-  --mp-bg-coach: #f4f4f5;
+  --mp-bg-coach: #f3f3f4;
   --mp-surface: #ffffff;
   --mp-surface-soft: #fafafa;
   --mp-surface-hero: color-mix(in srgb, var(--mp-accent) 5%, #ffffff);
-  --mp-surface-tools: #f4f4f5;
-  --mp-surface-inset: #f4f4f5;
-  --mp-surface-selected: rgba(37, 99, 235, 0.08);
-  --mp-focus-ring: rgba(37, 99, 235, 0.32);
+  --mp-surface-tools: #f3f3f4;
+  --mp-surface-inset: #eeeff1;
+  --mp-surface-selected: rgba(30, 78, 200, 0.08);
+  --mp-focus-ring: rgba(30, 78, 200, 0.28);
   --mp-shadow-coach: 0 12px 32px rgba(24, 24, 27, 0.08);
+  --mp-code-bg: #1c1c1e;
+  --mp-code-fg: #e8e8ed;
 }
 
 /* Codex-inspired neutral dark: restrained accent, high legibility */
@@ -72,11 +87,12 @@
   --mp-text: #f5f5f7;
   --mp-text-secondary: #d1d1d6;
   --mp-text-tertiary: #aeaeb2;
+  --mp-text-muted: #8e8e93;
   --mp-accent: #f5f5f7;
   --mp-accent-hover: #e5e5ea;
   --mp-on-accent: #1c1c1e;
   --mp-accent-soft: rgba(255, 255, 255, 0.08);
-  --mp-accent-2: #e8b84a;
+  --mp-accent-2: #d4a84a;
   --mp-ink-panel: #141416;
   --mp-border: rgba(255, 255, 255, 0.1);
   --mp-border-strong: rgba(255, 255, 255, 0.16);
@@ -90,7 +106,12 @@
   --mp-surface-tools: #242426;
   --mp-surface-inset: #1f1f21;
   --mp-surface-selected: rgba(255, 255, 255, 0.1);
-  --mp-focus-ring: rgba(255, 255, 255, 0.22);
+  --mp-focus-ring: rgba(120, 168, 255, 0.35);
+  --mp-mastery-learning: #6eb5ff;
+  --mp-accent-emphasis: #6ea8ff;
+  --mp-link: var(--mp-accent-emphasis);
+  --mp-code-bg: var(--mp-surface-inset);
+  --mp-code-fg: var(--mp-text-secondary);
   --mp-shadow-coach: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -101,5 +122,8 @@
 @media (prefers-reduced-motion: reduce) {
   :root {
     --mp-transition: 0.01ms;
+    --mp-duration-fast: 0.01ms;
+    --mp-duration-normal: 0.01ms;
+    --mp-duration-slow: 0.01ms;
   }
 }

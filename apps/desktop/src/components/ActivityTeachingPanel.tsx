@@ -111,8 +111,9 @@ export function ActivityTeachingPanel({
             icon={<Sparkles size={16} />}
             onClick={() => onRequestHelp('explain this problem')}
             disabled={codexBusy || isDiagnostic}
+            loading={codexBusy}
           >
-            {codexBusy ? 'Getting help…' : 'Ask Codex'}
+            Ask Codex
           </Button>
           {codexBusy && onCancelCodex && (
             <Button variant="ghost" size="sm" onClick={() => onCancelCodex()}>
@@ -120,7 +121,7 @@ export function ActivityTeachingPanel({
             </Button>
           )}
         </div>
-        <details className="inspector-more">
+        <details className="inspector-more" aria-label="More help">
           <summary>More help</summary>
           <div className="inspector-actions">
             <Button variant="secondary" size="sm" onClick={onTrySimilar}>

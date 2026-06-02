@@ -1,3 +1,4 @@
+import { codexTimeoutSecsForTask } from './codexConfig'
 import { loadAllMemoryForPrompt, loadMemoryFromDisk } from './memoryLoader'
 import { sha256HexSync } from './promptHash'
 import type { AiCallLog, MathPilotState, Problem } from './types'
@@ -220,6 +221,7 @@ export function stripSecretsFromLog(text: string): string {
     .replace(/(?:api[_-]?key|token|secret|password|authorization)\s*[:=]\s*\S+/gi, '[redacted]')
     .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, 'Bearer [redacted]')
     .replace(/sk-[A-Za-z0-9]{8,}/g, 'sk-[redacted]')
+    .replace(/data:image\/[a-z+]+;base64,[A-Za-z0-9+/=]{80,}/gi, 'data:image/[redacted]')
 }
 
 export function logManualPacket(state: MathPilotState, task: string, packet: string): MathPilotState {
@@ -341,6 +343,13 @@ export function logCodexCall(
   const { promptPreview, promptHash } = previewAndHash(packet)
   const responsePreview = stripSecretsFromLog(result.stdout).slice(0, 420)
   const stderrPreview = stripSecretsFromLog(result.stderr).slice(0, 420)
+  const status = result.cancelled
+    ? 'cancelled'
+    : result.timedOut
+      ? 'timed_out'
+      : result.ok
+        ? 'received'
+        : 'failed'
   const call = {
     id: `ai-${Date.now()}-${state.aiCalls.length + 1}`,
     createdAt: new Date().toISOString(),
@@ -348,11 +357,11 @@ export function logCodexCall(
     mode: result.mode === 'codex_cli' ? 'codex_cli' : 'manual_packet',
     promptPreview,
     promptHash,
-    status: result.ok ? 'received' : 'failed',
+    status,
     responsePreview,
     stderrPreview,
     sessionId: result.sessionId,
-  } as MathPilotState['aiCalls'][number]
+  } satisfies MathPilotState['aiCalls'][number]
   return {
     ...state,
     aiCalls: [call, ...state.aiCalls],
@@ -375,6 +384,7 @@ export async function invokeCodexForTask(
     homeworkId?: string
     forceNewSession?: boolean
     callId?: string
+    timeoutSecs?: number
   } = {},
 ): Promise<{ state: MathPilotState; packet: string; result: CodexInvokeResult }> {
   const memory = options.memoryLines ?? (await ensureMemoryLoaded())
@@ -393,7 +403,8 @@ export async function invokeCodexForTask(
     resume,
   })
   const callId = options.callId ?? createCodexCallId()
-  const result = await invokeCodexCli(packet, task, sessionId, { callId })
+  const timeoutSecs = options.timeoutSecs ?? codexTimeoutSecsForTask(task, state.preferences)
+  const result = await invokeCodexCli(packet, task, sessionId, { callId, timeoutSecs })
   const logged = logCodexCall(withSession, task, packet, result)
   return { state: logged, packet, result }
 }

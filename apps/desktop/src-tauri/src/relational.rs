@@ -43,7 +43,7 @@ pub fn load_relational(conn: &Connection) -> Result<Option<String>, String> {
         .query_row("SELECT COUNT(*) FROM skill_mastery", [], |r| r.get(0))
         .unwrap_or(0);
     if mastery_count == 0 {
-        return Ok(None);
+        return load_app_state_payload(conn);
     }
 
     let mut obj = Map::new();
@@ -61,7 +61,24 @@ pub fn load_relational(conn: &Connection) -> Result<Option<String>, String> {
     load_ai_calls(conn, &mut obj)?;
     load_changelog(conn, &mut obj)?;
     load_maintenance_runs(conn, &mut obj)?;
+    load_skills_graph(conn, &mut obj)?;
+    load_daily_session(conn, &mut obj)?;
     Ok(Some(Value::Object(obj).to_string()))
+}
+
+fn load_app_state_payload(conn: &Connection) -> Result<Option<String>, String> {
+    let mut stmt = conn
+        .prepare("SELECT payload FROM app_state WHERE id = 1")
+        .map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let payload: String = row.get(0).map_err(|e| e.to_string())?;
+        if payload.trim().is_empty() || payload.trim() == "{}" {
+            return Ok(None);
+        }
+        return Ok(Some(payload));
+    }
+    Ok(None)
 }
 
 fn save_settings(conn: &Connection, obj: &Map<String, Value>) -> Result<(), String> {
@@ -90,6 +107,11 @@ fn save_settings(conn: &Connection, obj: &Map<String, Value>) -> Result<(), Stri
         "continuingDiagnosticCuratorRan",
         "homeworkClusterLastRun",
         "mapHighlightSkillIds",
+        "mapViewMode",
+        "activeVideo",
+        "workedExamples",
+        "developerState",
+        "codeChangeProposals",
         "syllabus",
         "syllabusMapping",
     ] {
@@ -1296,6 +1318,78 @@ fn save_maintenance_runs(conn: &Connection, obj: &Map<String, Value>) -> Result<
             .map_err(|e| e.to_string())?;
         }
     }
+    Ok(())
+}
+
+fn load_skills_graph(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), String> {
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM skills", [], |r| r.get(0))
+        .unwrap_or(0);
+    if count == 0 {
+        return Ok(());
+    }
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, name, area, course, type, prerequisites_json, supports_json FROM skills",
+        )
+        .map_err(|e| e.to_string())?;
+    let mut skills = Map::new();
+    let rows = stmt
+        .query_map([], |row| {
+            let id: String = row.get(0)?;
+            let prereqs_json: String = row.get(5)?;
+            let supports_json: String = row.get(6)?;
+            Ok((
+                id,
+                json!({
+                    "id": row.get::<_, String>(0)?,
+                    "name": row.get::<_, String>(1)?,
+                    "area": row.get::<_, String>(2)?,
+                    "course": row.get::<_, String>(3)?,
+                    "type": row.get::<_, String>(4)?,
+                    "prerequisites": serde_json::from_str::<Value>(&prereqs_json).unwrap_or(Value::Array(vec![])),
+                    "supports": serde_json::from_str::<Value>(&supports_json).unwrap_or(Value::Array(vec![])),
+                }),
+            ))
+        })
+        .map_err(|e| e.to_string())?;
+    for row in rows.flatten() {
+        let (id, skill) = row;
+        skills.insert(id, skill);
+    }
+    if !skills.is_empty() {
+        obj.insert("skills".into(), Value::Object(skills));
+    }
+    Ok(())
+}
+
+fn load_daily_session(conn: &Connection, obj: &mut Map<String, Value>) -> Result<(), String> {
+    if obj.contains_key("dailySession") {
+        return Ok(());
+    }
+    let mut stmt = conn
+        .prepare(
+            "SELECT started_at, pace, phases_json FROM sessions ORDER BY started_at DESC LIMIT 1",
+        )
+        .map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+    let Some(row) = rows.next().map_err(|e| e.to_string())? else {
+        return Ok(());
+    };
+    let started_at: String = row.get(0).map_err(|e| e.to_string())?;
+    let pace: String = row.get(1).map_err(|e| e.to_string())?;
+    let phases_json: String = row.get(2).map_err(|e| e.to_string())?;
+    let phases = serde_json::from_str::<Value>(&phases_json).unwrap_or(Value::Array(vec![]));
+    let phase_index = phases.as_array().map(|a| a.len().saturating_sub(1)).unwrap_or(0) as i64;
+    obj.insert(
+        "dailySession".into(),
+        json!({
+            "startedAt": started_at,
+            "pace": pace,
+            "phases": phases,
+            "phaseIndex": phase_index,
+        }),
+    );
     Ok(())
 }
 

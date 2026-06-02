@@ -8,20 +8,6 @@ import type { DiagnosticQuestionKind } from './diagnosticQuestionMix'
 
 export { shouldTriggerContinuingDiagnostic, type ContinuingDiagnosticTrigger } from './continuingDiagnostics'
 
-declare module './types' {
-  interface DiagnosticSessionState {
-    continuing?: boolean
-    triggerReason?: string
-    skillProbes?: Record<string, SkillProbeCounts>
-    suspectedWeakSkills?: string[]
-    planHistory?: DiagnosticPlanHistoryEntry[]
-    shownProblemIds?: string[]
-    shownPromptHashes?: string[]
-    kindsBySkill?: Record<string, DiagnosticQuestionKind[]>
-    lastPlanSource?: 'codex' | 'deterministic'
-  }
-}
-
 export const DIAGNOSTIC_TARGET_QUESTIONS = 25
 export const MINI_DIAGNOSTIC_MIN = 8
 export const MINI_DIAGNOSTIC_MAX = 12

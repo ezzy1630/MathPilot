@@ -175,7 +175,13 @@ export async function resolveDiagnosticProbeAsync(
     const problem = { ...generated.record.problem, mode: 'diagnostic' as const }
     const accepted = await tryAccept(problem, 'template_engine')
     if (accepted) {
-      return { state: generated.state, result: accepted.result }
+      return {
+        state: {
+          ...accepted.state,
+          changelog: generated.state.changelog,
+        },
+        result: accepted.result,
+      }
     }
   }
 

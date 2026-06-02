@@ -13,7 +13,7 @@ export function looksLikeMath(text: string): boolean {
   const trimmed = text.trim()
   if (!trimmed) return false
   if (isAlreadyLatex(trimmed)) return true
-  return /[\^/_]|\\to|→|∞|π|θ|∫|∑|lim\s|d\/d|[a-zA-Z]\'|f'|f''|\([^)]*[xy0-9][^)]*\)|sin\(|cos\(|tan\(|ln\(|e\^|sqrt\(|[0-9][xy]|\\frac|\\sqrt|\\sin|\\cos|\\lim|\\int|\\sum|≤|≥|≠|±|\||\^\(|\\pi|\\theta/i.test(
+  return /[\^/_]|\\to|→|∞|π|θ|∫|∑|lim\s|d\/d|[a-zA-Z]'|f'|f''|\([^)]*[xy0-9][^)]*\)|sin\(|cos\(|tan\(|ln\(|e\^|sqrt\(|[0-9][xy]|\\frac|\\sqrt|\\sin|\\cos|\\lim|\\int|\\sum|≤|≥|≠|±|\||\^\(|\\pi|\\theta/i.test(
     trimmed,
   )
 }
@@ -79,7 +79,7 @@ function replaceOneFractionPass(prompt: string): string {
           index = denominator.next
           continue
         }
-        const simpleDenMatch = prompt.slice(afterSlash).match(/^([a-zA-Z0-9^{}\s+\-]+)/)
+        const simpleDenMatch = prompt.slice(afterSlash).match(/^([a-zA-Z0-9^{}\s+-]+)/)
         if (simpleDenMatch) {
           output += `\\frac{${numerator.value.slice(1, -1).trim()}}{${simpleDenMatch[1].trim()}}`
           index = afterSlash + simpleDenMatch[1].length

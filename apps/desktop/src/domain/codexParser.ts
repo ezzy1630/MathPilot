@@ -1,3 +1,5 @@
+import { extractJsonObject } from './codexJson'
+import { sanitizeCodexResponse } from './codexTrust'
 import type { MathPilotState, NextAction } from './types'
 
 export interface CodexResponsePayload {
@@ -50,24 +52,140 @@ export interface HomeworkClusterPayload {
   }>
 }
 
-function extractJsonObject(stdout: string): Record<string, unknown> | null {
-  const trimmed = stdout.trim()
-  if (!trimmed) return null
+export interface HomeworkCodexPayload {
+  problemText: string
+  extractedWorkSummary: string
+  detectedTopic: string
+  correctness: 'correct' | 'incorrect' | 'unclear'
+  mistakeTags: string[]
+  skillsAffected: string[]
+  feedbackSummary: string
+  steps?: Array<{ label: string; work: string; correct: boolean; note?: string }>
+  wrongStepIndex?: number
+  detectedProblems?: Array<{
+    label: string
+    problemText: string
+    correctness: 'correct' | 'incorrect' | 'unclear'
+    mistakeTags: string[]
+  }>
+  stepFeedback?: Array<{ step: string; correct: boolean; note: string; index?: number }>
+}
 
-  const jsonMatch = trimmed.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) return null
-
-  try {
-    return JSON.parse(jsonMatch[0]) as Record<string, unknown>
-  } catch {
-    return null
-  }
+export interface CodexInspectPayload {
+  resolution?: 'symbolic' | 'codex' | 'symbolic_preferred'
+  correct?: boolean
+  feedback_to_user?: string
+  confidence?: number
 }
 
 export function parseCodexResponse(stdout: string): CodexResponsePayload | null {
   const parsed = extractJsonObject(stdout)
   if (!parsed) return null
   return parsed as CodexResponsePayload
+}
+
+export function parseCodexInspectResponse(stdout: string): CodexInspectPayload | null {
+  const parsed = extractJsonObject(stdout)
+  if (!parsed) return null
+  const resolution = parsed.resolution
+  const validResolution =
+    resolution === 'symbolic' || resolution === 'codex' || resolution === 'symbolic_preferred'
+      ? resolution
+      : undefined
+  if (!validResolution && typeof parsed.correct !== 'boolean') return null
+  return {
+    resolution: validResolution,
+    correct: typeof parsed.correct === 'boolean' ? parsed.correct : undefined,
+    feedback_to_user:
+      typeof parsed.feedback_to_user === 'string' ? parsed.feedback_to_user : undefined,
+    confidence: typeof parsed.confidence === 'number' ? parsed.confidence : undefined,
+  }
+}
+
+export function parseHomeworkCodexResponse(stdout: string): HomeworkCodexPayload | null {
+  const parsed = extractJsonObject(stdout)
+  if (!parsed) return null
+
+  const correctness = String(parsed.correctness ?? 'unclear')
+  const validCorrectness = ['correct', 'incorrect', 'unclear'].includes(correctness)
+    ? (correctness as HomeworkCodexPayload['correctness'])
+    : 'unclear'
+
+  const problemText = String(parsed.problem_text ?? parsed.problemText ?? parsed.feedback_to_user ?? '').trim()
+  if (!problemText) return null
+
+  const steps = Array.isArray(parsed.steps)
+    ? parsed.steps
+        .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+        .map((row, index) => ({
+          label: String(row.label ?? row.step ?? `Step ${index + 1}`),
+          work: String(row.work ?? row.note ?? ''),
+          correct: Boolean(row.correct),
+          note: row.note ? String(row.note) : undefined,
+        }))
+    : undefined
+
+  const wrongStepIndex =
+    typeof parsed.wrong_step_index === 'number'
+      ? parsed.wrong_step_index
+      : typeof parsed.wrongStepIndex === 'number'
+        ? parsed.wrongStepIndex
+        : undefined
+
+  const parseProblems = (raw: unknown) => {
+    if (!Array.isArray(raw)) return undefined
+    return raw
+      .map((item, index) => {
+        if (!item || typeof item !== 'object') return null
+        const row = item as Record<string, unknown>
+        const c = String(row.correctness ?? 'unclear')
+        const valid = ['correct', 'incorrect', 'unclear'].includes(c)
+          ? (c as HomeworkCodexPayload['correctness'])
+          : 'unclear'
+        const text = String(row.problem_text ?? row.problemText ?? '').trim()
+        if (!text) return null
+        return {
+          label: String(row.label ?? `Problem ${index + 1}`),
+          problemText: text,
+          correctness: valid,
+          mistakeTags: Array.isArray(row.mistake_tags)
+            ? (row.mistake_tags as string[]).filter((t) => typeof t === 'string')
+            : [],
+        }
+      })
+      .filter(Boolean) as NonNullable<HomeworkCodexPayload['detectedProblems']>
+  }
+
+  const stepFeedback = Array.isArray(parsed.step_feedback)
+    ? parsed.step_feedback
+        .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+        .map((row, index) => ({
+          step: String(row.step ?? `Step ${index + 1}`),
+          correct: Boolean(row.correct),
+          note: String(row.note ?? ''),
+          index: typeof row.index === 'number' ? row.index : index,
+        }))
+    : undefined
+
+  return {
+    problemText,
+    extractedWorkSummary: String(
+      parsed.extracted_work_summary ?? parsed.extractedWorkSummary ?? parsed.feedback_to_user ?? '',
+    ),
+    detectedTopic: String(parsed.detected_topic ?? parsed.detectedTopic ?? 'Calculus work'),
+    correctness: validCorrectness,
+    mistakeTags: Array.isArray(parsed.mistake_tags)
+      ? (parsed.mistake_tags as string[]).filter((t) => typeof t === 'string').slice(0, 24)
+      : [],
+    skillsAffected: Array.isArray(parsed.skills_affected)
+      ? (parsed.skills_affected as string[]).filter((t) => typeof t === 'string').slice(0, 12)
+      : [],
+    feedbackSummary: String(parsed.feedback_summary ?? parsed.feedback_to_user ?? ''),
+    steps,
+    wrongStepIndex,
+    detectedProblems: parseProblems(parsed.problems) ?? parseProblems(parsed.detected_problems),
+    stepFeedback,
+  }
 }
 
 export function parseDiagnosticCuratorResponse(stdout: string): DiagnosticCuratorPayload | null {
@@ -186,21 +304,22 @@ export function parseHomeworkClusterResponse(stdout: string): HomeworkClusterPay
 }
 
 export function applyCodexResponse(state: MathPilotState, payload: CodexResponsePayload): MathPilotState {
+  const safe = sanitizeCodexResponse(state, payload)
   const next: MathPilotState = { ...state, mastery: { ...state.mastery }, mistakePatterns: { ...state.mistakePatterns } }
-  if (payload.mistake_tags?.length) {
-    for (const tag of payload.mistake_tags) {
+  if (safe.mistake_tags?.length) {
+    for (const tag of safe.mistake_tags) {
       const existing = next.mistakePatterns[tag]
       next.mistakePatterns[tag] = {
         tag,
         skillIds: existing?.skillIds ?? [],
         count: (existing?.count ?? 0) + 1,
         lastSeen: new Date().toISOString(),
-        note: payload.feedback_to_user?.slice(0, 200) ?? existing?.note ?? '',
+        note: safe.feedback_to_user?.slice(0, 200) ?? existing?.note ?? '',
       }
     }
   }
 
-  const updates = payload.state_updates
+  const updates = safe.state_updates
   if (updates && typeof updates === 'object') {
     const listIncrease = updates.skills_to_increase
     if (Array.isArray(listIncrease)) {
@@ -265,20 +384,25 @@ export function applyCodexResponse(state: MathPilotState, payload: CodexResponse
     }
   }
 
+  const hintAction = safe.recommended_next_action
   const hintReason =
-    payload.recommended_next_action?.reason ??
-    payload.feedback_to_user?.slice(0, 280) ??
-    next.codexHint?.reason
+    hintAction?.reason ?? safe.feedback_to_user?.slice(0, 280) ?? next.codexHint?.reason
 
   return {
     ...next,
-    codexHint: hintReason ? { reason: hintReason } : next.codexHint,
+    codexHint: hintReason
+      ? {
+          ...next.codexHint,
+          ...hintAction,
+          reason: hintReason,
+        }
+      : next.codexHint,
     pendingCodexAnswer:
-      typeof payload.answer_is_correct === 'boolean'
-        ? { correct: payload.answer_is_correct, feedback: payload.feedback_to_user }
+      typeof safe.answer_is_correct === 'boolean'
+        ? { correct: safe.answer_is_correct, feedback: safe.feedback_to_user }
         : next.pendingCodexAnswer,
     changelog: [
-      `${new Date().toISOString()}: Codex response applied${payload.recommended_next_action ? ' (next action hint)' : ''}${payload.feedback_to_user ? '' : ' (no feedback text)'}.`,
+      `${new Date().toISOString()}: Codex response applied${hintAction ? ' (next action hint)' : ''}${safe.feedback_to_user ? '' : ' (no feedback text)'}.`,
       ...next.changelog,
     ],
   }

@@ -5,6 +5,14 @@ const INTERMEDIATE_HINTS: Record<string, string[]> = {
   u_substitution: ['u', 'du', 'integrate'],
   integration_by_parts: ['u', 'dv', 'uv'],
   related_rates: ['differentiate', 'dr/dt', 'equation'],
+  product_rule: ['u', 'v', 'u\'v+uv\''],
+  quotient_rule: ['u', 'v', '(u\'v-uv\')/v^2'],
+  implicit_differentiation: ['differentiate both sides', 'dy/dx', 'solve'],
+  optimization: ['constraint', 'f\'(x)=0', 'endpoints'],
+  partial_fractions: ['factor denominator', 'A/(x-a)', 'cover'],
+  series_test_selection: ['term form', 'test name', 'conclusion'],
+  limits_intro: ['substitute', 'factor', 'limit value'],
+  definite_integrals: ['antiderivative', 'F(b)-F(a)', 'evaluate'],
 }
 
 function expectedForStep(skillId: string | undefined, stepIndex: number, finalExpected: string): string {

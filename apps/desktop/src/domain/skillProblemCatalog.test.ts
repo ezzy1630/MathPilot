@@ -6,6 +6,8 @@ import { skillsForCourse } from './courseGraph'
 import { diagnosticProblemForSkill, expandDiagnosticProblemsForSkills } from './diagnosticTemplates'
 import { generateProblemForSkill } from './problemGenerator'
 import { catalogSkillIds, hasCatalogEntry, SKILL_CATALOG } from './skillProblemCatalog'
+import { MIN_PRACTICE_PER_SKILL } from './catalogVariants'
+import { getMergedSkillCatalog, resetMergedCatalogCache } from './mergedCatalog'
 import { SKILL_CATALOG_EXTENSION } from './skillProblemCatalogExtension'
 import { expandDiagnosticProblems } from './seedData'
 import { createInitialState } from './learningEngine'
@@ -43,6 +45,22 @@ describe('skillProblemCatalog', () => {
         expect(spec.difficulty).toBeGreaterThanOrEqual(0.2)
         expect(spec.difficulty).toBeLessThanOrEqual(0.8)
       }
+    }
+  })
+
+  it('merged catalog meets minimum practice and enrichment for all graph skills', () => {
+    resetMergedCatalogCache()
+    const graphIds = allGraphSkillIds()
+    const catalog = getMergedSkillCatalog()
+    const missing = graphIds.filter((id) => !catalog[id])
+    expect(missing, `missing merged catalog: ${missing.join(', ')}`).toEqual([])
+    for (const id of graphIds) {
+      const entry = catalog[id]
+      expect(entry.practice.length, id).toBeGreaterThanOrEqual(MIN_PRACTICE_PER_SKILL)
+      const spec = entry.practice[0]
+      expect(spec.hintSequence.length, id).toBeGreaterThanOrEqual(3)
+      expect(spec.tags?.length, id).toBeGreaterThan(0)
+      expect(spec.workedExample?.length, id).toBeGreaterThan(0)
     }
   })
 })

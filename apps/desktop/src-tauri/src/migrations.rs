@@ -1,4 +1,27 @@
 use rusqlite::Connection;
+use std::path::Path;
+
+const TARGET_SCHEMA_VERSION: i32 = 11;
+
+pub fn backup_database_file(conn: &Connection, label: &str) -> Result<Option<String>, String> {
+    let db_path: String = conn
+        .query_row(
+            "SELECT file FROM pragma_database_list WHERE name = 'main' AND seq = 0",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+    if db_path.is_empty() || db_path == ":memory:" {
+        return Ok(None);
+    }
+    let source = Path::new(&db_path);
+    if !source.exists() {
+        return Ok(None);
+    }
+    let backup_path = source.with_extension(format!("pre-{label}.bak"));
+    std::fs::copy(source, &backup_path).map_err(|e| e.to_string())?;
+    Ok(Some(backup_path.to_string_lossy().to_string()))
+}
 
 pub fn run_migrations(conn: &Connection) -> Result<(), String> {
     conn.execute_batch(
@@ -16,6 +39,10 @@ pub fn run_migrations(conn: &Connection) -> Result<(), String> {
             |row| row.get(0),
         )
         .map_err(|e| e.to_string())?;
+
+    if current < TARGET_SCHEMA_VERSION {
+        let _ = backup_database_file(conn, &format!("migration-v{current}-to-v{TARGET_SCHEMA_VERSION}"));
+    }
 
     if current < 1 {
         migration_v1(conn)?;
@@ -399,6 +426,35 @@ mod tests {
     use super::*;
     use crate::relational;
     use rusqlite::Connection;
+    use tempfile;
+
+    #[test]
+    fn load_relational_falls_back_to_app_state_when_mastery_empty() {
+        let conn = Connection::open_in_memory().expect("in-memory db");
+        run_migrations(&conn).expect("migrations");
+        let payload = r#"{"profileName":"LegacyOnly","currentFocus":"Calculus 1","onboarded":true,"advancedMode":false,"mastery":{},"reviewQueue":[],"problems":{},"attempts":[]}"#;
+        let now = chrono::Utc::now().to_rfc3339();
+        conn.execute(
+            "INSERT INTO app_state (id, payload, updated_at) VALUES (1, ?1, ?2)",
+            rusqlite::params![payload, now],
+        )
+        .expect("seed app_state");
+        let loaded = relational::load_relational(&conn)
+            .expect("load")
+            .expect("payload");
+        assert!(loaded.contains("LegacyOnly"));
+    }
+
+    #[test]
+    fn pre_migration_backup_created_for_file_db() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("mathpilot.sqlite");
+        let conn = Connection::open(&db_path).expect("open db");
+        run_migrations(&conn).expect("migrations");
+        let backup = backup_database_file(&conn, "test").expect("backup");
+        assert!(backup.is_some());
+        assert!(std::path::Path::new(&backup.unwrap()).exists());
+    }
 
     #[test]
     fn migrations_apply_through_v10() {

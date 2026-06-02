@@ -1,6 +1,13 @@
-import { createPromptPacket, ensureMemoryLoaded, invokeCodexCli, resolveCodexSession } from './aiAdapter'
+import {
+  createPromptPacket,
+  ensureMemoryLoaded,
+  invokeCodexCli,
+  logCodexCall,
+  resolveCodexSession,
+} from './aiAdapter'
+import { codexTimeoutSecsForTask } from './codexConfig'
+import { parseHomeworkCodexResponse } from './codexParser'
 import { loadSkillsForPrompt } from './skillLoader'
-import { parseCodexResponse } from './codexParser'
 import {
   applyHomeworkLearningUpdates,
   chooseRepairRecommendation,
@@ -77,42 +84,6 @@ function keywordFallback(text: string): ParsedHomework {
   }
 }
 
-function parseSteps(raw: unknown): HomeworkAnalysis['steps'] | undefined {
-  if (!Array.isArray(raw)) return undefined
-  return raw
-    .map((item, index) => {
-      if (!item || typeof item !== 'object') return null
-      const row = item as Record<string, unknown>
-      return {
-        label: String(row.label ?? row.step ?? `Step ${index + 1}`),
-        work: String(row.work ?? row.note ?? ''),
-        correct: Boolean(row.correct),
-        note: row.note ? String(row.note) : undefined,
-      }
-    })
-    .filter(Boolean) as NonNullable<HomeworkAnalysis['steps']>
-}
-
-function parseDetectedProblems(raw: unknown): HomeworkAnalysis['detectedProblems'] | undefined {
-  if (!Array.isArray(raw)) return undefined
-  return raw
-    .map((item, index) => {
-      if (!item || typeof item !== 'object') return null
-      const row = item as Record<string, unknown>
-      const correctness = String(row.correctness ?? 'unclear')
-      const valid = ['correct', 'incorrect', 'unclear'].includes(correctness)
-        ? (correctness as HomeworkAnalysis['correctness'])
-        : 'unclear'
-      return {
-        label: String(row.label ?? `Problem ${index + 1}`),
-        problemText: String(row.problem_text ?? row.problemText ?? ''),
-        correctness: valid,
-        mistakeTags: Array.isArray(row.mistake_tags) ? (row.mistake_tags as string[]) : [],
-      }
-    })
-    .filter((p) => p && p.problemText.length > 0) as HomeworkAnalysis['detectedProblems']
-}
-
 function parseStepFeedback(raw: unknown, steps?: HomeworkAnalysis['steps'], wrongStepIndex?: number): HomeworkStepFeedback[] | undefined {
   if (Array.isArray(raw)) {
     return raw
@@ -150,7 +121,7 @@ function parseStepFeedback(raw: unknown, steps?: HomeworkAnalysis['steps'], wron
 async function analyzeWithCodex(
   state: MathPilotState,
   input: HomeworkUploadInput,
-): Promise<ParsedHomework | null> {
+): Promise<{ parsed: ParsedHomework | null; state: MathPilotState; failureReason?: string }> {
   const memory = await ensureMemoryLoaded()
   const skillBodies = await loadSkillsForPrompt('homework_analysis', [])
   const homeworkId = input.imageFileName ?? `hw-${Date.now()}`
@@ -174,42 +145,50 @@ async function analyzeWithCodex(
     { sessionId, resume },
   )
 
-  const result = await invokeCodexCli(packet, 'homework_analysis', sessionId)
-  if (!result.ok) return null
+  const result = await invokeCodexCli(packet, 'homework_analysis', sessionId, {
+    timeoutSecs: codexTimeoutSecsForTask('homework_analysis', sessionState.preferences),
+  })
+  const logged = logCodexCall(sessionState, 'homework_analysis', packet, result)
 
-  const parsed = parseCodexResponse(result.stdout) as Record<string, unknown> | null
-  if (!parsed) return null
+  if (result.cancelled) {
+    return { parsed: null, state: logged, failureReason: 'cancelled' }
+  }
+  if (result.timedOut) {
+    return { parsed: null, state: logged, failureReason: 'timed_out' }
+  }
+  if (!result.ok) {
+    return { parsed: null, state: logged, failureReason: 'unavailable' }
+  }
 
-  const correctness = String(parsed.correctness ?? 'unclear')
-  const validCorrectness = ['correct', 'incorrect', 'unclear'].includes(correctness)
-    ? (correctness as HomeworkAnalysis['correctness'])
-    : 'unclear'
+  const codex = parseHomeworkCodexResponse(result.stdout)
+  if (!codex) {
+    return { parsed: null, state: logged, failureReason: 'malformed' }
+  }
 
-  const steps = parseSteps(parsed.steps)
-  const wrongStepIndex =
-    typeof parsed.wrong_step_index === 'number'
-      ? parsed.wrong_step_index
-      : typeof parsed.wrongStepIndex === 'number'
-        ? parsed.wrongStepIndex
-        : undefined
-  const detectedProblems =
-    parseDetectedProblems(parsed.problems) ??
-    parseDetectedProblems(parsed.detected_problems)
+  const steps = codex.steps
+    ? (codex.steps.map((step) => ({
+        label: step.label,
+        work: step.work,
+        correct: step.correct,
+        note: step.note,
+      })) as HomeworkAnalysis['steps'])
+    : undefined
 
   return {
-    problemText: String(parsed.problem_text ?? parsed.feedback_to_user ?? input.problemText ?? 'Homework upload'),
-    extractedWorkSummary: String(
-      parsed.extracted_work_summary ?? parsed.feedback_to_user ?? 'Codex extraction summary.',
-    ),
-    detectedTopic: String(parsed.detected_topic ?? 'Calculus work'),
-    correctness: validCorrectness,
-    mistakeTags: Array.isArray(parsed.mistake_tags) ? (parsed.mistake_tags as string[]) : [],
-    skillsAffected: Array.isArray(parsed.skills_affected) ? (parsed.skills_affected as string[]) : ['chain_rule'],
-    feedbackSummary: String(parsed.feedback_summary ?? parsed.feedback_to_user ?? 'Review your setup and method.'),
-    steps,
-    wrongStepIndex,
-    detectedProblems,
-    stepFeedback: parseStepFeedback(parsed.step_feedback, steps, wrongStepIndex),
+    state: logged,
+    parsed: {
+      problemText: codex.problemText || input.problemText || 'Homework upload',
+      extractedWorkSummary: codex.extractedWorkSummary || 'Codex extraction summary.',
+      detectedTopic: codex.detectedTopic,
+      correctness: codex.correctness,
+      mistakeTags: codex.mistakeTags,
+      skillsAffected: codex.skillsAffected.length ? codex.skillsAffected : ['chain_rule'],
+      feedbackSummary: codex.feedbackSummary || 'Review your setup and method.',
+      steps,
+      wrongStepIndex: codex.wrongStepIndex,
+      detectedProblems: codex.detectedProblems,
+      stepFeedback: codex.stepFeedback ?? parseStepFeedback(undefined, steps, codex.wrongStepIndex),
+    },
   }
 }
 
@@ -260,6 +239,8 @@ export async function analyzeHomeworkDeep(
 ): Promise<HomeworkAnalysisResult> {
   const rawImageSaved = Boolean(input.saveRawImage && input.imageDataUrl)
   let parsed: ParsedHomework | null = null
+  let nextState = state
+  let codexFailure: string | undefined
   let problemText = input.problemText ?? ''
 
   if (input.imageDataUrl && !problemText.trim()) {
@@ -267,12 +248,19 @@ export async function analyzeHomeworkDeep(
   }
 
   if (input.imageDataUrl || problemText.length > 20) {
-    parsed = await analyzeWithCodex(state, { ...input, problemText })
+    const codex = await analyzeWithCodex(nextState, { ...input, problemText })
+    nextState = codex.state
+    parsed = codex.parsed
+    codexFailure = codex.failureReason
   }
 
   if (!parsed) {
     parsed = keywordFallback(problemText)
-    if (input.imageDataUrl) {
+    if (codexFailure === 'timed_out') {
+      parsed.feedbackSummary = 'Codex timed out — using local heuristics. Retry or paste a manual packet.'
+    } else if (codexFailure === 'cancelled') {
+      parsed.feedbackSummary = 'Homework analysis cancelled — using local heuristics.'
+    } else if (input.imageDataUrl) {
       const ocrEmpty = !problemText.trim() || problemText.includes('OCR did not extract')
       parsed.extractedWorkSummary =
         'Image uploaded; Codex unavailable — add problem text for richer analysis. Image ' +
@@ -315,7 +303,7 @@ export async function analyzeHomeworkDeep(
     detectedProblems,
   }
 
-  let next = applyHomeworkLearningUpdates(state, {
+  let next = applyHomeworkLearningUpdates(nextState, {
     correctness: parsed.correctness,
     mistakeTags: parsed.mistakeTags,
     skillsAffected,

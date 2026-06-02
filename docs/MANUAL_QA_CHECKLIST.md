@@ -2,10 +2,14 @@
 
 Use this checklist for a full manual pass on a **built Tauri app** (`pnpm tauri dev` or release build). Check each item and note pass/fail plus build/date.
 
+**Daily-driver sign-off:** For release `/Applications/MathPilot.app` certification (evidence, Calc 1/2 diagnostics, accessibility), use [`PRODUCTION_CERTIFICATION.md`](PRODUCTION_CERTIFICATION.md).
+
 **Prerequisites**
 
-- macOS with Codex CLI installed and authenticated (`codex --version`)
-- Python 3 with SymPy available (repo `.venv` or system `python3`)
+- macOS
+- **Release build:** bundled Python + SymPy (no user `pip`); verify runtime self-test in app
+- **Dev build:** optional repo `.venv` or system `python3` if bundled runtime missing
+- Codex CLI (optional): `codex --version` and signed in, for G1 checks in certification doc
 - Sample homework image (PNG/JPG) with handwritten or typed calculus work
 
 ---

@@ -3,6 +3,7 @@ mod menu;
 mod migrations;
 mod ocr_macos;
 mod relational;
+mod repo;
 
 use db::{init_db, DbState};
 use tauri::Manager;
@@ -49,6 +50,9 @@ pub fn run() {
             db::append_skill_maintenance_log,
             db::write_skill_patch,
             db::run_pnpm_test,
+            repo::repo_available,
+            db::export_user_archive,
+            db::import_user_archive,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run MathPilot");

@@ -62,10 +62,7 @@ export function CommandPalette({
   }, [])
 
   useEffect(() => {
-    if (!state || query.trim().length < 2) {
-      setFtsRows([])
-      return
-    }
+    if (!state || query.trim().length < 2) return
     let cancelled = false
     void searchViaFts(query, 8).then((rows) => {
       if (!cancelled) setFtsRows(rows)
@@ -76,10 +73,7 @@ export function CommandPalette({
   }, [state, query])
 
   useEffect(() => {
-    if (!state || query.trim().length < 2) {
-      setResourceHits([])
-      return
-    }
+    if (!state || query.trim().length < 2) return
     let cancelled = false
     void searchResources(query, { resources: state.resources }, { limit: 4 }).then((results) => {
       if (!cancelled) setResourceHits(results)
@@ -191,9 +185,12 @@ export function CommandPalette({
 
   const actionableOnly = displayRows.filter((row): row is Extract<DisplayRow, { type: 'action' }> => row.type === 'action')
 
-  useEffect(() => {
+  const selectionResetKey = `${query}|${actionableOnly.length}`
+  const [prevSelectionResetKey, setPrevSelectionResetKey] = useState(selectionResetKey)
+  if (selectionResetKey !== prevSelectionResetKey) {
+    setPrevSelectionResetKey(selectionResetKey)
     setActiveIndex(0)
-  }, [query, actionableOnly.length])
+  }
 
   useEffect(() => {
     listRef.current?.querySelector<HTMLElement>(`[data-palette-index="${activeIndex}"]`)?.scrollIntoView({ block: 'nearest' })
@@ -209,7 +206,12 @@ export function CommandPalette({
   let actionIndex = -1
 
   return (
-    <AccessibleModal title="Search and commands" onClose={onClose} size="palette">
+    <AccessibleModal
+      title="Search and commands"
+      onClose={onClose}
+      size="palette"
+      className="command-palette-modal"
+    >
       <input
         ref={inputRef}
         className="palette-search"
@@ -217,6 +219,9 @@ export function CommandPalette({
         placeholder="Search skills, problems, commands…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        aria-activedescendant={
+          actionableOnly.length ? `palette-option-${activeIndex}` : undefined
+        }
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown') {
             e.preventDefault()
@@ -246,7 +251,9 @@ export function CommandPalette({
           return (
             <button
               key={row.key}
+              id={`palette-option-${index}`}
               type="button"
+              aria-selected={index === activeIndex}
               className={`palette-row ${index === activeIndex ? 'active' : ''}`}
               data-palette-index={index}
               onClick={() => {

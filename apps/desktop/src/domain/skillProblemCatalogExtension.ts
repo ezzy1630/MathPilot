@@ -224,6 +224,38 @@ export const SKILL_CATALOG_EXTENSION: Record<string, SkillCatalogEntry> = {
       ['Shell vs surface', 'Surface area integral measures?', 'lateral area', 0.36, ['Skin of solid, not volume.']],
     ),
   },
+  differentials: {
+    skillId: 'differentials',
+    diagnostics: diag(
+      'Differentials checkpoint',
+      'For f(x)=x^2 at x=3, the differential dy when dx=0.1 is? (use dy ≈ f\'(3)·dx)',
+      '0.6',
+      0.36,
+      ['dy = f\'(x) dx at the anchor point.'],
+      ['x'],
+    ),
+    practice: practiceSet(
+      ['Estimate change', 'f(x)=sqrt(x); at x=4, dx=0.01. dy ≈ ?', '0.0025', 0.38, ['f\'(x)=1/(2sqrt(x)); f\'(4)=1/4.'], ['x'], ['transfer']],
+      ['Linear vs differential', 'dy approximates which quantity?', 'Δy', 0.34, ['dy is linear part of change.'], undefined, ['transfer']],
+      ['Anchor point', 'Differential dy uses derivative evaluated at?', 'anchor x', 0.32, ['Same x as dx reference.'], undefined, ['misconception:wrong_anchor']],
+    ),
+  },
+  mean_value_theorem: {
+    skillId: 'mean_value_theorem',
+    diagnostics: diag(
+      'MVT checkpoint',
+      'On [0,2], f(x)=x^2 satisfies MVT. Find c in (0,2) with f\'(c) equal to average rate of change.',
+      '1',
+      0.42,
+      ['Average rate = (f(2)-f(0))/2 = 2; f\'(c)=2c.'],
+      ['x'],
+    ),
+    practice: practiceSet(
+      ['Average rate', 'f(x)=x^3 on [0,3]. Average rate of change = ?', '9', 0.4, ['(27-0)/3.'], ['x'], ['transfer']],
+      ['Continuity need', 'MVT requires f to be continuous on?', 'closed interval', 0.34, ['Closed and differentiable inside.'], undefined, ['transfer']],
+      ['Instantaneous match', 'MVT guarantees a point c where f\'(c) equals?', 'average rate', 0.36, ['Tangent parallel to secant.'], undefined, ['transfer']],
+    ),
+  },
   polar_arc_length: {
     skillId: 'polar_arc_length',
     diagnostics: diag('Polar arc length checkpoint', 'Polar arc length uses integrand sqrt(r^2 + (dr/dθ)^2) dθ?', 'yes', 0.4, ['Polar arc element.'], undefined, ['transfer']),

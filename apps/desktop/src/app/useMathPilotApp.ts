@@ -24,7 +24,7 @@ import { analyzeHomeworkDeep } from '../domain/homeworkAnalysis'
 import { saveHomeworkAsWorkedExample } from '../domain/homeworkLearningBridge'
 import { feedbackForMode } from '../domain/feedbackByMode'
 import { gradeStepsAsync } from '../domain/stepGrading'
-import { resolveProblemForAction } from '../domain/sessionPlanner'
+import { resolveProblemForActionAsync } from '../domain/sessionPlanner'
 import { syncAttemptRecord } from '../domain/persistence'
 import { chooseNextAction, createInitialState, recordAttempt } from '@mathpilot/learning-engine'
 import { checkAnswer, checkAnswerAsync } from '@mathpilot/math-engine'
@@ -61,6 +61,7 @@ import {
   runContinuingDiagnosticCurator,
   shouldScheduleContinuingDiagnosticCurator,
 } from '../domain/continuingDiagnosticCurator'
+import { proposeCodeChangeFromCodex } from '../domain/codeSelfImprovementCodex'
 import { refreshCoachInsight, runDiagnosticCurator } from '../domain/diagnosticCurator'
 import { runHomeworkClusterCurator, shouldRunHomeworkClusterCurator } from '../domain/homeworkClusterCurator'
 import { runMaintenance } from '../domain/maintenance'
@@ -144,6 +145,7 @@ export function useMathPilotApp() {
           enableCodexProblemGen: true,
           enableAdaptiveDiagnosticCodex: true,
           enableMaintenanceCurator: true,
+          enableCodexResourceSearch: true,
         },
         syllabus: loaded.syllabus ?? defaultSyllabus(loaded.currentFocus),
         mapViewMode: loaded.mapViewMode ?? 'wheel',
@@ -232,9 +234,11 @@ export function useMathPilotApp() {
       const { state: withDiag } = startDiagnostic(baseState)
       update(withDiag)
       setActiveProblemId(undefined)
+      setView('activity')
     } else if (nextAction.kind === 'quick_repair' && nextAction.skillIds[0]) {
       update(startQuickRepair(baseState, nextAction.skillIds[0]))
       setActiveProblemId(undefined)
+      setView('activity')
     } else {
       const targetSkill = nextAction.skillIds[0]
       const gate = targetSkill ? checkPrerequisiteGate(baseState, targetSkill) : { blocked: false }
@@ -242,29 +246,46 @@ export function useMathPilotApp() {
         setGateSkillId(targetSkill)
         return
       }
-      let working = baseState
-      if (!working.dailySession) {
-        working = startDailySession(working, working.sessionPace ?? 'normal')
-      }
-      const resolved = resolveProblemForAction(working, nextAction.skillIds, nextAction.kind, problemId)
-      working = resolved.state
-      const phase = currentSessionPhase(working)
-      const skillId = nextAction.skillIds[0]
-      if (phase === 'resource_watch' && skillId && working.preferences?.activeVideoMode !== 'never') {
-        const resource = topResourcesForSkill(working, skillId)[0]
-        if (resource) working = startActiveVideo(working, resource.id)
-      }
-      update(working)
-      const pid = resolved.problemId ?? problemId
-      setActiveProblemId(pid)
-      const prob = pid ? working.problems[pid] : undefined
-      if (prob && requiresShowWork(working, prob)) {
-        setShowSteps(true)
-        setSteps(['', ''])
-      } else {
-        setShowSteps(false)
-        setSteps([''])
-      }
+      void (async () => {
+        let working = baseState
+        if (!working.dailySession) {
+          working = startDailySession(working, working.sessionPace ?? 'normal')
+        }
+        const resolved = await resolveProblemForActionAsync(
+          working,
+          nextAction.skillIds,
+          nextAction.kind,
+          problemId,
+        )
+        working = resolved.state
+        const phase = currentSessionPhase(working)
+        const skillId = nextAction.skillIds[0]
+        const resourceId =
+          resolved.resourceId ??
+          (phase === 'resource_watch' && skillId ? topResourcesForSkill(working, skillId)[0]?.id : undefined)
+        if (phase === 'resource_watch' && resourceId && working.preferences?.activeVideoMode !== 'never') {
+          working = startActiveVideo(working, resourceId)
+        }
+        update(working)
+        const pid = resolved.problemId ?? problemId
+        setActiveProblemId(pid)
+        const prob = pid ? working.problems[pid] : undefined
+        if (prob && requiresShowWork(working, prob)) {
+          setShowSteps(true)
+          setSteps(['', ''])
+        } else {
+          setShowSteps(false)
+          setSteps([''])
+        }
+        setAnswer('')
+        setFeedback('')
+        setFeedbackTone(null)
+        setFeedbackNextSteps([])
+        setHintCount(0)
+        setWrongEscalation(0)
+        setView('activity')
+      })()
+      return
     }
     setAnswer('')
     setFeedback('')
@@ -272,7 +293,6 @@ export function useMathPilotApp() {
     setFeedbackNextSteps([])
     setHintCount(0)
     setWrongEscalation(0)
-    setView('activity')
   }
 
   function submitQuickRepairStep() {
@@ -298,7 +318,8 @@ export function useMathPilotApp() {
       mode: 'guided',
       hintCount,
       seconds: 90,
-      mixed: state.quickRepair.phase === 'mixed_check',
+      mixed:
+        state.quickRepair.phase === 'mixed_check' || state.quickRepair.phase === 'practice',
       delayed: state.quickRepair.phase === 'mixed_check',
       mistakeTags: result.mistakeTags,
     })
@@ -493,7 +514,9 @@ export function useMathPilotApp() {
     const next = parsed ? applyCodexResponse(logged, parsed) : logged
     update(next)
     if (parsed?.feedback_to_user) setFeedback(parsed.feedback_to_user)
-    else if (!result.ok) {
+    else if (result.ok && !parsed) {
+      setFeedback('Codex returned unparseable JSON — try again or paste a manual packet in Settings.')
+    } else if (!result.ok) {
       if (result.timedOut) {
         setFeedback(result.stderr || 'Codex timed out — try again or use a manual packet.')
       } else if (result.cancelled) {
@@ -743,6 +766,13 @@ export function useMathPilotApp() {
     testCodexConnection,
     codexPingStatus,
     codexPingBusy,
+    proposeCodeFromCodex: (request: string) => {
+      if (!state) return
+      setCodexBusy(true)
+      void proposeCodeChangeFromCodex(state, request)
+        .then((next) => update(next))
+        .finally(() => setCodexBusy(false))
+    },
     runMaintenanceAction: (trigger = 'manual') => {
       if (!state) return
       const next = runMaintenance(state, trigger)

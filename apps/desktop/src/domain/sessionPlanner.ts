@@ -8,6 +8,7 @@ import { generateProblemForSkill, generateProblemViaCodexAsync } from './problem
 import { pickInterleavedProblem } from './interleavingEngine'
 import { buildReviewProblem, inferReviewType } from './reviewItemEngine'
 import { filterProblemsByCourseFocus } from './courseFocusFilter'
+import { pickResourceForSkillAsync } from './resourceSearchCodex'
 import { problemForSkill } from '../lib/mapHelpers'
 import type { ActivityKind, MathPilotState, Problem, ResourceRecord } from './types'
 
@@ -186,19 +187,31 @@ function resolveProblemForActionCore(
   return generateForSkill(state, skillId)
 }
 
-/** Async resolver — tries Codex generation for new skills when preference enabled. */
+/** Async resolver — Codex resource pick and problem generation when enabled. */
 export async function resolveProblemForActionAsync(
   state: MathPilotState,
   skillIds: string[],
   actionKind: ActivityKind,
   explicitProblemId?: string,
 ): Promise<{ state: MathPilotState; problemId?: string; resourceId?: string }> {
+  const skillId = skillIds[0]
+  const rawPhase = currentSessionPhase(state) ?? actionKind
+  const phase = phaseContentMode(rawPhase)
+
+  if (
+    skillId &&
+    (phase === 'resource_watch' || actionKind === 'resource_watch' || rawPhase === 'concept_input')
+  ) {
+    const picked = await pickResourceForSkillAsync(state, skillId)
+    const problemId = problemForSkill(picked.state, skillId, 'guided_practice')
+    return { state: picked.state, problemId, resourceId: picked.resource?.id }
+  }
+
   const partial = resolveProblemForActionCore(state, skillIds, actionKind, explicitProblemId, {
     deferGeneration: true,
   })
   if (partial.problemId) return partial
 
-  const skillId = skillIds[0]
   if (!skillId) return partial
 
   return generateForSkillAsync(partial.state, skillId)

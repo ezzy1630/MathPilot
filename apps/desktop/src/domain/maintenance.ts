@@ -1,5 +1,6 @@
 import { applyMemoryCompression } from './memoryCompression'
 import { markProblemDeprecated } from './problemBank'
+import { auditProblemBankQuality, formatProblemBankQualityWarnings } from './problemBankQuality'
 import { addDays } from './learningEngine'
 import { upsertReviewItem } from './reviewScheduler'
 import { masteryState } from './learningEngine'
@@ -137,6 +138,20 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
     changesMade.push('Skill improvement: no high-priority patches suggested.')
   }
 
+  jobsRun.push('problem_bank_duplicate_audit')
+  const bankQuality = auditProblemBankQuality(Object.values(next.problems))
+  const duplicateWarnings = formatProblemBankQualityWarnings(bankQuality)
+  if (duplicateWarnings.length) {
+    warnings.push(...duplicateWarnings)
+    problemBankChanges.push(
+      `Quality audit: ${bankQuality.uniquePrompts} unique prompts across ${bankQuality.total} active problems.`,
+    )
+  } else {
+    changesMade.push(
+      `Problem bank quality: ${bankQuality.uniquePrompts} unique prompts, no large duplicate groups.`,
+    )
+  }
+
   jobsRun.push('problem_bank_audit')
   for (const problem of Object.values(next.problems)) {
     if (problem.deprecated) continue
@@ -226,20 +241,13 @@ export function runMaintenance(state: MathPilotState, trigger = 'manual'): MathP
   }
 
   const backupId = `backup-${Date.now()}`
-  const backupPayload = JSON.stringify(next, null, 2)
   jobsRun.push('state_backup')
-  changesMade.push(`Snapshot ${backupId} (${Math.round(backupPayload.length / 1024)} KB).`)
+  changesMade.push(`Snapshot ${backupId}.`)
   backupsCreated.push(backupId)
 
-  if (typeof window !== 'undefined' && (window as Window & { __TAURI__?: unknown }).__TAURI__) {
-    void import('@tauri-apps/api/core')
-      .then(({ invoke }) =>
-        invoke('write_backup', { backupId, payload: backupPayload }).catch(() => {
-          warnings.push('Could not write backup file to disk.')
-        }),
-      )
-      .catch(() => warnings.push('Tauri backup unavailable.'))
-  }
+  void import('./persistence')
+    .then(({ writeStateBackup }) => writeStateBackup(backupId, next))
+    .catch(() => warnings.push('Could not write backup file to disk.'))
 
   const run: MaintenanceRun = {
     id: `maint-${Date.now()}`,

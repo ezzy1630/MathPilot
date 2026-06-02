@@ -1,5 +1,6 @@
 import { buildLearnerSnapshot } from './curatorContext'
 import { invokeCodexForTask } from './aiAdapter'
+import { withCuratorCodexNotice } from './codexConfig'
 import {
   batchSizeForSession,
   computeDeterministicBatchPlan,
@@ -107,11 +108,26 @@ async function fetchCodexBatchPlan(
     forceNewSession: true,
   })
 
-  if (result.timedOut) return { plan: null, timedOut: true, state: withCall }
-  if (!result.ok || result.mode !== 'codex_cli') return { plan: null, timedOut: false, state: withCall }
+  if (result.timedOut) {
+    return {
+      plan: null,
+      timedOut: true,
+      state: withCuratorCodexNotice(withCall, 'Diagnostic planner', result, true),
+    }
+  }
+  if (!result.ok || result.mode !== 'codex_cli') {
+    return {
+      plan: null,
+      timedOut: false,
+      state: withCuratorCodexNotice(withCall, 'Diagnostic planner', result, true),
+    }
+  }
 
   const plan = parseCodexBatchPlanResponse(result.stdout, withCall, batchIndex)
-  return { plan, timedOut: false, state: withCall }
+  const noticed = plan
+    ? withCall
+    : withCuratorCodexNotice(withCall, 'Diagnostic planner', result, false)
+  return { plan, timedOut: false, state: noticed }
 }
 
 async function applyBatchPlan(

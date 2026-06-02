@@ -23,6 +23,7 @@ export function resetState(focus: CourseFocus) {
   return state
 }
 
+/** @deprecated Use exportFullUserArchive from persistence.ts */
 export function exportState(state: MathPilotState) {
   return new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
 }

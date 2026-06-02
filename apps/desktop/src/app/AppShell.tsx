@@ -23,7 +23,7 @@ import { batchVerifyProblemBank } from '../domain/problemBank'
 import { applyApprovedCodeChange, rollbackCodeChange } from '../domain/codeSelfImprovement'
 import { checkPrerequisiteGate } from '../domain/sessionEngine'
 import { applyCodexResponse, parseCodexResponse } from '../domain/codexParser'
-import { resetState } from '../domain/storage'
+import { importFullUserArchive, resetPersistedState } from '../domain/persistence'
 import { dismissToast, pushToast } from '../ui'
 import { problemForSkill } from '../lib/mapHelpers'
 import {
@@ -217,6 +217,7 @@ export function AppShell() {
     codexPaste,
     setCodexPaste,
     testCodexConnection,
+    proposeCodeFromCodex,
     codexPingStatus,
     codexPingBusy,
     showReport,
@@ -499,6 +500,7 @@ export function AppShell() {
 
       <section id="app-main-content" className="workspace" tabIndex={-1}>
         <PythonStatusBanner />
+        <div key={view} className="view-stage">
         {appState.continuingDiagnosticPending && view === 'today' && (
           <div className="continuing-diagnostic-banner panel" role="status">
             <p>
@@ -658,13 +660,31 @@ export function AppShell() {
             state={appState}
             update={update}
             chooseFocus={chooseFocus}
-            reset={() => update(resetState(appState.currentFocus))}
+            reset={() => {
+              void resetPersistedState(appState.currentFocus).then((fresh) => update(fresh))
+            }}
             openDeveloper={() => setView('developer')}
             codexPaste={codexPaste}
             setCodexPaste={setCodexPaste}
             onApplyCodexPaste={() => {
-              const parsed = parseCodexResponse(codexPaste)
-              if (parsed) update(applyCodexResponse(appState, parsed))
+              const trimmed = codexPaste.trim()
+              if (!trimmed) {
+                update(pushToast(appState, 'Paste a Codex JSON response first.', 'warning'))
+                return
+              }
+              const parsed = parseCodexResponse(trimmed)
+              if (!parsed) {
+                update(
+                  pushToast(
+                    appState,
+                    'Could not parse JSON — ensure the response is a single JSON object.',
+                    'warning',
+                  ),
+                )
+                return
+              }
+              update(pushToast(applyCodexResponse(appState, parsed), 'Codex response applied to profile.', 'success'))
+              setCodexPaste('')
             }}
             onSyllabusUploaded={() => setSyllabusMappingOpen(true)}
           />
@@ -681,12 +701,9 @@ export function AppShell() {
                 if (result) update(result.state)
               }}
               onRestoreBackup={(payload) => {
-                try {
-                  const restored = JSON.parse(payload) as typeof appState
-                  update(pushToast(restored, 'Backup restored', 'success'))
-                } catch {
-                  update(pushToast(appState, 'Invalid backup file', 'warning'))
-                }
+                void importFullUserArchive(payload)
+                  .then((restored) => update(pushToast(restored, 'Backup restored', 'success')))
+                  .catch(() => update(pushToast(appState, 'Invalid backup file', 'warning')))
               }}
               onTestCodex={() => void testCodexConnection()}
               codexPingStatus={codexPingStatus}
@@ -724,6 +741,7 @@ export function AppShell() {
                   setBatchVerifyBusy(false)
                 })
               }}
+              onProposeCodeFromCodex={(request) => proposeCodeFromCodex(request)}
               onApplyCodeChange={(id) => {
                 void applyApprovedCodeChange(appState, id).then((next) =>
                   update(pushToast(next, 'Code patches applied', 'success')),
@@ -738,6 +756,7 @@ export function AppShell() {
             />
           </div>
         )}
+        </div>
       </section>
     </main>
   )

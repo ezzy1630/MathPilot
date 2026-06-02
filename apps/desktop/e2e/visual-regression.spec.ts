@@ -1,42 +1,9 @@
-import { test, expect, type Page } from '@playwright/test'
-
-function seedVisualState() {
-  localStorage.clear()
-  localStorage.setItem(
-    'mathpilot.local.sqlite-facade.v3',
-    JSON.stringify({
-      profileName: 'Visual QA',
-      currentFocus: 'Calculus 1',
-      onboarded: true,
-      advancedMode: true,
-      mastery: {
-        chain_rule: {
-          skillId: 'chain_rule',
-          masteryScore: 0.32,
-          masteryState: 'Weak',
-          fluencyScore: 0.32,
-          retentionScore: 0.32,
-          conceptualScore: 0.32,
-          proceduralScore: 0.32,
-          transferScore: 0.24,
-          evidenceCount: 2,
-          recentFailures: 1,
-          reviewDue: '2026-05-31',
-        },
-      },
-      attempts: [],
-    }),
-  )
-}
-
-async function startActivity(page: Page) {
-  await page.getByTestId('today-start').click()
-  await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible()
-}
+import { test, expect } from '@playwright/test'
+import { openActivityFromToday, seedOnboardedState } from './helpers/seed'
 
 test.describe('visual regression', () => {
   test('Today coach desk matches snapshot', async ({ page }) => {
-    await page.addInitScript(seedVisualState)
+    await page.addInitScript(seedOnboardedState)
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('today-continue')).toBeVisible()
@@ -45,14 +12,73 @@ test.describe('visual regression', () => {
     })
   })
 
-  test('Activity studio matches snapshot', async ({ page }) => {
-    await page.addInitScript(seedVisualState)
+  test('Settings page matches snapshot', async ({ page }) => {
+    await page.addInitScript(seedOnboardedState)
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
-    await startActivity(page)
-    await expect(page.getByRole('complementary', { name: 'Teaching inspector' })).toBeVisible()
+    await page.getByRole('button', { name: 'Settings' }).click()
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+    await expect(page.locator('.settings-grid')).toHaveScreenshot('settings-page.png', {
+      maxDiffPixelRatio: 0.03,
+    })
+  })
+
+  test('Activity studio matches snapshot', async ({ page }) => {
+    await page.addInitScript(seedOnboardedState)
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
+    await openActivityFromToday(page)
+    await expect(page.getByRole('complementary', { name: 'Teaching inspector' })).toBeVisible({
+      timeout: 15_000,
+    })
     await expect(page.locator('.activity-page')).toHaveScreenshot('activity-studio.png', {
       maxDiffPixelRatio: 0.03,
     })
+  })
+
+  test('Knowledge map matches snapshot', async ({ page }) => {
+    await page.addInitScript(seedOnboardedState)
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
+    await page.getByRole('button', { name: 'Knowledge map' }).click()
+    await expect(page.getByRole('img', { name: 'Knowledge map wheel' })).toBeVisible()
+    await expect(page.locator('.map-page')).toHaveScreenshot('knowledge-map.png', {
+      maxDiffPixelRatio: 0.03,
+    })
+  })
+
+  test('Command palette matches snapshot', async ({ page }) => {
+    await page.addInitScript(seedOnboardedState)
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
+    await page.keyboard.press('Meta+k')
+    await expect(page.getByRole('dialog', { name: 'Search and commands' })).toBeVisible()
+    await expect(page.locator('.command-palette-modal')).toHaveScreenshot('command-palette.png', {
+      maxDiffPixelRatio: 0.03,
+    })
+  })
+
+  test('Onboarding matches snapshot', async ({ page }) => {
+    await page.addInitScript(() => localStorage.clear())
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Set up your calculus desk' })).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(page.locator('.onboarding')).toHaveScreenshot('onboarding.png', {
+      maxDiffPixelRatio: 0.03,
+    })
+  })
+
+  test('Homework upload modal matches snapshot', async ({ page }) => {
+    await page.addInitScript(seedOnboardedState)
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
+    await page.getByText('More for today').click()
+    await page.getByRole('button', { name: 'Upload or review homework' }).click()
+    await expect(page.getByRole('dialog', { name: 'Upload homework' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Upload homework' })).toHaveScreenshot(
+      'homework-upload-modal.png',
+      { maxDiffPixelRatio: 0.03 },
+    )
   })
 })

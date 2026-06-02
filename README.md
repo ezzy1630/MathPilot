@@ -124,7 +124,7 @@ pnpm lint && pnpm test && pnpm build && pnpm test:e2e # verify
 
 ## Documentation
 
-[Spec](MathPilot_spec.md) · [Product](PRODUCT.md) · [Gap audit](docs/GAP_AUDIT.md) · [QA checklist](docs/MANUAL_QA_CHECKLIST.md) · [Changelog](CHANGELOG.md)
+[Spec](MathPilot_spec.md) · [Product](PRODUCT.md) · [Gap audit](docs/GAP_AUDIT.md) · [Production certification](docs/PRODUCTION_CERTIFICATION.md) · [QA checklist](docs/MANUAL_QA_CHECKLIST.md) · [Changelog](CHANGELOG.md)
 
 ---
 

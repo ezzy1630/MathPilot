@@ -7,6 +7,7 @@ import {
   startQuickRepair,
 } from './quickRepairEngine'
 import { createInitialState } from './learningEngine'
+import { resetMergedCatalogCache } from './mergedCatalog'
 
 describe('quick repair engine', () => {
   it('walks through phases', () => {
@@ -66,6 +67,14 @@ describe('quick repair engine', () => {
 
     expect(first?.id).toBe('repair-chain-a')
     expect(second?.id).toBe('repair-chain-b')
+  })
+
+  it('uses worked examples from production bank for chain rule', () => {
+    resetMergedCatalogCache()
+    const state = createInitialState('Calculus 1')
+    const repair = advanceQuickRepair(startQuickRepair(state, 'chain_rule'), true)
+    const example = currentQuickRepairProblem(repair)
+    expect(example?.workedExample?.length).toBeGreaterThan(0)
   })
 
   it('builds four distinct targeted practice problems when available', () => {

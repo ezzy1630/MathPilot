@@ -1,5 +1,7 @@
 import { ensureMemoryLoaded, invokeCodexForTask } from './aiAdapter'
 import { parseDiagnosticCuratorResponse, type DiagnosticCuratorPayload } from './codexParser'
+import { withCuratorCodexNotice } from './codexConfig'
+import { filterKnownSkillIds } from './codexTrust'
 import { buildDiagnosticSummary } from './diagnosticEngine'
 import { loadSkillsForPrompt } from './skillLoader'
 import type { CoachInsight, MathPilotState } from './types'
@@ -57,7 +59,7 @@ export function buildCoachInsightFallback(state: MathPilotState): CoachInsight {
   }
 }
 
-function coachInsightFromPayload(payload: DiagnosticCuratorPayload): CoachInsight | null {
+function coachInsightFromPayload(state: MathPilotState, payload: DiagnosticCuratorPayload): CoachInsight | null {
   const narrative = payload.coach_narrative?.trim()
   if (!narrative) return null
 
@@ -71,7 +73,7 @@ function coachInsightFromPayload(payload: DiagnosticCuratorPayload): CoachInsigh
     updatedAt: new Date().toISOString(),
     narrative,
     gapBullets,
-    mapHighlightSkillIds: payload.map_highlight_skill_ids?.filter(Boolean) ?? [],
+    mapHighlightSkillIds: filterKnownSkillIds(state, payload.map_highlight_skill_ids ?? []),
     source: 'codex',
   }
 }
@@ -130,16 +132,20 @@ async function invokeCuratorCodex(state: MathPilotState): Promise<{
   })
 
   if (!result.ok || result.mode !== 'codex_cli') {
-    return { state: logged, payload: null }
+    return {
+      state: withCuratorCodexNotice(logged, 'Diagnostic curator', result, true),
+      payload: null,
+    }
   }
 
   const payload = parseDiagnosticCuratorResponse(result.stdout)
-  return { state: logged, payload }
+  const noticed = withCuratorCodexNotice(logged, 'Diagnostic curator', result, Boolean(payload))
+  return { state: noticed, payload }
 }
 
 export async function runDiagnosticCurator(state: MathPilotState): Promise<MathPilotState> {
   const { state: afterCall, payload } = await invokeCuratorCodex(state)
-  const parsed = payload ? coachInsightFromPayload(payload) : null
+  const parsed = payload ? coachInsightFromPayload(afterCall, payload) : null
 
   if (parsed) {
     await appendCuratorMemory(afterCall, parsed, payload?.learning_model_bullets ?? [])

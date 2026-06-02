@@ -52,7 +52,10 @@ test.describe('visual QA surfaces', () => {
     await attachViewport(page, 'activity-studio.png')
 
     await page.getByRole('button', { name: 'Check answer' }).click()
-    await expect(inspector.getByText(/^(Next move|Keep moving)$/)).toBeVisible()
+    await expect(
+      page.getByRole('complementary', { name: /Next move|Keep moving|Teaching inspector/ }),
+    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 2, name: /Next move|Keep moving/ })).toBeVisible()
     await attachViewport(page, 'teaching-feedback.png')
 
     await page.getByRole('button', { name: 'Knowledge map', exact: true }).click()

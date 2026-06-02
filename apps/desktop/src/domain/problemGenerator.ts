@@ -1,5 +1,6 @@
 import { enrichProblemWithLatex } from '../lib/problemLatex'
-import { SKILL_CATALOG } from './skillProblemCatalog'
+import { parametricBankVariant } from './catalogVariants'
+import { getMergedSkillCatalog } from './mergedCatalog'
 import { toCodexMetadata } from './problemBank'
 import { checkAnswer, checkAnswerAsync } from './mathEngine'
 import { checkAnswerSymbolic, verifyCalculusSymbolic } from './symbolicCheck'
@@ -28,10 +29,12 @@ interface TemplateSpec {
   requiresShowWork?: boolean
   verifyExpression?: string
   verifyMode?: 'derivative' | 'integral'
+  tags?: string[]
+  workedExample?: string[]
 }
 
 function practiceTemplatesForSkill(skillId: string): TemplateSpec[] {
-  const entry = SKILL_CATALOG[skillId]
+  const entry = getMergedSkillCatalog()[skillId]
   if (!entry) return []
   return entry.practice.map((spec) => ({
     skillId,
@@ -43,6 +46,8 @@ function practiceTemplatesForSkill(skillId: string): TemplateSpec[] {
     answerType: spec.answerType,
     hintSequence: spec.hintSequence,
     variables: spec.variables,
+    tags: spec.tags,
+    workedExample: spec.workedExample,
     requiresShowWork: inferRequiresShowWork(spec.prompt, spec.answerType),
     ...inferCalculusVerify(spec.prompt),
   }))
@@ -117,7 +122,16 @@ export function generateProblemForSkill(
   const pool = practiceTemplatesForSkill(skillId)
   if (!pool.length) return null
 
-  const spec = pool[seed % pool.length]
+  const base = pool[seed % pool.length]
+  const variantIndex = Math.floor(seed / pool.length) % 3
+  const parametric = parametricBankVariant(base, skillId, variantIndex)
+  const spec: TemplateSpec = {
+    ...base,
+    prompt: parametric.prompt,
+    expectedAnswer: parametric.expectedAnswer,
+    title: parametric.title,
+    difficulty: parametric.difficulty,
+  }
   const verification = verifyGeneratedProblem(spec)
   const status = verification.symbolic === 'passed' ? 'verified' : 'unverified_used'
 
@@ -132,9 +146,12 @@ export function generateProblemForSkill(
     answerType: spec.answerType,
     expectedAnswer: spec.expectedAnswer,
     hintSequence: spec.hintSequence,
+    tags: spec.tags,
+    workedExample: spec.workedExample,
     verificationStatus: status,
     source: 'template_engine',
     attemptCount: 0,
+    correctRate: 0,
     requiresShowWork: spec.requiresShowWork,
   })
 
@@ -201,7 +218,16 @@ export async function generateProblemForSkillAsync(
   const pool = practiceTemplatesForSkill(skillId)
   if (!pool.length) return null
 
-  const spec = pool[seed % pool.length]
+  const base = pool[seed % pool.length]
+  const variantIndex = Math.floor(seed / pool.length) % 3
+  const parametric = parametricBankVariant(base, skillId, variantIndex)
+  const spec: TemplateSpec = {
+    ...base,
+    prompt: parametric.prompt,
+    expectedAnswer: parametric.expectedAnswer,
+    title: parametric.title,
+    difficulty: parametric.difficulty,
+  }
   const verification = await verifyGeneratedProblemAsync(spec)
   const status = verification.symbolic === 'passed' ? 'verified' : 'unverified_used'
 
@@ -216,9 +242,12 @@ export async function generateProblemForSkillAsync(
     answerType: spec.answerType,
     expectedAnswer: spec.expectedAnswer,
     hintSequence: spec.hintSequence,
+    tags: spec.tags,
+    workedExample: spec.workedExample,
     verificationStatus: status,
     source: 'template_engine',
     attemptCount: 0,
+    correctRate: 0,
     requiresShowWork: spec.requiresShowWork,
   })
 

@@ -1,0 +1,36 @@
+/* Semantic type roles — prefer tokens over one-off pixel sizes */
+
+.today-page .today-header h1,
+.onboarding h1,
+.empty-state h1 {
+  font-size: var(--mp-text-display);
+  font-weight: var(--mp-font-weight-semibold);
+  letter-spacing: var(--mp-tracking-tight);
+  line-height: var(--mp-line-tight);
+}
+
+.coach-primary h2,
+.coach-desk-hero h2 {
+  font-size: var(--mp-text-hero);
+  font-weight: var(--mp-font-weight-semibold);
+  letter-spacing: var(--mp-tracking-tight);
+  line-height: var(--mp-line-tight);
+}
+
+.coach-reason,
+.today-subtitle {
+  font-size: var(--mp-text-base);
+}
+
+.today-narrative {
+  font-size: var(--mp-text-lg);
+  color: var(--mp-text);
+}
+
+.prompt {
+  font-size: var(--mp-text-xl);
+}
+
+math-field.math-display {
+  font-size: var(--mp-text-math);
+}

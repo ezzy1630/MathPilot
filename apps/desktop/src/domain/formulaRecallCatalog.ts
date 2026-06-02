@@ -51,7 +51,7 @@ export const FORMULA_CATALOG: FormulaPrompt[] = [
   { id: 'fr-separable-de', skillId: 'separable_de', prompt: 'Separable DE: separate variables then?', expected: 'integrate both sides' },
   { id: 'fr-power-rule', skillId: 'derivative_rules_basic', prompt: 'Power rule: d/dx x^n = ?', expected: 'n x^(n-1)' },
   { id: 'fr-limit-laws', skillId: 'limits_intro', prompt: 'Limit of a sum equals?', expected: 'sum of limits' },
-  { id: 'fr-mvt', skillId: 'mean_value_theorem', prompt: 'MVT guarantees c with f\'(c) equal to?', expected: 'average rate of change' },
+  { id: 'fr-mvt', skillId: 'linear_approximation', prompt: 'MVT guarantees c with f\'(c) equal to?', expected: 'average rate of change' },
   { id: 'fr-ivt', skillId: 'continuity', prompt: 'IVT requires function to be?', expected: 'continuous on closed interval' },
   { id: 'fr-shell-volume', skillId: 'volumes_of_revolution', prompt: 'Shell method uses integral of?', expected: '2 pi radius height' },
   { id: 'fr-washer-volume', skillId: 'volumes_of_revolution', prompt: 'Washer method subtracts inner radius area from?', expected: 'outer radius area' },

@@ -1,5 +1,6 @@
 use crate::migrations;
 use crate::relational;
+use crate::repo::{compile_time_repo_root, require_repo_root, resolve_repo_root};
 use rusqlite::{params, Connection};
 use std::env;
 use std::io::{Read, Write};
@@ -110,13 +111,6 @@ fn db_path(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(dir.join("mathpilot.sqlite"))
 }
 
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("..")
-}
-
 fn manifest_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
@@ -155,7 +149,7 @@ fn bundled_python_candidates(app: Option<&AppHandle>) -> Vec<PathBuf> {
 
     #[cfg(debug_assertions)]
     {
-        let venv = repo_root().join(".venv").join("bin").join("python3");
+        let venv = compile_time_repo_root().join(".venv").join("bin").join("python3");
         if venv.exists() {
             candidates.push(venv);
         }
@@ -181,20 +175,24 @@ fn python_imports(module: &str, python: &PathBuf) -> bool {
 }
 
 fn script_path(name: &str) -> PathBuf {
-    let mut candidates = vec![repo_root().join("scripts").join(name)];
+    let mut candidates = Vec::new();
     if let Ok(exe) = std::env::current_exe() {
         if let Some(resources) = exe
             .parent()
             .and_then(|macos| macos.parent())
             .map(|contents| contents.join("Resources").join("scripts").join(name))
         {
-            candidates.insert(0, resources);
+            candidates.push(resources);
         }
     }
+    if let Some(root) = resolve_repo_root() {
+        candidates.push(root.join("scripts").join(name));
+    }
+    candidates.push(manifest_dir().join("resources").join("scripts").join(name));
     candidates
         .into_iter()
         .find(|path| path.exists())
-        .unwrap_or_else(|| repo_root().join("scripts").join(name))
+        .unwrap_or_else(|| compile_time_repo_root().join("scripts").join(name))
 }
 
 fn app_data_subdir(app: &AppHandle, name: &str) -> Result<PathBuf, String> {
@@ -238,19 +236,7 @@ pub fn init_db(app: &AppHandle) -> Result<Connection, String> {
 #[tauri::command]
 pub fn db_load_state(state: tauri::State<DbState>) -> Result<Option<String>, String> {
     let conn = state.0.lock().map_err(|e| e.to_string())?;
-    if let Some(relational) = relational::load_relational(&conn)? {
-        return Ok(Some(relational));
-    }
-    let mut stmt = conn
-        .prepare("SELECT payload FROM app_state WHERE id = 1")
-        .map_err(|e| e.to_string())?;
-    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
-    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
-        let payload: String = row.get(0).map_err(|e| e.to_string())?;
-        Ok(Some(payload))
-    } else {
-        Ok(None)
-    }
+    relational::load_relational(&conn)
 }
 
 #[tauri::command]
@@ -275,12 +261,28 @@ pub fn db_sync_attempt(
     confidence: Option<f64>,
     created_at: String,
     resource_id: Option<String>,
+    mistake_tags: Option<String>,
+    mastery_delta: Option<f64>,
 ) -> Result<(), String> {
     let conn = state.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO attempts (id, problem_id, skill_ids, answer_raw, correct, mode, hint_count, seconds, mixed, delayed, confidence, created_at, resource_id)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
-         ON CONFLICT(id) DO UPDATE SET answer_raw = excluded.answer_raw, correct = excluded.correct, resource_id = excluded.resource_id",
+        "INSERT INTO attempts (id, problem_id, skill_ids, answer_raw, correct, mode, hint_count, seconds, mixed, delayed, confidence, created_at, resource_id, mistake_tags, mastery_delta)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
+         ON CONFLICT(id) DO UPDATE SET
+           problem_id = excluded.problem_id,
+           skill_ids = excluded.skill_ids,
+           answer_raw = excluded.answer_raw,
+           correct = excluded.correct,
+           mode = excluded.mode,
+           hint_count = excluded.hint_count,
+           seconds = excluded.seconds,
+           mixed = excluded.mixed,
+           delayed = excluded.delayed,
+           confidence = excluded.confidence,
+           created_at = excluded.created_at,
+           resource_id = excluded.resource_id,
+           mistake_tags = excluded.mistake_tags,
+           mastery_delta = excluded.mastery_delta",
         params![
             id,
             problem_id,
@@ -295,6 +297,8 @@ pub fn db_sync_attempt(
             confidence,
             created_at,
             resource_id,
+            mistake_tags,
+            mastery_delta.unwrap_or(0.0),
         ],
     )
     .map_err(|e| e.to_string())?;
@@ -421,7 +425,9 @@ fn skills_dir_candidates() -> Vec<PathBuf> {
         }
     }
     candidates.push(manifest_dir().join("resources").join("skills"));
-    candidates.push(repo_root().join("skills"));
+    if let Some(root) = resolve_repo_root() {
+        candidates.push(root.join("skills"));
+    }
     candidates
 }
 
@@ -858,6 +864,117 @@ pub fn restore_backup(app: AppHandle, backup_file: String) -> Result<String, Str
     Ok(payload)
 }
 
+fn read_memory_files_map(app: &AppHandle) -> Result<serde_json::Map<String, serde_json::Value>, String> {
+    let memory_dir = app_data_subdir(app, "memory")?;
+    let mut map = serde_json::Map::new();
+    for entry in std::fs::read_dir(&memory_dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("md") {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("memory.md")
+            .to_string();
+        let body = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+        map.insert(name, serde_json::Value::String(body));
+    }
+    Ok(map)
+}
+
+fn read_homework_images_map(app: &AppHandle) -> Result<serde_json::Map<String, serde_json::Value>, String> {
+    let dir = app_data_subdir(app, "homework_images")?;
+    let mut map = serde_json::Map::new();
+    use base64::Engine;
+    for entry in std::fs::read_dir(&dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("png") {
+            continue;
+        }
+        let stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("image")
+            .to_string();
+        let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
+        let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
+        map.insert(
+            stem,
+            serde_json::Value::String(format!("data:image/png;base64,{encoded}")),
+        );
+    }
+    Ok(map)
+}
+
+#[tauri::command]
+pub fn export_user_archive(app: AppHandle, state_payload: String) -> Result<String, String> {
+    let state: serde_json::Value =
+        serde_json::from_str(&state_payload).map_err(|e| format!("invalid state json: {e}"))?;
+    let archive = serde_json::json!({
+        "archiveVersion": 1,
+        "exportedAt": chrono::Utc::now().to_rfc3339(),
+        "state": state,
+        "memoryFiles": read_memory_files_map(&app)?,
+        "homeworkImages": read_homework_images_map(&app)?,
+    });
+    serde_json::to_string_pretty(&archive).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn import_user_archive(
+    app: AppHandle,
+    state: tauri::State<DbState>,
+    archive_json: String,
+) -> Result<(), String> {
+    let archive: serde_json::Value =
+        serde_json::from_str(&archive_json).map_err(|e| format!("invalid archive: {e}"))?;
+    let state_value = archive
+        .get("state")
+        .ok_or("archive missing state")?
+        .clone();
+    let payload = serde_json::to_string(&state_value).map_err(|e| e.to_string())?;
+    {
+        let conn = state.0.lock().map_err(|e| e.to_string())?;
+        relational::save_relational(&conn, &payload)?;
+    }
+    if let Some(memory) = archive.get("memoryFiles").and_then(|v| v.as_object()) {
+        let dir = app_data_subdir(&app, "memory")?;
+        for (name, content) in memory {
+            if let Some(body) = content.as_str() {
+                std::fs::write(dir.join(safe_runtime_filename(name, "md")?), body)
+                    .map_err(|e| e.to_string())?;
+            }
+        }
+    }
+    if let Some(images) = archive.get("homeworkImages").and_then(|v| v.as_object()) {
+        let conn = state.0.lock().map_err(|e| e.to_string())?;
+        let dir = app_data_subdir(&app, "homework_images")?;
+        use base64::Engine;
+        for (analysis_id, data_url) in images {
+            let Some(url) = data_url.as_str() else {
+                continue;
+            };
+            let safe_id = safe_runtime_stem(analysis_id)?;
+            let payload = url.split_once(',').map(|(_, data)| data).unwrap_or(url);
+            let bytes = base64::engine::general_purpose::STANDARD
+                .decode(payload.trim())
+                .map_err(|e| e.to_string())?;
+            let path = dir.join(format!("{safe_id}.png"));
+            std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
+            let path_str = path.to_string_lossy().to_string();
+            conn.execute(
+                "UPDATE homework_analyses SET image_path = ?1, raw_image_saved = 1 WHERE id = ?2",
+                params![path_str, analysis_id],
+            )
+            .ok();
+        }
+    }
+    Ok(())
+}
+
 #[derive(serde::Deserialize)]
 pub struct CodePatch {
     pub path: String,
@@ -869,23 +986,42 @@ fn repo_relative_path(rel: &str) -> Result<PathBuf, String> {
     if trimmed.contains("..") {
         return Err("invalid path".to_string());
     }
-    let full = repo_root().join(trimmed);
-    if !full.starts_with(&repo_root()) {
+    let root = require_repo_root()?;
+    let full = root.join(trimmed);
+    if !full.starts_with(&root) {
         return Err("path must stay inside repo root".to_string());
     }
     Ok(full)
 }
 
+fn skill_file_backup_dir(app: &AppHandle, backup_id: &str) -> Result<PathBuf, String> {
+    if let Ok(root) = require_repo_root() {
+        let dir = root.join("data").join("skill_file_backups");
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        return Ok(dir.join(format!("{backup_id}")));
+    }
+    let dir = app_data_subdir(app, "skill_file_backups")?.join(backup_id);
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    Ok(dir)
+}
+
 #[tauri::command]
-pub fn backup_skill_file(filename: String, backup_id: String) -> Result<(), String> {
+pub fn backup_skill_file(
+    app: AppHandle,
+    filename: String,
+    backup_id: String,
+) -> Result<(), String> {
     let rel = format!("skills/maintenance/{}", filename.trim_start_matches("skills/maintenance/"));
-    let source = repo_relative_path(&rel)?;
+    let source = match repo_relative_path(&rel) {
+        Ok(path) => path,
+        Err(_) => return Ok(()),
+    };
     if !source.exists() {
         return Ok(());
     }
-    let backup_dir = repo_root().join("data").join("skill_file_backups");
+    let backup_dir = skill_file_backup_dir(&app, &backup_id)?;
     std::fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
-    let backup_path = backup_dir.join(format!("{}__{}", backup_id, filename.replace('/', "__")));
+    let backup_path = backup_dir.join(filename.replace('/', "__"));
     std::fs::copy(&source, backup_path).map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -901,8 +1037,12 @@ pub struct SkillChangelogEntry {
 }
 
 #[tauri::command]
-pub fn append_skill_changelog(entry: SkillChangelogEntry) -> Result<(), String> {
-    let path = repo_root().join("data").join("skill_changelog.jsonl");
+pub fn append_skill_changelog(app: AppHandle, entry: SkillChangelogEntry) -> Result<(), String> {
+    let path = if let Ok(root) = require_repo_root() {
+        root.join("data").join("skill_changelog.jsonl")
+    } else {
+        app_data_subdir(&app, "developer")?.join("skill_changelog.jsonl")
+    };
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
@@ -936,9 +1076,18 @@ pub fn append_skill_maintenance_log(content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn write_skill_patch(skill_id: String, content: String) -> Result<String, String> {
-    let patch_dir = repo_root().join("data").join("skills_patches");
-    let backup_dir = repo_root().join("data").join("skills_backups");
+pub fn write_skill_patch(app: AppHandle, skill_id: String, content: String) -> Result<String, String> {
+    let (patch_dir, backup_dir) = if let Ok(root) = require_repo_root() {
+        (
+            root.join("data").join("skills_patches"),
+            root.join("data").join("skills_backups"),
+        )
+    } else {
+        (
+            app_data_subdir(&app, "skills_patches")?,
+            app_data_subdir(&app, "skills_backups")?,
+        )
+    };
     std::fs::create_dir_all(&patch_dir).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
     let safe = safe_runtime_stem(&skill_id)?;
@@ -961,7 +1110,7 @@ pub struct PnpmTestResult {
 
 #[tauri::command]
 pub fn run_pnpm_test() -> Result<PnpmTestResult, String> {
-    let root = repo_root();
+    let root = require_repo_root()?;
     let output = Command::new("pnpm")
         .arg("test")
         .current_dir(&root)
@@ -979,7 +1128,8 @@ pub fn run_pnpm_test() -> Result<PnpmTestResult, String> {
 
 #[tauri::command]
 pub fn apply_code_patches(backup_id: String, patches: Vec<CodePatch>) -> Result<Vec<String>, String> {
-    let backup_dir = repo_root().join("data").join("code_patch_backups");
+    let root = require_repo_root()?;
+    let backup_dir = root.join("data").join("code_patch_backups");
     std::fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
 
     let mut applied = Vec::new();
@@ -1003,7 +1153,8 @@ pub fn apply_code_patches(backup_id: String, patches: Vec<CodePatch>) -> Result<
 
 #[tauri::command]
 pub fn rollback_code_patches(backup_id: String) -> Result<Vec<String>, String> {
-    let backup_dir = repo_root().join("data").join("code_patch_backups");
+    let root = require_repo_root()?;
+    let backup_dir = root.join("data").join("code_patch_backups");
     let prefix = format!("{backup_id}__");
     let mut restored = Vec::new();
 
@@ -1020,6 +1171,46 @@ pub fn rollback_code_patches(backup_id: String) -> Result<Vec<String>, String> {
         restored.push(rel);
     }
     Ok(restored)
+}
+
+#[cfg(test)]
+mod repo_write_tests {
+    use super::*;
+    use crate::repo::resolve_repo_root;
+
+    #[test]
+    fn apply_code_patches_requires_checkout() {
+        if resolve_repo_root().is_some() {
+            return;
+        }
+        let err = apply_code_patches(
+            "backup-test".into(),
+            vec![CodePatch {
+                path: "apps/desktop/README.md".into(),
+                content: "test".into(),
+            }],
+        )
+        .expect_err("should fail without repo");
+        assert!(err.contains("source checkout"));
+    }
+}
+
+#[cfg(test)]
+mod runtime_path_tests {
+    use super::{safe_runtime_filename, safe_runtime_stem};
+
+    #[test]
+    fn safe_runtime_filename_rejects_traversal() {
+        assert!(safe_runtime_filename("../secrets.json", "json").is_err());
+        assert!(safe_runtime_filename("backup.json", "json").is_ok());
+    }
+
+    #[test]
+    fn safe_runtime_stem_rejects_empty_and_dots() {
+        assert!(safe_runtime_stem("").is_err());
+        assert!(safe_runtime_stem(".hidden").is_err());
+        assert!(safe_runtime_stem("backup-2026").is_ok());
+    }
 }
 
 #[cfg(test)]

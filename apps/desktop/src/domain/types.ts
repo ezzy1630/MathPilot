@@ -1,3 +1,6 @@
+import type { DiagnosticPlanHistoryEntry } from './diagnosticBatchPlan'
+import type { DiagnosticQuestionKind } from './diagnosticQuestionMix'
+
 export type CourseFocus = 'Calculus 1' | 'Calculus 2'
 
 export type MasteryState =
@@ -74,6 +77,8 @@ export interface Problem {
   deprecated?: boolean
   deprecationReason?: string
   attemptCount?: number
+  /** Rolling correct rate from stored attempts (maintenance / bank stats). */
+  correctRate?: number
   requiresShowWork?: boolean
   /** e.g. 'transfer', 'misconception:chain_rule_inner' */
   tags?: string[]
@@ -185,7 +190,10 @@ export interface AiCallLog {
   mode: 'codex_cli' | 'manual_packet'
   promptPreview: string
   promptHash?: string
-  status: 'drafted' | 'sent' | 'received' | 'failed'
+  status: 'drafted' | 'sent' | 'received' | 'failed' | 'timed_out' | 'cancelled'
+  responsePreview?: string
+  stderrPreview?: string
+  sessionId?: string
 }
 
 export interface HomeworkAnalysis {
@@ -230,6 +238,20 @@ export interface DiagnosticSessionState {
   queue: string[]
   weakSkills: string[]
   strongSkills: string[]
+  /** Continuing diagnostics are short follow-ups triggered by normal work. */
+  continuing?: boolean
+  triggerReason?: string
+  /** Per-skill diagnostic evidence gathered during this session. */
+  skillProbes?: Record<string, { correct: number; attempts: number }>
+  /** First miss marks suspicion; repeat miss confirms weakness. */
+  suspectedWeakSkills?: string[]
+  /** Adaptive batch-planner history for inspectability and debugging. */
+  planHistory?: DiagnosticPlanHistoryEntry[]
+  /** Duplicate guards for live and fallback diagnostic authoring. */
+  shownProblemIds?: string[]
+  shownPromptHashes?: string[]
+  kindsBySkill?: Record<string, DiagnosticQuestionKind[]>
+  lastPlanSource?: 'codex' | 'deterministic'
   completed: boolean
   summary?: {
     strong: string[]
@@ -330,6 +352,14 @@ export interface MathPilotState {
     enableAdaptiveDiagnosticCodex?: boolean
     /** When true (default), run Codex maintenance_curator after deterministic maintenance. */
     enableMaintenanceCurator?: boolean
+    /** When true (default), Codex may pick videos from the trusted catalog (§11.2). */
+    enableCodexResourceSearch?: boolean
+    codexTimeoutHintSecs?: number
+    codexTimeoutHomeworkSecs?: number
+    codexTimeoutCuratorSecs?: number
+    codexTimeoutGenerationSecs?: number
+    codexTimeoutCodeSecs?: number
+    codexTimeoutDefaultSecs?: number
     activeVideoMode: 'never' | 'sometimes' | 'active'
     theme: 'system' | 'light' | 'dark'
     confidencePrompts: 'off' | 'review_only' | 'often'

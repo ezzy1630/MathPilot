@@ -123,6 +123,7 @@ export function createInitialState(currentFocus: CourseFocus): MathPilotState {
       enableCodexProblemGen: true,
       enableAdaptiveDiagnosticCodex: true,
       enableMaintenanceCurator: true,
+      enableCodexResourceSearch: true,
       activeVideoMode: 'sometimes',
       theme: 'system',
       confidencePrompts: 'review_only',

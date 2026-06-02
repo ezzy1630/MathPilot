@@ -1,4 +1,5 @@
 import { ensureMemoryLoaded, invokeCodexForTask } from './aiAdapter'
+import { withCuratorCodexNotice } from './codexConfig'
 import { parseContinuingDiagnosticCuratorResponse } from './codexParser'
 import { buildLearnerSnapshot, topMistakeSkillIds } from './curatorContext'
 import { buildCoachInsightFallback } from './diagnosticCurator'
@@ -76,14 +77,17 @@ export async function runContinuingDiagnosticCurator(state: MathPilotState): Pro
   const baseInsight = state.coachInsight ?? buildCoachInsightFallback(state)
   let narrative = continuingDiagnosticFallbackNarrative(state)
 
+  let working: MathPilotState
   if (result.ok && result.mode === 'codex_cli') {
     const payload = parseContinuingDiagnosticCuratorResponse(result.stdout)
+    working = withCuratorCodexNotice(logged, 'Continuing diagnostic curator', result, Boolean(payload))
     if (payload) {
       const nextNarrative = narrativeFromPayload(payload, baseInsight)
       if (nextNarrative) narrative = nextNarrative
     }
-  } else if (baseInsight.narrative) {
-    narrative = baseInsight.narrative
+  } else {
+    working = withCuratorCodexNotice(logged, 'Continuing diagnostic curator', result, true)
+    if (baseInsight.narrative) narrative = baseInsight.narrative
   }
 
   const insight: CoachInsight = {
@@ -95,11 +99,11 @@ export async function runContinuingDiagnosticCurator(state: MathPilotState): Pro
   }
 
   return {
-    ...logged,
+    ...working,
     coachInsight: insight,
     changelog: [
       `${insight.updatedAt}: Continuing diagnostic curator updated coach narrative only.`,
-      ...logged.changelog,
+      ...working.changelog,
     ],
   }
 }

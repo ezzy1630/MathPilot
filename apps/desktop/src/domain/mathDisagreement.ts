@@ -1,5 +1,7 @@
-import { createPromptPacket, invokeCodexCli, resolveCodexSession } from './aiAdapter'
-import { parseCodexResponse } from './codexParser'
+import { createPromptPacket, invokeCodexCli, logCodexCall, resolveCodexSession } from './aiAdapter'
+import { codexTimeoutSecsForTask } from './codexConfig'
+import { codexInspectConfidenceAllowsOverride } from './codexTrust'
+import { parseCodexInspectResponse } from './codexParser'
 import type { CheckAnswerResult } from './mathEngine'
 import type { MathPilotState } from './types'
 
@@ -52,12 +54,7 @@ export function resolveAnswerDisagreement(
   }
 }
 
-export interface CodexInspectPayload {
-  resolution?: 'symbolic' | 'codex' | 'symbolic_preferred'
-  correct?: boolean
-  feedback_to_user?: string
-  confidence?: number
-}
+export type { CodexInspectPayload } from './codexParser'
 
 /**
  * Ask Codex to inspect when symbolic and prior Codex judgment disagree.
@@ -114,31 +111,40 @@ export async function resolveWithCodexInspect(
     'Return JSON only: { "resolution": "symbolic" | "codex", "correct": boolean, "feedback_to_user": string, "confidence": 0-1 }',
   ].join('\n')
 
-  const result = await invokeCodexCli(inspectPacket, 'disagreement_inspect', sessionId)
-  const parsed = parseCodexResponse(result.stdout) as CodexInspectPayload | null
+  const result = await invokeCodexCli(inspectPacket, 'disagreement_inspect', sessionId, {
+    timeoutSecs: codexTimeoutSecsForTask('disagreement_inspect', sessionState.preferences),
+  })
+  const logged = logCodexCall(sessionState, 'disagreement_inspect', inspectPacket, result)
+  const parsed = parseCodexInspectResponse(result.stdout)
 
-  if (!result.ok || !parsed?.resolution) {
+  if (!result.ok || result.cancelled || result.timedOut || !parsed?.resolution) {
     return {
       resolution: resolveAnswerDisagreement(symbolic, codexSaysCorrect, codexFeedback),
-      state: sessionState,
+      state: logged,
     }
   }
 
   const preferSymbolic =
     parsed.resolution === 'symbolic' || parsed.resolution === 'symbolic_preferred'
-  const correct = preferSymbolic ? symbolic.correct : (parsed.correct ?? codexSaysCorrect)
+  const codexOverride =
+    parsed.resolution === 'codex' && codexInspectConfidenceAllowsOverride(parsed.confidence)
+  const correct = preferSymbolic
+    ? symbolic.correct
+    : codexOverride
+      ? (parsed.correct ?? codexSaysCorrect)
+      : symbolic.correct
   const feedback =
     parsed.feedback_to_user ??
-    (preferSymbolic ? symbolic.feedback : codexFeedback ?? symbolic.feedback)
+    (preferSymbolic || !codexOverride ? symbolic.feedback : codexFeedback ?? symbolic.feedback)
 
   return {
     resolution: {
       correct,
       feedback,
-      method: preferSymbolic ? symbolic.method : 'ai_required',
-      usedAiOverride: !preferSymbolic && correct !== symbolic.correct,
+      method: preferSymbolic || !codexOverride ? symbolic.method : 'ai_required',
+      usedAiOverride: codexOverride && correct !== symbolic.correct,
       inspectedByCodex: true,
     },
-    state: sessionState,
+    state: logged,
   }
 }

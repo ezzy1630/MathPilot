@@ -6,7 +6,7 @@ export const INTERLEAVE_CLUSTERS: Record<string, string[]> = {
     'trig_substitution',
     'partial_fractions',
   ],
-  series_tests: ['series_intro', 'series_test_selection', 'ratio_test', 'comparison_test'],
+  series_tests: ['series_intro', 'series_test_selection', 'ratio_test', 'comparison_tests'],
   derivative_rules: ['product_rule', 'quotient_rule', 'chain_rule', 'implicit_differentiation'],
   similar_looking_derivatives: ['chain_rule', 'related_rates', 'implicit_differentiation'],
   limits: ['limits_intro', 'continuity', 'lhopital'],
@@ -16,7 +16,7 @@ export const INTERLEAVE_CLUSTERS: Record<string, string[]> = {
 export const AREA_PROCEDURE_VARIANTS: Record<string, string[]> = {
   Differentiation: ['chain_rule', 'product_rule', 'quotient_rule', 'implicit_differentiation', 'related_rates'],
   Integration: ['u_substitution', 'integration_by_parts', 'trig_substitution', 'partial_fractions'],
-  Series: ['series_test_selection', 'ratio_test', 'comparison_test', 'integral_test'],
+  Series: ['series_test_selection', 'ratio_test', 'comparison_tests', 'integral_test'],
   Limits: ['limits_intro', 'continuity', 'lhopital', 'squeeze_theorem'],
 }
 

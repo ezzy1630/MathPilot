@@ -2,6 +2,8 @@
 
 Use this **after** installing the latest `MathPilot.app` and **before** treating scores as “where you really are.”
 
+Formal daily-driver certification (evidence + full matrix): [`PRODUCTION_CERTIFICATION.md`](PRODUCTION_CERTIFICATION.md).
+
 ## You should be able to (no terminal)
 
 - [ ] Open `/Applications/MathPilot.app` — no Python/SymPy banner at top

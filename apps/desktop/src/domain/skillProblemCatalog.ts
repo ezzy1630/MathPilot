@@ -1,6 +1,5 @@
 import type { ActivityKind } from './types'
 import { SKILL_CATALOG_EXTENSION } from './skillProblemCatalogExtension'
-
 export interface ProblemSpec {
   title: string
   prompt: string
@@ -986,7 +985,7 @@ export const SKILL_CATALOG: Record<string, SkillCatalogEntry> = {
     diagnostics: [
       {
         title: 'Integration by parts checkpoint',
-        prompt: 'Evaluate ∫ x*cos(x) dx (antiderivative only).',
+        prompt: 'Evaluate ∫ x*cos(x) dx (omit +C; antiderivative F(x) only).',
         expectedAnswer: 'x*sin(x)+cos(x)',
         answerType: 'expression',
         difficulty: 0.52,
@@ -997,7 +996,7 @@ export const SKILL_CATALOG: Record<string, SkillCatalogEntry> = {
     practice: [
       {
         title: 'Integration by parts',
-        prompt: 'Evaluate ∫ x*e^x dx (answer: F(x) + C, give F(x) only).',
+        prompt: 'Evaluate ∫ x*e^x dx (omit +C; antiderivative F(x) only).',
         expectedAnswer: 'x*e^x - e^x',
         answerType: 'expression',
         difficulty: 0.55,

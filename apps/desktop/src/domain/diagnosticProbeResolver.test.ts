@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { promptHash } from './diagnosticBatchPlan'
 import { resolveDiagnosticProbeAsync } from './diagnosticProbeResolver'
+import { diagnosticProblemForSkill } from './diagnosticTemplates'
 import { createInitialState } from './learningEngine'
 
 describe('diagnosticProbeResolver', () => {
@@ -58,5 +59,33 @@ describe('diagnosticProbeResolver', () => {
     if (first) {
       expect(resolved.result?.problemId).not.toBe(first.id)
     }
+  })
+
+  it('keeps generated fallback problems finalized as diagnostic items', async () => {
+    const state = createInitialState('Calculus 1')
+    const duplicatedTemplate = diagnosticProblemForSkill('chain_rule', 11)
+    const resolved = await resolveDiagnosticProbeAsync(
+      state,
+      {
+        skillId: 'chain_rule',
+        questionKind: 'procedural',
+        intent: 'broad_scan',
+        rationale: 'Cover generated fallback',
+        difficultyTarget: 0.45,
+      },
+      {
+        weakSkills: [],
+        strongSkills: [],
+        shownProblemIds: duplicatedTemplate ? [duplicatedTemplate.id] : [],
+        shownPromptHashes: duplicatedTemplate ? [promptHash(duplicatedTemplate.prompt)] : [],
+      },
+      11,
+      new Set(duplicatedTemplate ? [duplicatedTemplate.id] : []),
+    )
+
+    expect(resolved.result?.source).toBe('template_engine')
+    const problem = resolved.result ? resolved.state.problems[resolved.result.problemId] : undefined
+    expect(problem?.mode).toBe('diagnostic')
+    expect(problem?.verificationStatus).toBe(resolved.result?.validation.ok ? 'verified' : 'unverified_used')
   })
 })

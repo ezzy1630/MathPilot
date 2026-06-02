@@ -1,6 +1,14 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 import { createInitialState } from './learningEngine'
-import { loadPersistedState, persistenceRoundTrip, savePersistedState } from './persistence'
+import {
+  buildBrowserArchive,
+  clearLocalPersistence,
+  loadPersistedState,
+  persistenceRoundTrip,
+  resetPersistedState,
+  savePersistedState,
+} from './persistence'
+import { USER_ARCHIVE_VERSION } from './userArchive'
 
 const memoryStore = new Map<string, string>()
 
@@ -26,6 +34,31 @@ describe('persistence', () => {
     const loaded = await loadPersistedState('Calculus 2')
     expect(loaded.profileName).toBe('RoundTrip')
     expect(loaded.currentFocus).toBe('Calculus 2')
+  })
+
+  it('reset replaces prior local profile data', async () => {
+    const state = createInitialState('Calculus 1')
+    state.profileName = 'BeforeReset'
+    await savePersistedState(state)
+    const fresh = await resetPersistedState('Calculus 2')
+    expect(fresh.currentFocus).toBe('Calculus 2')
+    const loaded = await loadPersistedState('Calculus 2')
+    expect(loaded.profileName).toBe(fresh.profileName)
+    expect(loaded.profileName).not.toBe('BeforeReset')
+    expect(memoryStore.get('mathpilot.local.sqlite-facade.v3')).toBeTruthy()
+  })
+
+  it('buildBrowserArchive includes version metadata', () => {
+    const archive = buildBrowserArchive(createInitialState('Calculus 1'))
+    expect(archive.archiveVersion).toBe(USER_ARCHIVE_VERSION)
+    expect(archive.exportedAt).toBeTruthy()
+  })
+
+  it('clearLocalPersistence removes facade and relational keys', () => {
+    memoryStore.set('mathpilot.local.sqlite-facade.v3', '{}')
+    memoryStore.set('mathpilot.relational.v1.mastery', '{}')
+    clearLocalPersistence()
+    expect(memoryStore.size).toBe(0)
   })
 
   it('saves and reloads attempts', async () => {

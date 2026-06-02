@@ -1,4 +1,5 @@
 import { ensureMemoryLoaded, invokeCodexForTask } from './aiAdapter'
+import { withCuratorCodexNotice } from './codexConfig'
 import { parseHomeworkClusterResponse } from './codexParser'
 import { buildLearnerSnapshot } from './curatorContext'
 import { clusterHomeworkDeterministic } from './homeworkClusterDeterministic'
@@ -82,24 +83,12 @@ export async function runHomeworkClusterCurator(state: MathPilotState): Promise<
   next = { ...logged, homeworkClusterLastRun: next.homeworkClusterLastRun }
 
   if (!result.ok || result.mode !== 'codex_cli') {
-    return {
-      ...next,
-      changelog: [
-        `${new Date().toISOString()}: Homework cluster curator used deterministic fallback (Codex unavailable).`,
-        ...next.changelog,
-      ],
-    }
+    return withCuratorCodexNotice(next, 'Homework cluster curator', result, true)
   }
 
   const payload = parseHomeworkClusterResponse(result.stdout)
   if (!payload) {
-    return {
-      ...next,
-      changelog: [
-        `${new Date().toISOString()}: Homework cluster curator kept deterministic clusters (unparseable Codex JSON).`,
-        ...next.changelog,
-      ],
-    }
+    return withCuratorCodexNotice(next, 'Homework cluster curator', result, false)
   }
 
   const now = new Date().toISOString()

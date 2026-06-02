@@ -11,7 +11,7 @@ export function hydrateState(partial: Partial<MathPilotState> & { currentFocus?:
     ...base,
     ...partial,
     currentFocus: focus,
-    skills: base.skills,
+    skills: { ...base.skills, ...(partial.skills ?? {}) },
     resources: { ...base.resources, ...(partial.resources ?? {}) },
     mastery: Object.fromEntries(
       Object.entries({ ...base.mastery, ...(partial.mastery ?? {}) }).map(([id, record]) => [

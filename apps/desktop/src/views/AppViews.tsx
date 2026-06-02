@@ -60,7 +60,7 @@ import {
   wrapPacketForGemini,
 } from '../domain/aiAdapter'
 import { loadSkillsForPrompt } from '../domain/skillLoader'
-import { exportState } from '../domain/storage'
+import { exportFullUserArchive } from '../domain/persistence'
 import { currentSessionPhase, sessionPhaseLabel } from '../domain/dailySessionEngine'
 import { checkPrerequisiteGate } from '../domain/sessionEngine'
 import type { SessionPace } from '../domain/sessionEngine'
@@ -343,10 +343,10 @@ export function TodayView({
                 variant="ghost"
                 size="lg"
                 onClick={onRefreshCoachInsight}
-                disabled={coachInsightRefreshing}
+                loading={coachInsightRefreshing}
                 data-testid="refresh-coach-insight"
               >
-                {coachInsightRefreshing ? 'Refreshing…' : 'Refresh coach insight'}
+                Refresh coach insight
               </Button>
             )}
             <Button
@@ -1136,7 +1136,7 @@ export function ActivityView({
             </div>
           )}
         </div>
-        <aside className="activity-side-stack" role="complementary" aria-label="Coach panel">
+        <aside className="activity-side-stack" role="complementary" aria-label={inspectorTitle}>
           <ActivityTeachingPanel
             title={inspectorTitle}
             body={inspectorBody}
@@ -2082,11 +2082,14 @@ export function SettingsView({
                 type="button"
                 className="secondary"
                 onClick={() => {
-                  const url = URL.createObjectURL(exportState(state))
-                  const link = document.createElement('a')
-                  link.href = url
-                  link.download = 'mathpilot-export.json'
-                  link.click()
+                  void exportFullUserArchive(state).then((blob) => {
+                    const url = URL.createObjectURL(blob)
+                    const link = document.createElement('a')
+                    link.href = url
+                    link.download = 'mathpilot-archive.json'
+                    link.click()
+                    URL.revokeObjectURL(url)
+                  })
                 }}
               >
                 <Download size={18} />
@@ -2131,6 +2134,7 @@ export function DeveloperView({
   batchVerifyBusy,
   onApplyCodeChange,
   onRollbackCodeChange,
+  onProposeCodeFromCodex,
   onUpdateState,
 }: {
   state: MathPilotState
@@ -2151,6 +2155,7 @@ export function DeveloperView({
   batchVerifyBusy?: boolean
   onApplyCodeChange?: (proposalId: string) => void
   onRollbackCodeChange?: (proposalId: string) => void
+  onProposeCodeFromCodex?: (request: string) => void
   onUpdateState?: (state: MathPilotState) => void
 }) {
   const [backups, setBackups] = useState<string[]>([])
@@ -2161,6 +2166,7 @@ export function DeveloperView({
   const [resourceImportDraft, setResourceImportDraft] = useState('')
   const [resourceImportStatus, setResourceImportStatus] = useState<string | null>(null)
   const [resourceImportErrors, setResourceImportErrors] = useState<string[]>([])
+  const [codeRequestDraft, setCodeRequestDraft] = useState('Improve error messaging when Codex times out.')
 
   useEffect(() => {
     void listBackups().then(setBackups)
@@ -2241,6 +2247,31 @@ export function DeveloperView({
                   confidencePrompts: state.preferences?.confidencePrompts ?? 'review_only',
                   ...state.preferences,
                   enableCodexProblemGen: e.target.checked,
+                },
+              })
+            }
+          />
+        </label>
+      </div>
+      <div className="settings-row" style={{ marginBottom: 16 }}>
+        <span>Codex resource search (§11.2)</span>
+        <label className="toggle">
+          <input
+            type="checkbox"
+            checked={state.preferences?.enableCodexResourceSearch ?? true}
+            onChange={(e) =>
+              onUpdateState?.({
+                ...state,
+                preferences: {
+                  tone: state.preferences?.tone ?? 'direct',
+                  gamificationLevel: state.preferences?.gamificationLevel ?? 'minimal',
+                  notificationsEnabled: state.preferences?.notificationsEnabled ?? false,
+                  reportsMode: 'on_demand_only',
+                  activeVideoMode: state.preferences?.activeVideoMode ?? 'sometimes',
+                  theme: state.preferences?.theme ?? 'system',
+                  confidencePrompts: state.preferences?.confidencePrompts ?? 'review_only',
+                  ...state.preferences,
+                  enableCodexResourceSearch: e.target.checked,
                 },
               })
             }
@@ -2407,6 +2438,28 @@ export function DeveloperView({
               </li>
             ))}
           </ul>
+          {onProposeCodeFromCodex && (
+            <div className="panel" style={{ marginBottom: 16 }}>
+              <h2>Code self-improvement (Codex §19)</h2>
+              <p className="muted">Requests a patch proposal — approval required before apply.</p>
+              <textarea
+                rows={2}
+                style={{ width: '100%', marginTop: 8 }}
+                value={codeRequestDraft}
+                onChange={(e) => setCodeRequestDraft(e.target.value)}
+                placeholder="Describe the change you want…"
+              />
+              <button
+                type="button"
+                className="secondary"
+                style={{ marginTop: 8 }}
+                disabled={codexBusy}
+                onClick={() => onProposeCodeFromCodex(codeRequestDraft)}
+              >
+                Request Codex code proposal
+              </button>
+            </div>
+          )}
           {(state.codeChangeProposals?.length ?? 0) > 0 && (
             <>
               <h2>Code change proposals</h2>

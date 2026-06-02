@@ -137,7 +137,7 @@ test.describe('MathPilot acceptance', () => {
     await expect(page.getByRole('complementary', { name: 'Teaching inspector' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Hint' })).toBeVisible()
     await expect(page.getByRole('button', { name: "I'm lost" })).toBeVisible()
-    await expect(page.getByText('More help', { exact: true })).toHaveCount(0)
+    await expect(page.locator('details.inspector-more > summary')).toHaveText('More help')
     await page.getByRole('button', { name: 'Knowledge map', exact: true }).click()
     await expect(page.getByRole('img', { name: 'Knowledge map wheel' })).toBeVisible()
     await expect(page.getByText('Recommendation evidence')).toBeVisible()
