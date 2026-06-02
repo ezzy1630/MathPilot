@@ -45,6 +45,9 @@ export function AppShell() {
   const [batchVerifyBusy, setBatchVerifyBusy] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [syllabusMappingOpen, setSyllabusMappingOpen] = useState(false)
+  const [prefersDark, setPrefersDark] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches,
+  )
   const homeworkDropReady = !app.loading && Boolean(app.appState?.onboarded)
   const analyzeHomeworkForDrop = app.analyzeHomework
   const setViewForDrop = app.setView
@@ -52,6 +55,13 @@ export function AppShell() {
 
   useEffect(() => {
     void initNativeChrome()
+  }, [])
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = (event: MediaQueryListEvent) => setPrefersDark(event.matches)
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
   }, [])
 
   useEffect(() => {
@@ -220,12 +230,15 @@ export function AppShell() {
     coachInsightRefreshing,
   } = app
 
+  const themePreference = appState.preferences?.theme ?? 'system'
   const themeClass =
-    appState.preferences?.theme === 'dark'
+    themePreference === 'dark'
       ? 'theme-dark'
-      : appState.preferences?.theme === 'light'
+      : themePreference === 'light'
         ? 'theme-light'
-        : ''
+        : prefersDark
+          ? 'theme-dark'
+          : 'theme-light'
 
   const hasActiveDiagnostic = appState.diagnostic !== undefined && !appState.diagnostic.completed
   const showMain = appState.onboarded || appState.diagnostic?.completed

@@ -21,6 +21,19 @@ export const MathInput = forwardRef<MathfieldElement | null, MathInputProps>(fun
   useEffect(() => {
     const field = ref.current
     if (!field) return
+
+    field.defaultMode = 'math'
+    field.smartMode = true
+    field.smartFence = true
+    field.smartSuperscript = true
+    field.removeExtraneousParentheses = true
+    field.mathVirtualKeyboardPolicy = 'auto'
+    field.placeholder = placeholder ?? 'Enter your answer…'
+  }, [placeholder])
+
+  useEffect(() => {
+    const field = ref.current
+    if (!field) return
     if (field.value !== value) {
       field.setValue(value, { silenceNotifications: true })
     }

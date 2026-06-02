@@ -25,12 +25,13 @@ describe('problemLatex', () => {
     expect(enriched.workedExampleLatex?.[0]).toContain('Factor')
   })
 
-  it('preserves explicit latex fields', () => {
+  it('recomputes latex from plain text even when stale latex is stored', () => {
     const enriched = enrichProblemWithLatex({
       ...baseProblem,
-      promptLatex: '\\text{Custom prompt}',
+      promptLatex: '\\text{Evaluate} \\lim_{x \\to 1} \\text{of} \\frac{x^2 - 1}{x - 1}.',
     })
-    expect(enriched.promptLatex).toBe('\\text{Custom prompt}')
+    expect(enriched.promptLatex).toContain('\\text{Evaluate }')
+    expect(enriched.promptLatex).not.toContain('\\text{of')
   })
 
   it('enriches problem records in bulk', () => {

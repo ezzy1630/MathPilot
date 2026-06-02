@@ -24,7 +24,7 @@ export function MathText({
   lazy = true,
 }: MathTextProps) {
   const shouldTypeset = useMemo(() => looksLikeMath(text), [text])
-  const value = useMemo(() => latex ?? promptToLatex(text), [latex, text])
+  const value = useMemo(() => promptToLatex(text) || latex || text, [latex, text])
 
   if (!shouldTypeset) {
     return <Component className={className}>{text}</Component>

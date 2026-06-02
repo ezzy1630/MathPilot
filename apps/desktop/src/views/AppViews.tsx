@@ -884,10 +884,6 @@ export function ActivityView({
       >
         <div className="problem-main">
           <section className="problem-card" aria-label="Current problem">
-            <div className="problem-card-head">
-              <p className="meta-label">Problem</p>
-              <span>{problem.answerType === 'choice' ? 'Choose' : problem.answerType === 'text' ? 'Explain' : 'Compute'}</span>
-            </div>
             <ProblemPrompt problem={problem} prompt={problem.prompt} />
             {hintCount > 0 && problem.hintSequence.length > 0 && (
               <div className="hint-panel" aria-live="polite">
@@ -906,64 +902,65 @@ export function ActivityView({
             <p className="eyebrow show-work-note">Show-your-work recommended — add steps before checking.</p>
           )}
           {problem.answerType === 'expression' && (
-            <>
-              <div className="math-input-head">
-                <div>
-                  <strong>Answer</strong>
-                  <span>{rawInput ? 'Raw LaTeX mode' : 'Math field mode'}</span>
+            <section className="answer-card" aria-label="Your answer">
+              {state.developerModeEnabled && (
+                <div className="answer-card-dev">
+                  <button type="button" className="secondary small" onClick={() => setRawInput(!rawInput)}>
+                    {rawInput ? 'Use math field' : 'Raw LaTeX'}
+                  </button>
                 </div>
-                <button type="button" className="secondary small" onClick={() => setRawInput(!rawInput)}>
-                  {rawInput ? 'Use math field' : 'Raw LaTeX'}
-                </button>
-              </div>
+              )}
               {!rawInput && (
-                <div className="math-toolbar compact" aria-label="Math input helpers">
-                  {mathToolGroups
-                    .filter((group) => group.label === 'Core' || group.label === 'Calculus' || group.label === 'Series')
-                    .map((group) => (
-                    <div className="math-tool-group" key={group.label}>
-                      <span>{group.label}</span>
-                      <div>
-                        {group.symbols.map((symbol) => (
-                          <button key={symbol.value} type="button" className="secondary" onClick={() => insertSymbol(symbol.value)}>
-                            {symbol.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    ))}
-                  <details className="symbol-drawer">
-                    <summary>More symbols</summary>
-                    <div className="symbol-drawer-groups">
-                      {mathToolGroups
-                        .filter(
-                          (group) =>
-                            group.label === 'Trig' ||
-                            group.label === 'Greek' ||
-                            group.label === 'Vectors' ||
-                            group.label === 'Parametric' ||
-                            group.label === 'Piecewise',
-                        )
-                        .map((group) => (
-                          <div className="math-tool-group" key={group.label}>
-                            <span>{group.label}</span>
-                            <div>
-                              {group.symbols.map((symbol) => (
-                                <button
-                                  key={symbol.value}
-                                  type="button"
-                                  className="secondary"
-                                  onClick={() => insertSymbol(symbol.value)}
-                                >
-                                  {symbol.label}
-                                </button>
-                              ))}
-                            </div>
+                <details className="symbol-toolbar-drawer">
+                  <summary>Insert symbols</summary>
+                  <div className="math-toolbar compact" aria-label="Math input helpers">
+                    {mathToolGroups
+                      .filter((group) => group.label === 'Core' || group.label === 'Calculus' || group.label === 'Series')
+                      .map((group) => (
+                        <div className="math-tool-group" key={group.label}>
+                          <span>{group.label}</span>
+                          <div>
+                            {group.symbols.map((symbol) => (
+                              <button key={symbol.value} type="button" className="secondary" onClick={() => insertSymbol(symbol.value)}>
+                                {symbol.label}
+                              </button>
+                            ))}
                           </div>
-                        ))}
-                    </div>
-                  </details>
-                </div>
+                        </div>
+                      ))}
+                    <details className="symbol-drawer">
+                      <summary>More symbols</summary>
+                      <div className="symbol-drawer-groups">
+                        {mathToolGroups
+                          .filter(
+                            (group) =>
+                              group.label === 'Trig' ||
+                              group.label === 'Greek' ||
+                              group.label === 'Vectors' ||
+                              group.label === 'Parametric' ||
+                              group.label === 'Piecewise',
+                          )
+                          .map((group) => (
+                            <div className="math-tool-group" key={group.label}>
+                              <span>{group.label}</span>
+                              <div>
+                                {group.symbols.map((symbol) => (
+                                  <button
+                                    key={symbol.value}
+                                    type="button"
+                                    className="secondary"
+                                    onClick={() => insertSymbol(symbol.value)}
+                                  >
+                                    {symbol.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </details>
+                  </div>
+                </details>
               )}
               {rawInput ? (
                 <textarea
@@ -974,9 +971,9 @@ export function ActivityView({
                   rows={3}
                 />
               ) : (
-                <MathInput ref={mathFieldRef} value={answer} onChange={setAnswer} placeholder="Type your answer" />
+                <MathInput ref={mathFieldRef} value={answer} onChange={setAnswer} placeholder="Enter your answer" />
               )}
-            </>
+            </section>
           )}
           {problem.answerType === 'text' && (
             <textarea

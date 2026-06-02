@@ -48,6 +48,11 @@ function replaceLimits(prompt: string): string {
   )
 }
 
+/** English "of" after a limit is redundant before the expression (Evaluate lim … of expr). */
+function dropRedundantOfAfterLimit(prompt: string): string {
+  return prompt.replace(/(\\lim_{[^}]+})\s+of\s+/gi, '$1 ')
+}
+
 function replaceFractions(prompt: string): string {
   let result = prompt
   let previous = ''
@@ -292,11 +297,11 @@ function wrapTextSegments(prompt: string): string {
     }
 
     const { value, next } = absorbText(prompt, index)
-    if (value) parts.push(`\\text{${escapeText(value)}}`)
+    if (value) parts.push(`\\text{${escapeText(value)} }`)
     index = next
   }
 
-  return parts.join(' ').replace(/\s+/g, ' ').trim()
+  return parts.join('')
 }
 
 export function promptToLatex(prompt: string): string {
@@ -306,6 +311,7 @@ export function promptToLatex(prompt: string): string {
 
   let latex = normalizeUnicode(trimmed)
   latex = replaceLimits(latex)
+  latex = dropRedundantOfAfterLimit(latex)
   latex = replaceFractions(latex)
   latex = replaceDerivativeNotation(latex)
   latex = replaceDifferentials(latex)

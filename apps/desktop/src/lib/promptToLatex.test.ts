@@ -12,7 +12,8 @@ describe('promptToLatex', () => {
     const latex = promptToLatex('Evaluate lim x→1 of (x^2 - 1)/(x - 1).')
     expect(latex).toContain('\\lim_{x \\to 1}')
     expect(latex).toContain('\\frac{x^2 - 1}{x - 1}')
-    expect(latex).toContain('\\text{Evaluate')
+    expect(latex).toContain('\\text{Evaluate }')
+    expect(latex).not.toContain('\\text{of')
   })
 
   it('typesets infinity limits', () => {
@@ -39,13 +40,13 @@ describe('promptToLatex', () => {
 
   it('typesets polynomial expansion prompts', () => {
     const latex = promptToLatex('Expand and simplify (2x + 3)(x - 4).')
-    expect(latex).toContain('\\text{Expand and simplify}')
+    expect(latex).toContain('\\text{Expand and simplify }')
     expect(latex).toContain('(2x + 3)(x - 4)')
   })
 
   it('typesets formula recall prompts', () => {
     const latex = promptToLatex('State the chain rule (Leibniz form).')
-    expect(latex).toContain('\\text{State the chain rule}')
+    expect(latex).toContain('\\text{State the chain rule }')
     expect(latex).toContain('Leibniz form')
 
     const ftc = promptToLatex('d/dx ∫_a^x f(t) dt = f(x)')
@@ -60,8 +61,8 @@ describe('promptToLatex', () => {
   it('typesets integration-by-parts formula recall answers', () => {
     const latex = promptToLatex('∫ u dv = uv - ∫ v du')
     expect(latex).toContain('\\int')
-    expect(latex).toContain('\\text{u}')
-    expect(latex).toContain('\\text{v}')
+    expect(latex).toContain('\\text{u }')
+    expect(latex).toContain('\\text{v }')
   })
 
   it('typesets L\'Hopital indeterminate forms with infinity', () => {

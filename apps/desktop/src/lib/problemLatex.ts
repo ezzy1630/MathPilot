@@ -15,10 +15,10 @@ function latexForStrings(strings: string[] | undefined): string[] | undefined {
 export function enrichProblemWithLatex(problem: Problem): Problem {
   return {
     ...problem,
-    promptLatex: problem.promptLatex ?? latexForText(problem.prompt),
-    choiceLatex: problem.choiceLatex ?? latexForStrings(problem.choices),
-    workedExampleLatex: problem.workedExampleLatex ?? latexForStrings(problem.workedExample),
-    hintSequenceLatex: problem.hintSequenceLatex ?? latexForStrings(problem.hintSequence),
+    promptLatex: latexForText(problem.prompt),
+    choiceLatex: latexForStrings(problem.choices),
+    workedExampleLatex: latexForStrings(problem.workedExample),
+    hintSequenceLatex: latexForStrings(problem.hintSequence),
   }
 }
 

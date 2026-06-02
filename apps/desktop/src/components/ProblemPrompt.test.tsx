@@ -57,11 +57,13 @@ describe('ProblemPrompt', () => {
     expect(field?.classList.contains('math-display')).toBe(true)
   })
 
-  it('passes promptLatex through to MathDisplay', () => {
-    const latex = '\\lim_{x \\to 1} \\frac{x^2 - 1}{x - 1}'
+  it('derives typeset latex from the prompt text', () => {
     act(() => {
-      root.render(<ProblemPrompt prompt="Evaluate lim x→1 of (x^2 - 1)/(x - 1)." promptLatex={latex} />)
+      root.render(<ProblemPrompt prompt="Evaluate lim x→1 of (x^2 - 1)/(x - 1)." />)
     })
-    expect(container.querySelector('math-field')?.getAttribute('data-value')).toBe(latex)
+    const value = container.querySelector('math-field')?.getAttribute('data-value') ?? ''
+    expect(value).toContain('\\text{Evaluate }')
+    expect(value).toContain('\\lim_{x \\to 1}')
+    expect(value).not.toContain('\\text{of')
   })
 })
