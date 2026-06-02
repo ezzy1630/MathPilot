@@ -161,18 +161,14 @@ export function buildSessionPhaseAction(state: MathPilotState, phase: ActivityKi
   const syllabusIds = syllabusSkillBoost(state).filter(
     (id) => state.skills[id] && (state.mastery[id]?.masteryScore ?? 0) < 0.72,
   )
-  const dueReview = state.reviewQueue
+  const dueReviews = state.reviewQueue
     .filter((item) => item.due <= new Date().toISOString().slice(0, 10))
-    .sort((a, b) => b.priority - a.priority)[0]
+    .sort((a, b) => b.priority - a.priority)
 
   let skillId =
     phase === 'syllabus_task' && syllabusIds.length
       ? syllabusIds[0]
-      : dueReview?.skillId ??
-        Object.values(state.mastery)
-          .filter((m) => state.skills[m.skillId])
-          .sort((a, b) => a.masteryScore - b.masteryScore)[0]?.skillId ??
-        'chain_rule'
+      : selectSessionSkillId(state, phase, dueReviews.map((item) => item.skillId))
 
   if (phase === 'formula_recall') {
     skillId = weakestFormulaSkillId(state) ?? skillId
@@ -220,6 +216,60 @@ export function buildSessionPhaseAction(state: MathPilotState, phase: ActivityKi
     skillIds: [skillId],
     cta: copy.cta,
   }
+}
+
+function selectSessionSkillId(state: MathPilotState, phase: ActivityKind, dueSkillIds: string[]): string {
+  if ((phase === 'retrieval_warmup' || phase === 'mixed_review') && dueSkillIds.length) {
+    return rankSessionCandidates(state, dueSkillIds, { preferDuePriority: true })[0] ?? dueSkillIds[0]
+  }
+
+  const weakIds = Object.values(state.mastery)
+    .filter((m) => state.skills[m.skillId] && m.masteryScore < 0.72)
+    .map((m) => m.skillId)
+
+  return rankSessionCandidates(state, weakIds.length ? weakIds : Object.keys(state.skills))[0] ?? 'chain_rule'
+}
+
+function rankSessionCandidates(
+  state: MathPilotState,
+  skillIds: string[],
+  options: { preferDuePriority?: boolean } = {},
+): string[] {
+  const uniqueIds = [...new Set(skillIds)].filter((id) => state.skills[id] && state.mastery[id])
+  const recentAttemptIndex = new Map<string, number>()
+  state.attempts.forEach((attempt, index) => {
+    for (const skillId of attempt.skillIds) {
+      if (!recentAttemptIndex.has(skillId)) recentAttemptIndex.set(skillId, index)
+    }
+  })
+  const duePriority = new Map(state.reviewQueue.map((item) => [item.skillId, item.priority]))
+
+  return uniqueIds.sort((a, b) => {
+    if (options.preferDuePriority) {
+      const priorityBandDelta =
+        Math.floor((duePriority.get(b) ?? 0) / 20) - Math.floor((duePriority.get(a) ?? 0) / 20)
+      if (priorityBandDelta !== 0) return priorityBandDelta
+    }
+
+    const aRecent = recentAttemptIndex.get(a)
+    const bRecent = recentAttemptIndex.get(b)
+    if (aRecent === undefined && bRecent !== undefined) return -1
+    if (aRecent !== undefined && bRecent === undefined) return 1
+    if (aRecent !== undefined && bRecent !== undefined && aRecent !== bRecent) return bRecent - aRecent
+
+    const masteryDelta = state.mastery[a].masteryScore - state.mastery[b].masteryScore
+    if (masteryDelta !== 0) return masteryDelta
+
+    if (options.preferDuePriority) {
+      const priorityDelta = (duePriority.get(b) ?? 0) - (duePriority.get(a) ?? 0)
+      if (priorityDelta !== 0) return priorityDelta
+    }
+
+    const dueDelta = (state.mastery[a].reviewDue ?? '').localeCompare(state.mastery[b].reviewDue ?? '')
+    if (dueDelta !== 0) return dueDelta
+
+    return a.localeCompare(b)
+  })
 }
 
 function sessionPhaseLabel(kind: ActivityKind): string {
