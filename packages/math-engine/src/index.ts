@@ -1,3 +1,5 @@
-export * from '../../../apps/desktop/src/domain/mathEngine'
+export type { CheckAnswerInput, CheckAnswerResult, MathEngineContract } from './contracts'
+export { desktopMathEngineAdapter } from './desktopAdapter'
+export { checkAnswer, checkAnswerAsync } from './checkAnswer'
+export * from './symbolicCheck'
 export * from '../../../apps/desktop/src/domain/problemGenerator'
-export * from '../../../apps/desktop/src/domain/symbolicCheck'

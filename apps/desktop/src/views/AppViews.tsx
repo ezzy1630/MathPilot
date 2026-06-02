@@ -147,9 +147,9 @@ export function Onboarding({
         <p className="lead">
           MathPilot keeps your progress local, finds the next useful problem, and updates the map from real work.
         </p>
-        <button className="primary large" onClick={() => setStep('focus')}>
+        <Button variant="primary" size="lg" onClick={() => setStep('focus')}>
           Continue
-        </button>
+        </Button>
       </div>
     )
   }
@@ -160,12 +160,12 @@ export function Onboarding({
         <h1>Choose your focus</h1>
         <p className="lead">MathPilot will run a short adaptive diagnostic to build your initial knowledge map.</p>
         <div className="choice-row">
-          <button className="primary large" onClick={() => chooseFocus('Calculus 1')}>
+          <Button variant="primary" size="lg" onClick={() => chooseFocus('Calculus 1')}>
             Calculus 1
-          </button>
-          <button className="secondary large" onClick={() => chooseFocus('Calculus 2')}>
+          </Button>
+          <Button variant="secondary" size="lg" onClick={() => chooseFocus('Calculus 2')}>
             Calculus 2
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -180,12 +180,12 @@ export function Onboarding({
           is saved locally.
         </p>
         <div className="choice-row">
-          <button className="primary large" onClick={beginDiagnostic}>
+          <Button variant="primary" size="lg" onClick={beginDiagnostic}>
             Start adaptive diagnostic
-          </button>
-          <button className="ghost" onClick={() => setStep('focus')}>
+          </Button>
+          <Button variant="ghost" onClick={() => setStep('focus')}>
             Back
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -377,8 +377,8 @@ export function TodayView({
                 </button>
               )}
               <div className="coach-evidence">
-                {evidenceItems.map((item) => (
-                  <span key={item}>
+                {evidenceItems.map((item, index) => (
+                  <span key={item} style={{ '--i': index } as React.CSSProperties}>
                     <ShieldCheck size={14} aria-hidden />
                     {item}
                   </span>
@@ -1115,11 +1115,12 @@ export function ActivityView({
                   { label: 'My answer looks right but was marked wrong', prompt: "I'm lost: My answer looks right but was marked wrong" },
                   { label: 'I need a similar example', prompt: 'similar_example' },
                   { label: 'I forgot a formula', prompt: "I'm lost: I forgot a formula" },
-                ].map(({ label, prompt }) => (
+                ].map(({ label, prompt }, index) => (
                   <button
                     key={label}
                     type="button"
                     className="secondary lost-chip"
+                    style={{ '--i': index } as React.CSSProperties}
                     onClick={() => {
                       if (prompt === 'similar_example') {
                         startAction(problemForSkill(state, problem.skillIds[0], problem.mode))
@@ -1324,23 +1325,29 @@ export function KnowledgeMap({
                 tabIndex={0}
               >
                 <h2>{area}</h2>
+                <span aria-hidden className="chevron-icon" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                  ›
+                </span>
                 <span>{average}%</span>
               </div>
-              {open &&
-                records.map(({ skill, mastery }) => (
-                  <button
-                    className={`skill-row ${mastery.masteryScore < 0.4 ? 'weak' : ''} ${highlightSkillIds.includes(skill.id) ? 'weak' : ''} ${state.advancedMode ? 'skill-row-advanced' : ''}`}
-                    key={skill.id}
-                    onClick={() => handleSkill(skill.id)}
-                    aria-label={`${skill.name}, ${Math.round(mastery.masteryScore * 100)}% mastery, ${mastery.masteryState}`}
-                  >
-                    <span className="skill-row-main">
-                      <span>{skill.name}</span>
-                      {state.advancedMode && <MasteryDimensionBars mastery={mastery} />}
-                    </span>
-                    <MasteryBadge state={mastery.masteryState} />
-                  </button>
-                ))}
+              {open && (
+                <div className="map-section-body">
+                  {records.map(({ skill, mastery }) => (
+                    <button
+                      className={`skill-row ${mastery.masteryScore < 0.4 ? 'weak' : ''} ${highlightSkillIds.includes(skill.id) ? 'weak' : ''} ${state.advancedMode ? 'skill-row-advanced' : ''}`}
+                      key={skill.id}
+                      onClick={() => handleSkill(skill.id)}
+                      aria-label={`${skill.name}, ${Math.round(mastery.masteryScore * 100)}% mastery, ${mastery.masteryState}`}
+                    >
+                      <span className="skill-row-main">
+                        <span>{skill.name}</span>
+                        {state.advancedMode && <MasteryDimensionBars mastery={mastery} />}
+                      </span>
+                      <MasteryBadge state={mastery.masteryState} />
+                    </button>
+                  ))}
+                </div>
+              )}
             </section>
           )
         })}
@@ -1369,12 +1376,12 @@ export function Resources({
   const [resources, setResources] = useState<MathPilotState['resources'][string][]>([])
   useEffect(() => {
     void import('../domain/configLoader').then((m) =>
-      m.loadSourcesConfig().then((c) => {
-        setPolicy(c.policy)
-        void listTrustedResources(state).then(setResources)
-      }),
+      m.loadSourcesConfig().then((c) => setPolicy(c.policy)),
     )
-  }, [state])
+  }, [])
+  useEffect(() => {
+    void listTrustedResources(state).then(setResources)
+  }, [state.currentFocus, state.resources]) // eslint-disable-line react-hooks/exhaustive-deps -- only resources + focus matter
   useEffect(() => {
     const trimmed = query.trim()
     if (trimmed.length < 2) return
@@ -2044,12 +2051,12 @@ export function SettingsView({
           <div className="settings-row">
             <span>Focus</span>
             <div className="action-row">
-              <button type="button" className="secondary" onClick={() => chooseFocus('Calculus 1')}>
+              <Button variant="secondary" onClick={() => chooseFocus('Calculus 1')}>
                 Calculus 1
-              </button>
-              <button type="button" className="secondary" onClick={() => chooseFocus('Calculus 2')}>
+              </Button>
+              <Button variant="secondary" onClick={() => chooseFocus('Calculus 2')}>
                 Calculus 2
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -2093,9 +2100,9 @@ export function SettingsView({
               onChange={(e) => setCodexPaste(e.target.value)}
               placeholder="Paste Codex JSON response…"
             />
-            <button type="button" className="secondary" style={{ marginTop: 8 }} onClick={onApplyCodexPaste}>
+            <Button variant="secondary" style={{ marginTop: 8 }} onClick={onApplyCodexPaste}>
               Apply response
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -2110,9 +2117,8 @@ export function SettingsView({
               placeholder="Type RESET to confirm wipe"
             />
             <div className="action-row" style={{ marginTop: 12 }}>
-              <button
-                type="button"
-                className="secondary"
+              <Button
+                variant="secondary"
                 onClick={() => {
                   void exportFullUserArchive(state).then((blob) => {
                     const url = URL.createObjectURL(blob)
@@ -2126,7 +2132,7 @@ export function SettingsView({
               >
                 <Download size={18} />
                 Export
-              </button>
+              </Button>
               <button
                 type="button"
                 className="danger"

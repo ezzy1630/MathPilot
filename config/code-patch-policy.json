@@ -1,0 +1,31 @@
+{
+  "allowedPrefixes": [
+    "apps/",
+    "packages/",
+    "scripts/",
+    "docs/",
+    ".github/",
+    "skills/",
+    "config/",
+    "data/"
+  ],
+  "blockedPrefixes": [
+    ".git/",
+    "node_modules/",
+    "apps/desktop/src-tauri/target/"
+  ],
+  "allowedExtensions": [
+    "ts",
+    "tsx",
+    "js",
+    "jsx",
+    "json",
+    "css",
+    "md",
+    "yml",
+    "yaml",
+    "rs",
+    "toml",
+    "sh"
+  ]
+}

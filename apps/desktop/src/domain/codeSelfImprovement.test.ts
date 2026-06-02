@@ -18,6 +18,8 @@ describe('codeSelfImprovement', () => {
   it('rejects paths outside repo root', () => {
     expect(validateCodePatchPath('/etc/passwd').ok).toBe(false)
     expect(validateCodePatchPath('apps/desktop/src/main.tsx').ok).toBe(true)
+    expect(validateCodePatchPath('skills/planning/schedule_review.md').ok).toBe(true)
+    expect(validateCodePatchPath('.github/workflows/ci.yml').ok).toBe(true)
     expect(validateCodePatchPath('../secrets.env').ok).toBe(false)
   })
 
@@ -53,7 +55,8 @@ describe('codeSelfImprovement', () => {
     expect(withoutApproval.codeChangeProposals![0].status).toBe('pending_approval')
     state = approveCodeChange(state, id)
     const applied = await applyApprovedCodeChange(state, id)
-    expect(applied.codeChangeProposals![0].status).toBe('applied')
+    expect(applied.codeChangeProposals![0].status).toBe('approved')
+    expect(applied.codeChangeProposals![0].appliedPaths ?? []).toHaveLength(0)
     expect(applied.developerState?.pendingDiffPreview).toBeUndefined()
     expect(applied.developerState?.lastTestRun).toBeDefined()
   })

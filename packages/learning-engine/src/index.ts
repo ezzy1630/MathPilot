@@ -1,3 +1,5 @@
+export type { LearningEngineContract } from './contracts'
+export { desktopLearningEngineAdapter } from './desktopAdapter'
 export * from '../../../apps/desktop/src/domain/learningEngine'
 export * from '../../../apps/desktop/src/domain/diagnosticEngine'
 export * from '../../../apps/desktop/src/domain/reviewScheduler'

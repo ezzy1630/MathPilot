@@ -23,6 +23,7 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@config/*": ["../../config/*"],
+      "@config/codePatchPolicy": ["../../config/codePatchPolicy.ts"],
       "@mathpilot/learning-engine": ["../../packages/learning-engine/src/index.ts"],
       "@mathpilot/math-engine": ["../../packages/math-engine/src/index.ts"],
       "@mathpilot/ai-adapter": ["../../packages/ai-adapter/src/index.ts"],

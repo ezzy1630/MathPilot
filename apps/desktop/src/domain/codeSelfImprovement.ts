@@ -1,3 +1,4 @@
+import { validateCodePatchPath as validatePatchPath } from '@config/codePatchPolicy'
 import type { MathPilotState } from './types'
 
 export interface CodePatch {
@@ -24,22 +25,9 @@ export interface DeveloperState {
 
 export type CodeSelfImprovementState = MathPilotState & { developerState?: DeveloperState }
 
-const REPO_ROOT_PREFIXES = ['apps/', 'packages/', 'skills/', 'config/', 'scripts/', 'data/']
-
-/** Paths for code self-improvement must stay under the MathPilot repo root. */
+/** Paths for code self-improvement must match Tauri patch policy (config/code-patch-policy.json). */
 export function validateCodePatchPath(path: string): { ok: boolean; reason?: string } {
-  const rel = path.trim().replace(/^\/+/, '')
-  if (!rel || rel.includes('..') || rel.startsWith('.env') || rel.includes('/.env')) {
-    return { ok: false, reason: 'invalid or sensitive path' }
-  }
-  if (rel.startsWith('node_modules/') || rel.includes('/node_modules/')) {
-    return { ok: false, reason: 'node_modules is not patchable' }
-  }
-  const allowed = REPO_ROOT_PREFIXES.some((prefix) => rel.startsWith(prefix))
-  if (!allowed) {
-    return { ok: false, reason: 'path must be under repo root (apps/, packages/, skills/, config/, scripts/, data/)' }
-  }
-  return { ok: true }
+  return validatePatchPath(path)
 }
 
 export function validateCodePatches(patches: CodePatch[]): { ok: boolean; invalidPaths: string[] } {
@@ -168,8 +156,18 @@ export async function applyApprovedCodeChange(
     }
   }
 
+  const patched = appliedPaths.length > 0
   const next = [...proposals]
-  next[idx] = { ...next[idx], status: 'applied', appliedPaths, backupId }
+  next[idx] = {
+    ...next[idx],
+    status: patched ? 'applied' : 'approved',
+    appliedPaths,
+    backupId,
+  }
+
+  const changelogLine = patched
+    ? `${new Date().toISOString()}: Code change applied — ${proposal.summary} (${appliedPaths.length} files). Tests ${lastTestRun?.ok ? 'passed' : 'failed'}.`
+    : `${new Date().toISOString()}: Code change approved but not applied (requires Tauri shell with repo checkout).`
 
   return {
     ...state,
@@ -179,10 +177,7 @@ export async function applyApprovedCodeChange(
       pendingDiffPreview: undefined,
       lastTestRun,
     },
-    changelog: [
-      `${new Date().toISOString()}: Code change applied — ${proposal.summary} (${appliedPaths.length} files). Tests ${lastTestRun?.ok ? 'passed' : 'failed'}.`,
-      ...state.changelog,
-    ],
+    changelog: [changelogLine, ...state.changelog],
   }
 }
 

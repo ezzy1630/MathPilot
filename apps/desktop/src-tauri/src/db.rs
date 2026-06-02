@@ -4,9 +4,10 @@ use crate::repo::{compile_time_repo_root, require_repo_root, resolve_repo_root};
 use rusqlite::{params, Connection};
 use std::env;
 use std::io::{Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex, OnceLock};
+use serde::Deserialize;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
 
@@ -982,9 +983,12 @@ pub struct CodePatch {
 }
 
 fn repo_relative_path(rel: &str) -> Result<PathBuf, String> {
-    let trimmed = rel.trim_start_matches('/');
-    if trimmed.contains("..") {
+    let trimmed = rel.trim().trim_start_matches('/');
+    if trimmed.is_empty() || trimmed.contains("..") {
         return Err("invalid path".to_string());
+    }
+    if Path::new(trimmed).is_absolute() {
+        return Err("absolute paths are not allowed".to_string());
     }
     let root = require_repo_root()?;
     let full = root.join(trimmed);
@@ -992,6 +996,117 @@ fn repo_relative_path(rel: &str) -> Result<PathBuf, String> {
         return Err("path must stay inside repo root".to_string());
     }
     Ok(full)
+}
+
+#[derive(Debug, Deserialize)]
+struct CodePatchPolicyFile {
+    #[serde(rename = "allowedPrefixes")]
+    allowed_prefixes: Vec<String>,
+    #[serde(rename = "blockedPrefixes")]
+    blocked_prefixes: Vec<String>,
+    #[serde(rename = "allowedExtensions")]
+    allowed_extensions: Vec<String>,
+}
+
+fn code_patch_policy() -> &'static CodePatchPolicyFile {
+    static POLICY: OnceLock<CodePatchPolicyFile> = OnceLock::new();
+    POLICY.get_or_init(|| {
+        const RAW: &str =
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../config/code-patch-policy.json"));
+        serde_json::from_str(RAW).expect("valid config/code-patch-policy.json")
+    })
+}
+
+fn is_patchable_repo_path(rel: &str) -> bool {
+    let path = rel.trim().trim_start_matches('/');
+    if path.is_empty() || path.contains('\\') {
+        return false;
+    }
+    if path.starts_with('.') && !path.starts_with(".github/") {
+        return false;
+    }
+    let policy = code_patch_policy();
+    if policy
+        .blocked_prefixes
+        .iter()
+        .any(|prefix| path.starts_with(prefix.as_str()))
+    {
+        return false;
+    }
+    if !policy
+        .allowed_prefixes
+        .iter()
+        .any(|prefix| path.starts_with(prefix.as_str()))
+    {
+        return false;
+    }
+    Path::new(path)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| policy.allowed_extensions.iter().any(|allowed| allowed == ext))
+        .unwrap_or(false)
+}
+
+fn audit_log_path(app: Option<&AppHandle>) -> Result<PathBuf, String> {
+    if let Ok(root) = require_repo_root() {
+        let dir = root.join("data");
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        return Ok(dir.join("command_audit.log"));
+    }
+    let app = app.ok_or_else(|| "app context unavailable for audit logging".to_string())?;
+    Ok(app_data_subdir(app, "developer")?.join("command_audit.log"))
+}
+
+fn write_command_audit(
+    app: Option<&AppHandle>,
+    command: &str,
+    outcome: &str,
+    details: &str,
+) -> Result<(), String> {
+    let path = audit_log_path(app)?;
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let line = format!(
+        "{} | {} | {} | {}\n",
+        chrono::Utc::now().to_rfc3339(),
+        command,
+        outcome,
+        details.replace('\n', " ")
+    );
+    use std::io::Write;
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .map_err(|e| e.to_string())?;
+    file.write_all(line.as_bytes()).map_err(|e| e.to_string())
+}
+
+#[cfg(not(debug_assertions))]
+fn allowed_capabilities() -> Vec<String> {
+    std::env::var("MATHPILOT_ALLOWED_COMMAND_CAPABILITIES")
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .filter(|v| !v.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
+fn ensure_command_capability(_capability: &str) -> Result<(), String> {
+    #[cfg(debug_assertions)]
+    {
+        return Ok(());
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        let allowed = allowed_capabilities();
+        if allowed.iter().any(|c| c == _capability || c == "*") {
+            return Ok(());
+        }
+        Err(format!("missing command capability: {_capability}"))
+    }
 }
 
 fn skill_file_backup_dir(app: &AppHandle, backup_id: &str) -> Result<PathBuf, String> {
@@ -1109,31 +1224,95 @@ pub struct PnpmTestResult {
 }
 
 #[tauri::command]
-pub fn run_pnpm_test() -> Result<PnpmTestResult, String> {
+pub fn run_pnpm_test(app: AppHandle) -> Result<PnpmTestResult, String> {
+    ensure_command_capability("run_tests")?;
     let root = require_repo_root()?;
-    let output = Command::new("pnpm")
+    write_command_audit(Some(&app), "run_pnpm_test", "attempt", "pnpm test")?;
+
+    let timeout = Duration::from_secs(
+        env::var("MATHPILOT_PNPM_TEST_TIMEOUT_SECS")
+            .ok()
+            .and_then(|raw| raw.parse::<u64>().ok())
+            .unwrap_or(900),
+    );
+
+    let mut child = Command::new("pnpm")
         .arg("test")
         .current_dir(&root)
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .map_err(|e| format!("pnpm test failed to start ({e})"))?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let combined = format!("{stdout}{stderr}");
-    Ok(PnpmTestResult {
-        ok: output.status.success(),
-        output: combined.chars().take(12_000).collect(),
-        at: chrono::Utc::now().to_rfc3339(),
-    })
+
+    let started = Instant::now();
+    loop {
+        if let Some(status) = child
+            .try_wait()
+            .map_err(|e| format!("pnpm test wait failed ({e})"))?
+        {
+            let mut stdout = String::new();
+            let mut stderr = String::new();
+            if let Some(mut out) = child.stdout.take() {
+                let _ = out.read_to_string(&mut stdout);
+            }
+            if let Some(mut err) = child.stderr.take() {
+                let _ = err.read_to_string(&mut stderr);
+            }
+            let combined = format!("{stdout}{stderr}");
+            let result = PnpmTestResult {
+                ok: status.success(),
+                output: combined.chars().take(12_000).collect(),
+                at: chrono::Utc::now().to_rfc3339(),
+            };
+            let _ = write_command_audit(
+                Some(&app),
+                "run_pnpm_test",
+                if result.ok { "ok" } else { "failed" },
+                "pnpm test completed",
+            );
+            return Ok(result);
+        }
+
+        if started.elapsed() >= timeout {
+            let _ = child.kill();
+            let _ = write_command_audit(
+                Some(&app),
+                "run_pnpm_test",
+                "timed_out",
+                &format!("pnpm test exceeded {} seconds", timeout.as_secs()),
+            );
+            return Ok(PnpmTestResult {
+                ok: false,
+                output: format!(
+                    "pnpm test timed out after {} seconds.",
+                    timeout.as_secs()
+                ),
+                at: chrono::Utc::now().to_rfc3339(),
+            });
+        }
+
+        std::thread::sleep(Duration::from_millis(200));
+    }
 }
 
 #[tauri::command]
 pub fn apply_code_patches(backup_id: String, patches: Vec<CodePatch>) -> Result<Vec<String>, String> {
+    ensure_command_capability("code_patch")?;
     let root = require_repo_root()?;
     let backup_dir = root.join("data").join("code_patch_backups");
     std::fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
 
     let mut applied = Vec::new();
     for patch in patches {
+        if !is_patchable_repo_path(&patch.path) {
+            let _ = write_command_audit(
+                None,
+                "apply_code_patches",
+                "rejected",
+                &format!("invalid patch path {}", patch.path),
+            );
+            return Err(format!("path is not allowed for patching: {}", patch.path));
+        }
         let full = repo_relative_path(&patch.path)?;
         if let Some(parent) = full.parent() {
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
@@ -1148,13 +1327,29 @@ pub fn apply_code_patches(backup_id: String, patches: Vec<CodePatch>) -> Result<
         std::fs::write(&full, patch.content).map_err(|e| e.to_string())?;
         applied.push(patch.path.trim_start_matches('/').to_string());
     }
+    let _ = write_command_audit(
+        None,
+        "apply_code_patches",
+        "ok",
+        &format!("backup_id={backup_id} files={}", applied.join(",")),
+    );
     Ok(applied)
 }
 
 #[tauri::command]
 pub fn rollback_code_patches(backup_id: String) -> Result<Vec<String>, String> {
+    ensure_command_capability("code_patch_rollback")?;
     let root = require_repo_root()?;
     let backup_dir = root.join("data").join("code_patch_backups");
+    if !backup_dir.exists() {
+        let _ = write_command_audit(
+            None,
+            "rollback_code_patches",
+            "rejected",
+            "backup directory missing",
+        );
+        return Err("code patch backup directory does not exist".to_string());
+    }
     let prefix = format!("{backup_id}__");
     let mut restored = Vec::new();
 
@@ -1165,18 +1360,42 @@ pub fn rollback_code_patches(backup_id: String) -> Result<Vec<String>, String> {
             continue
         }
         let rel = name.trim_start_matches(&prefix).replace("__", "/");
+        if !is_patchable_repo_path(&rel) {
+            let _ = write_command_audit(
+                None,
+                "rollback_code_patches",
+                "rejected",
+                &format!("invalid rollback path {rel}"),
+            );
+            return Err(format!("rollback path is not allowed: {rel}"));
+        }
         let full = repo_relative_path(&rel)?;
         let content = std::fs::read_to_string(entry.path()).map_err(|e| e.to_string())?;
         std::fs::write(&full, content).map_err(|e| e.to_string())?;
         restored.push(rel);
     }
+    if restored.is_empty() {
+        let _ = write_command_audit(
+            None,
+            "rollback_code_patches",
+            "rejected",
+            &format!("no backups found for {backup_id}"),
+        );
+        return Err(format!("no backups found for backup_id {backup_id}"));
+    }
+    let _ = write_command_audit(
+        None,
+        "rollback_code_patches",
+        "ok",
+        &format!("backup_id={backup_id} files={}", restored.join(",")),
+    );
     Ok(restored)
 }
 
 #[cfg(test)]
 mod repo_write_tests {
     use super::*;
-    use crate::repo::resolve_repo_root;
+    use crate::repo::{require_repo_root, resolve_repo_root};
 
     #[test]
     fn apply_code_patches_requires_checkout() {
@@ -1193,11 +1412,53 @@ mod repo_write_tests {
         .expect_err("should fail without repo");
         assert!(err.contains("source checkout"));
     }
+
+    #[test]
+    fn apply_code_patches_rejects_disallowed_path() {
+        let err = apply_code_patches(
+            "backup-disallowed".into(),
+            vec![CodePatch {
+                path: ".git/config".into(),
+                content: "deny".into(),
+            }],
+        )
+        .expect_err("should reject disallowed patch paths");
+        assert!(err.contains("not allowed for patching"));
+    }
+
+    #[test]
+    fn rollback_code_patches_requires_matching_backup_files() {
+        if resolve_repo_root().is_none() {
+            return;
+        }
+        let err = rollback_code_patches("missing-backup-id".into())
+            .expect_err("should fail when no backup files exist");
+        assert!(err.contains("no backups found") || err.contains("does not exist"));
+    }
+
+    #[test]
+    fn rollback_rejects_malformed_backup_path() {
+        if resolve_repo_root().is_none() {
+            return;
+        }
+        let root = require_repo_root().expect("repo root");
+        let backup_dir = root.join("data").join("code_patch_backups");
+        std::fs::create_dir_all(&backup_dir).expect("create backup dir");
+        let backup_id = format!("backup-malformed-{}", chrono::Utc::now().timestamp_millis());
+        let bad_name = format!("{backup_id}__..__secrets.txt");
+        let bad_path = backup_dir.join(&bad_name);
+        std::fs::write(&bad_path, "bad").expect("write malformed backup");
+
+        let err = rollback_code_patches(backup_id).expect_err("should reject malformed backup path");
+        assert!(err.contains("rollback path is not allowed"));
+
+        let _ = std::fs::remove_file(bad_path);
+    }
 }
 
 #[cfg(test)]
 mod runtime_path_tests {
-    use super::{safe_runtime_filename, safe_runtime_stem};
+    use super::{is_patchable_repo_path, safe_runtime_filename, safe_runtime_stem};
 
     #[test]
     fn safe_runtime_filename_rejects_traversal() {
@@ -1210,6 +1471,18 @@ mod runtime_path_tests {
         assert!(safe_runtime_stem("").is_err());
         assert!(safe_runtime_stem(".hidden").is_err());
         assert!(safe_runtime_stem("backup-2026").is_ok());
+    }
+
+    #[test]
+    fn patchable_path_policy_is_strict() {
+        assert!(is_patchable_repo_path("apps/desktop/src/app/AppShell.tsx"));
+        assert!(is_patchable_repo_path(".github/workflows/ci.yml"));
+        assert!(is_patchable_repo_path("skills/planning/schedule_review.md"));
+        assert!(is_patchable_repo_path("config/code-patch-policy.json"));
+        assert!(!is_patchable_repo_path(".git/config"));
+        assert!(!is_patchable_repo_path("node_modules/a.js"));
+        assert!(!is_patchable_repo_path("apps/desktop/src-tauri/target/tmp.txt"));
+        assert!(!is_patchable_repo_path("scripts/no_extension"));
     }
 }
 

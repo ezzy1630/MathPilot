@@ -13,6 +13,8 @@ export default defineConfig({
       '@config': path.resolve(root, '../../config'),
       '@config/app_settings.json': path.resolve(root, '../../config/app_settings.json'),
       '@config/sources.json': path.resolve(root, '../../config/sources.json'),
+      '@config/codePatchPolicy': path.resolve(root, '../../config/codePatchPolicy.ts'),
+      '@mathpilot/math-engine': path.resolve(root, '../math-engine/src/index.ts'),
     },
   },
 })

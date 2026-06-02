@@ -205,6 +205,12 @@ select:focus-visible,
   box-shadow: var(--mp-shadow-sm);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .nav-button.active {
+    box-shadow: inset 2px 0 0 var(--mp-accent), var(--mp-shadow-sm);
+  }
+}
+
 .rail-spacer {
   flex: 1;
 }
@@ -498,6 +504,7 @@ select:focus-visible,
   height: 100%;
   border-radius: inherit;
   transition: width var(--mp-transition);
+  opacity: 1;
 }
 
 .today-mastery-empty {
@@ -670,6 +677,7 @@ select:focus-visible,
   place-items: center;
   background: conic-gradient(var(--mp-accent) calc(var(--p, var(--value, 0)) * 1%), var(--mp-bg-muted) 0);
   position: relative;
+  transition: background 0.5s var(--mp-ease-emphasized);
 }
 
 .ring::after {
@@ -807,6 +815,11 @@ select:focus-visible,
   font-size: 0.8125rem;
   color: var(--mp-text-secondary);
   border: 1px solid var(--mp-border);
+}
+
+.area-chip:hover {
+  background: var(--mp-bg-elevated);
+  border-color: var(--mp-border-strong);
 }
 
 .chip-row {
@@ -1881,6 +1894,10 @@ math-field {
   max-height: 620px;
 }
 
+.map-wheel-sector {
+  cursor: pointer;
+}
+
 .map-wheel-sector circle {
   transition: transform 180ms ease, filter 180ms ease, stroke-width 180ms ease;
   transform-box: fill-box;
@@ -1917,6 +1934,15 @@ math-field {
   padding: 14px 16px;
   cursor: pointer;
   border-bottom: 1px solid var(--mp-border);
+  transition: background var(--mp-transition);
+}
+
+.map-section-head:hover {
+  background: var(--mp-bg-muted);
+}
+
+.map-section-head .chevron-icon {
+  transition: transform var(--mp-duration-normal) var(--mp-ease-emphasized);
 }
 
 .map-section-head h2 {
@@ -2218,6 +2244,22 @@ math-field {
   .today-mastery-strip .today-mastery-ring-graphic span {
     transition: none;
   }
+
+  .feedback-panel,
+  .hint-panel,
+  .lost-panel,
+  .graph-panel,
+  .review-nudge,
+  .today-adjust-panel,
+  .today-mastery-strip,
+  .mp-toast,
+  .mp-modal,
+  .mp-modal-backdrop,
+  .loading-bar-fill,
+  .loading-mark,
+  .diagnostic-plan-banner {
+    animation: none !important;
+  }
 }
 
 
@@ -2278,6 +2320,7 @@ a {
   border-color: var(--mp-accent);
   color: var(--mp-on-accent);
   font-weight: var(--mp-font-weight-medium);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mp-accent) 28%, transparent);
 }
 
 .activity-side-stack {
@@ -3608,6 +3651,7 @@ textarea {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--mp-border);
+  transition: opacity var(--mp-duration-normal) var(--mp-ease-standard);
 }
 
 .prominent-homework {

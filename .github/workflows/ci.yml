@@ -27,6 +27,12 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Engine boundary check
+        run: pnpm check:engine-boundaries
+
+      - name: Package typecheck
+        run: pnpm typecheck:packages
+
       - name: Test
         run: pnpm test
 
@@ -38,9 +44,45 @@ jobs:
       - name: Rust unit tests (Tauri migrations)
         run: cargo test --lib --manifest-path apps/desktop/src-tauri/Cargo.toml
 
-  e2e:
+  backend-command-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run backend command behavior tests
+        run: |
+          cargo test --lib --manifest-path apps/desktop/src-tauri/Cargo.toml repo_write_tests
+          cargo test --lib --manifest-path apps/desktop/src-tauri/Cargo.toml runtime_path_tests
+
+  bundle-budgets:
     runs-on: ubuntu-latest
     needs: verify
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build desktop
+        run: pnpm --filter @mathpilot/desktop build
+
+      - name: Enforce bundle budgets
+        run: pnpm check:bundle-budgets
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [verify, backend-command-tests, bundle-budgets]
     steps:
       - uses: actions/checkout@v4
 

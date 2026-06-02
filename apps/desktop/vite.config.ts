@@ -28,10 +28,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.includes('/src/views/AppViews.tsx')) return 'app-views'
+          if (id.includes('/src/components/KnowledgeMapWheel')) return 'map-views'
+          if (id.includes('/src/components/DesmosEmbed')) return 'math-graphing'
           if (!id.includes('node_modules')) return undefined
           if (id.includes('react') || id.includes('scheduler')) return 'react-vendor'
           if (id.includes('mathlive') || id.includes('@cortex-js')) return 'math-vendor'
           if (id.includes('recharts') || id.includes('d3-')) return 'chart-vendor'
+          if (id.includes('lucide-react')) return 'ui-vendor'
           if (id.includes('@tauri-apps')) return 'tauri-vendor'
           return 'vendor'
         },

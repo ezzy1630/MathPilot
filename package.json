@@ -7,9 +7,13 @@
     "dev": "pnpm --filter @mathpilot/desktop dev",
     "build": "pnpm --filter @mathpilot/desktop build",
     "test": "pnpm --filter @mathpilot/desktop test && pnpm test:packages",
-    "test:packages": "pnpm --filter @mathpilot/learning-engine test && pnpm --filter @mathpilot/content-engine test",
+    "test:packages": "pnpm --filter @mathpilot/learning-engine test && pnpm --filter @mathpilot/content-engine test && pnpm --filter @mathpilot/math-engine test",
     "test:e2e": "pnpm --filter @mathpilot/desktop test:e2e",
-    "lint": "pnpm --filter @mathpilot/desktop lint"
+    "lint": "pnpm --filter @mathpilot/desktop lint",
+    "test:backend-commands": "cargo test --lib --manifest-path apps/desktop/src-tauri/Cargo.toml repo_write_tests && cargo test --lib --manifest-path apps/desktop/src-tauri/Cargo.toml runtime_path_tests",
+    "check:bundle-budgets": "node scripts/check-bundle-budgets.mjs",
+    "check:engine-boundaries": "node scripts/verify-engine-boundaries.mjs",
+    "typecheck:packages": "pnpm --filter @mathpilot/math-engine typecheck && pnpm --filter @mathpilot/learning-engine typecheck"
   },
   "devDependencies": {
     "typescript": "~6.0.2"

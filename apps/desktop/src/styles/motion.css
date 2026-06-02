@@ -32,9 +32,11 @@
 @keyframes mp-backdrop-enter {
   from {
     opacity: 0;
+    backdrop-filter: blur(0px);
   }
   to {
     opacity: 1;
+    backdrop-filter: blur(12px);
   }
 }
 
@@ -52,7 +54,7 @@
 @keyframes mp-palette-row-enter {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(4px) scale(0.99);
   }
   to {
     opacity: 1;
@@ -82,6 +84,63 @@
 @keyframes mp-btn-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* —— New entrance keyframes —— */
+
+@keyframes mp-nudge-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mp-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mp-toast-exit {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+
+@keyframes mp-lost-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mp-feedback-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -120,6 +179,7 @@ button[aria-busy='true']:not(.mp-btn-icon-only)::after,
   .nav-button,
   .brand,
   .confidence-chip,
+  .area-chip,
   .primary,
   .secondary,
   .ghost,
@@ -135,8 +195,18 @@ button[aria-busy='true']:not(.mp-btn-icon-only)::after,
       background var(--mp-transition),
       border-color var(--mp-transition),
       color var(--mp-transition),
-      transform var(--mp-duration-fast) var(--mp-ease-standard),
+      transform var(--mp-duration-fast) var(--mp-ease-emphasized),
       box-shadow var(--mp-transition);
+  }
+
+  /* —— Button press depth —— */
+  .mp-btn-primary:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .mp-btn-secondary:active:not(:disabled),
+  .mp-btn-ghost:active:not(:disabled) {
+    transform: scale(0.98);
   }
 
   .mp-btn:active:not(:disabled),
@@ -146,11 +216,45 @@ button[aria-busy='true']:not(.mp-btn-icon-only)::after,
     transform: scale(0.98);
   }
 
+  /* —— Button hover scale —— */
+  .mp-btn-primary:hover:not(:disabled) {
+    transform: scale(1.02);
+  }
+
+  .mp-btn-secondary:hover:not(:disabled) {
+    transform: scale(1.01);
+  }
+
+  /* Legacy class hover scale */
+  .primary:hover:not(:disabled) {
+    transform: scale(1.02);
+  }
+
+  .secondary:hover:not(:disabled) {
+    transform: scale(1.01);
+  }
+
   .nav-button:active,
   .brand:active {
     transform: scale(0.99);
   }
 
+  /* —— Nav button translateX on hover —— */
+  .nav-button:hover {
+    transform: translateX(1px);
+  }
+
+  /* —— Nav active indicator —— */
+  .nav-button.active {
+    box-shadow: inset 2px 0 0 var(--mp-accent), var(--mp-shadow-sm);
+  }
+
+  /* —— Confidence chip hover —— */
+  .confidence-chip:hover:not([aria-checked='true']):not(.active) {
+    transform: scale(1.03);
+  }
+
+  /* —— Page enter animations —— */
   .view-stage > .page,
   .view-stage > .developer-page,
   .view-stage > section.panel,
@@ -171,13 +275,14 @@ button[aria-busy='true']:not(.mp-btn-icon-only)::after,
   .mp-modal,
   .modal,
   .skill-action-modal {
-    animation: mp-modal-enter var(--mp-duration-slow) var(--mp-ease-emphasized);
+    animation: mp-modal-enter var(--mp-duration-normal) var(--mp-ease-emphasized);
   }
 
   .mp-modal-palette {
     animation: mp-modal-enter var(--mp-duration-normal) var(--mp-ease-emphasized);
   }
 
+  /* —— Command palette row stagger —— */
   .command-palette-body .palette-row {
     animation: mp-palette-row-enter var(--mp-duration-normal) var(--mp-ease-emphasized);
     animation-fill-mode: both;
@@ -199,15 +304,42 @@ button[aria-busy='true']:not(.mp-btn-icon-only)::after,
     animation-delay: 96ms;
   }
 
+  /* —— Map section skill row stagger —— */
+  .map-section-body .skill-row {
+    animation: mp-palette-row-enter var(--mp-duration-normal) var(--mp-ease-emphasized) both;
+  }
+
+  .map-section-body .skill-row:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .map-section-body .skill-row:nth-child(2) {
+    animation-delay: 20ms;
+  }
+  .map-section-body .skill-row:nth-child(3) {
+    animation-delay: 40ms;
+  }
+  .map-section-body .skill-row:nth-child(4) {
+    animation-delay: 60ms;
+  }
+  .map-section-body .skill-row:nth-child(n + 5) {
+    animation-delay: 80ms;
+  }
+
+  /* —— Chip animations —— */
   .confidence-chip[aria-pressed='true'] {
     animation: mp-chip-select 0.22s var(--mp-ease-emphasized);
   }
 
-  .session-timeline-fill,
-  .today-mastery-area-bar-fill {
+  /* —— Bar transitions —— */
+  .session-timeline-fill {
     transition: width 0.45s var(--mp-ease-emphasized);
   }
 
+  .today-mastery-area-bar-fill {
+    transition: width 0.6s var(--mp-ease-emphasized), opacity 0.3s ease;
+  }
+
+  /* —— Card/surface hover transitions —— */
   .inspector-card,
   .problem-stack,
   .panel,
@@ -243,8 +375,84 @@ button[aria-busy='true']:not(.mp-btn-icon-only)::after,
     transform: translateX(2px);
   }
 
-  .nav-button.active {
-    box-shadow: var(--mp-shadow-sm);
+  /* —— Segmented control transitions —— */
+  .mp-segmented button {
+    transition:
+      background var(--mp-duration-fast) var(--mp-ease-standard),
+      color var(--mp-duration-fast) var(--mp-ease-standard),
+      box-shadow var(--mp-duration-fast) var(--mp-ease-standard);
+  }
+
+  /* —— Today strip enter —— */
+  .today-mastery-strip {
+    animation: mp-fade-in var(--mp-duration-slow) var(--mp-ease-emphasized);
+  }
+
+  /* —— Review nudge enter —— */
+  .review-nudge {
+    animation: mp-nudge-enter var(--mp-duration-slow) var(--mp-ease-emphasized);
+  }
+
+  /* —— Adjust panel enter —— */
+  .today-adjust-panel {
+    animation: mp-fade-in var(--mp-duration-normal) var(--mp-ease-emphasized);
+  }
+
+  /* —— Coach evidence stagger —— */
+  .coach-evidence span {
+    animation: mp-fade-in var(--mp-duration-normal) var(--mp-ease-emphasized) both;
+    animation-delay: calc(var(--i, 0) * 40ms);
+  }
+
+  /* —— Map evidence enter —— */
+  .map-evidence {
+    animation: mp-page-enter var(--mp-duration-slow) var(--mp-ease-emphasized);
+  }
+
+  /* —— Toast —— */
+  .mp-toast {
+    animation: mp-toast-enter var(--mp-duration-normal) var(--mp-ease-emphasized);
+  }
+
+  .mp-toast-exiting {
+    animation: mp-toast-exit 0.15s var(--mp-ease-standard) forwards;
+  }
+
+  /* —— Lost panel —— */
+  .lost-panel {
+    animation: mp-lost-enter var(--mp-duration-slow) var(--mp-ease-emphasized);
+  }
+
+  .lost-grid button,
+  .lost-chip {
+    animation: mp-fade-in var(--mp-duration-normal) var(--mp-ease-emphasized) both;
+    animation-delay: calc(var(--i, 0) * 30ms);
+  }
+
+  /* —— Hint panel enter —— */
+  .hint-panel {
+    animation: mp-fade-in var(--mp-duration-normal) var(--mp-ease-emphasized);
+  }
+
+  /* —— Feedback panel enter —— */
+  .feedback-panel,
+  .feedback,
+  .feedback-correct,
+  .feedback-wrong,
+  .feedback-almost {
+    animation: mp-feedback-enter var(--mp-duration-normal) var(--mp-ease-emphasized);
+  }
+
+  /* —— Graph panel enter —— */
+  .graph-panel {
+    animation: mp-fade-in var(--mp-duration-normal) var(--mp-ease-emphasized);
+  }
+
+  /* —— Inspector state enter —— */
+  .inspector-correct,
+  .inspector-wrong,
+  .inspector-almost {
+    animation: mp-fade-in var(--mp-duration-normal) var(--mp-ease-emphasized);
   }
 }
 
@@ -264,7 +472,29 @@ button[aria-busy='true']:not(.mp-btn-icon-only)::after,
   .mp-modal,
   .modal-backdrop,
   .modal,
-  .command-palette-body .palette-row {
+  .command-palette-body .palette-row,
+  .mp-toast,
+  .mp-toast-exiting,
+  .lost-panel,
+  .lost-grid button,
+  .lost-chip,
+  .hint-panel,
+  .feedback-panel,
+  .feedback,
+  .feedback-correct,
+  .feedback-wrong,
+  .feedback-almost,
+  .graph-panel,
+  .inspector-correct,
+  .inspector-wrong,
+  .inspector-almost,
+  .review-nudge,
+  .today-adjust-panel,
+  .today-mastery-strip,
+  .coach-evidence span,
+  .map-evidence,
+  .map-section-body .skill-row,
+  .diagnostic-plan-banner {
     animation: none !important;
   }
 
@@ -274,7 +504,13 @@ button[aria-busy='true']:not(.mp-btn-icon-only)::after,
   .support-surface:hover,
   .map-evidence:hover,
   .inspector-card:hover,
-  .resource-row:hover {
+  .resource-row:hover,
+  .mp-btn-primary:hover,
+  .mp-btn-secondary:hover,
+  .primary:hover,
+  .secondary:hover,
+  .confidence-chip:hover,
+  .nav-button:hover {
     transform: none;
   }
 }
