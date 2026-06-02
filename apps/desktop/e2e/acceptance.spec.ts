@@ -176,4 +176,23 @@ test.describe('MathPilot acceptance', () => {
     await expect(page.getByRole('img', { name: 'Knowledge map wheel' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Check answer' })).toBeHidden()
   })
+
+  test('diagnostic batch planning works offline in browser', async ({ page }) => {
+    await page.addInitScript(() => localStorage.clear())
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Set up your calculus desk' })).toBeVisible({ timeout: 15_000 })
+    await page.getByRole('button', { name: 'Continue' }).click()
+    await page.getByRole('button', { name: 'Calculus 1' }).click()
+    await page.getByRole('button', { name: 'Start adaptive diagnostic' }).click()
+    await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible({ timeout: 15_000 })
+
+    for (let i = 0; i < 3; i += 1) {
+      await page.getByRole('button', { name: 'Check answer' }).click()
+      await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible({ timeout: 15_000 })
+    }
+
+    await expect(
+      page.locator('.diagnostic-plan-banner, .diagnostic-plan-banner--offline').first(),
+    ).toBeVisible({ timeout: 20_000 })
+  })
 })

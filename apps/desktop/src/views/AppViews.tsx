@@ -612,7 +612,7 @@ export function ActivityView({
   analyzeHomework,
   homeworkAnalyzing,
   wrongEscalation = 0,
-  diagnosticPlanning = false,
+  diagnosticPlanStatus = 'idle',
 }: {
   problem?: Problem
   state: MathPilotState
@@ -651,7 +651,7 @@ export function ActivityView({
   ) => void | Promise<void>
   homeworkAnalyzing?: boolean
   wrongEscalation?: number
-  diagnosticPlanning?: boolean
+  diagnosticPlanStatus?: 'idle' | 'planning' | 'codex' | 'offline'
 }) {
   const [rawInput, setRawInput] = useState(false)
   const [graphOpen, setGraphOpen] = useState(false)
@@ -857,9 +857,19 @@ export function ActivityView({
         </div>
       </header>
 
-      {diagnosticPlanning && isDiagnostic && (
+      {isDiagnostic && diagnosticPlanStatus === 'planning' && (
         <p className="diagnostic-plan-banner" role="status" aria-live="polite">
           Adapting the next questions from your answers…
+        </p>
+      )}
+      {isDiagnostic && diagnosticPlanStatus === 'offline' && (
+        <p className="diagnostic-plan-banner diagnostic-plan-banner--offline" role="status" aria-live="polite">
+          Using offline question plan — diagnostic continues.
+        </p>
+      )}
+      {isDiagnostic && diagnosticPlanStatus === 'codex' && (
+        <p className="diagnostic-plan-banner diagnostic-plan-banner--codex" role="status" aria-live="polite">
+          Next questions tailored from your answers.
         </p>
       )}
 

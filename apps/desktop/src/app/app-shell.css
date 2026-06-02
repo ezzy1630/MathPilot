@@ -1567,6 +1567,16 @@ math-field.math-input:focus-within {
   animation: mp-plan-pulse 1.4s ease-in-out infinite;
 }
 
+.diagnostic-plan-banner--offline,
+.diagnostic-plan-banner--codex {
+  animation: none;
+}
+
+.diagnostic-plan-banner--offline {
+  border-color: color-mix(in srgb, var(--mp-warning, #c9a227) 35%, var(--mp-border));
+  background: color-mix(in srgb, var(--mp-warning, #c9a227) 10%, var(--mp-surface));
+}
+
 .math-input-hint {
   margin: 8px 0 0;
   font-size: var(--mp-text-xs);

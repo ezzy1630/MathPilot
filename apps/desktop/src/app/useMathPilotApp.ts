@@ -18,7 +18,7 @@ import {
   startDiagnostic,
   submitDiagnosticAnswer,
 } from '../domain/diagnosticEngine'
-import { refreshDiagnosticPlanAsync, shouldRunDiagnosticPlanner } from '../domain/diagnosticPlanner'
+import { refreshDiagnosticPlanAsync, shouldRunDiagnosticPlanner, type DiagnosticPlanStatus } from '../domain/diagnosticPlanner'
 import { startDailySession, advanceDailySession } from '../domain/dailySessionEngine'
 import { analyzeHomeworkDeep } from '../domain/homeworkAnalysis'
 import { saveHomeworkAsWorkedExample } from '../domain/homeworkLearningBridge'
@@ -97,7 +97,9 @@ export function useMathPilotApp() {
   const [lostOpen, setLostOpen] = useState(false)
   const [showSteps, setShowSteps] = useState(false)
   const [codexBusy, setCodexBusy] = useState(false)
-  const [diagnosticPlanning, setDiagnosticPlanning] = useState(false)
+  const [diagnosticPlanStatus, setDiagnosticPlanStatus] = useState<DiagnosticPlanStatus>('idle')
+  const diagnosticPlanGenerationRef = useRef(0)
+  const diagnosticQuestionStartedAtRef = useRef(Date.now())
   const [codexCallId, setCodexCallId] = useState<string | null>(null)
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome')
   const [expandedAreas, setExpandedAreas] = useState<Record<string, boolean>>({})
@@ -210,6 +212,13 @@ export function useMathPilotApp() {
     }
     return activeProblemId ? state.problems[activeProblemId] : undefined
   }, [state, diagnosticProblem, activeProblemId, quickRepairProblem, testOutProblem])
+
+  useEffect(() => {
+    const diagnostic = state?.diagnostic
+    if (diagnostic && !diagnostic.completed && activeProblem?.id) {
+      diagnosticQuestionStartedAtRef.current = Date.now()
+    }
+  }, [state?.diagnostic, activeProblem?.id])
   const areaGroups = useMemo(() => (state ? groupByArea(state) : {}), [state])
 
   function update(next: MathPilotState) {
@@ -356,7 +365,11 @@ export function useMathPilotApp() {
 
     let next: MathPilotState
     if (state.diagnostic && !state.diagnostic.completed) {
-      next = submitDiagnosticAnswer(clearPending, activeProblem.id, answer, result.correct)
+      const elapsedSeconds = Math.max(
+        5,
+        Math.round((Date.now() - diagnosticQuestionStartedAtRef.current) / 1000),
+      )
+      next = submitDiagnosticAnswer(clearPending, activeProblem.id, answer, result.correct, elapsedSeconds)
     } else {
       const attemptMode = attemptModeForActivity(activeProblem.mode)
       next = recordAttempt(clearPending, {
@@ -412,10 +425,22 @@ export function useMathPilotApp() {
     void syncSkillMasteryNotes(merged, activeProblem.skillIds)
 
     if (merged.diagnostic && !merged.diagnostic.completed && shouldRunDiagnosticPlanner(merged.diagnostic)) {
-      setDiagnosticPlanning(true)
+      const generation = diagnosticPlanGenerationRef.current + 1
+      diagnosticPlanGenerationRef.current = generation
+      setDiagnosticPlanStatus('planning')
       void refreshDiagnosticPlanAsync(merged)
-        .then((planned) => update(planned))
-        .finally(() => setDiagnosticPlanning(false))
+        .then((planned) => {
+          if (diagnosticPlanGenerationRef.current !== generation) return
+          update(planned)
+          const source = planned.diagnostic?.lastPlanSource
+          setDiagnosticPlanStatus(source === 'codex' ? 'codex' : 'offline')
+          window.setTimeout(() => {
+            if (diagnosticPlanGenerationRef.current === generation) setDiagnosticPlanStatus('idle')
+          }, 2400)
+        })
+        .catch(() => {
+          if (diagnosticPlanGenerationRef.current === generation) setDiagnosticPlanStatus('offline')
+        })
     }
 
     if (next.diagnostic?.completed && next.diagnostic.summary) {
@@ -660,7 +685,8 @@ export function useMathPilotApp() {
     showSteps,
     setShowSteps,
     codexBusy,
-    diagnosticPlanning,
+    diagnosticPlanning: diagnosticPlanStatus === 'planning',
+    diagnosticPlanStatus,
     codexCallId,
     cancelCodex,
     importResources,
