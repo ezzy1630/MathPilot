@@ -12,6 +12,8 @@ fi
 "$ROOT/scripts/build-macos-python-runtime.sh"
 "$ROOT/scripts/build-macos-ocr.sh"
 
+find "$ROOT/skills" -name '.DS_Store' -delete 2>/dev/null || true
+
 if [[ "$(uname -s)" == "Darwin" ]]; then
   # Leftover interstitial DMG mounts from failed bundle_dmg runs block hdiutil.
   while IFS= read -r mount; do

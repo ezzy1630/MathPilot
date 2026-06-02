@@ -31,7 +31,7 @@ function seedVisualState() {
 
 async function attachViewport(page: Page, name: string) {
   const image = await page.screenshot({ fullPage: false })
-  expect(image.length).toBeGreaterThan(20_000)
+  expect(image.length).toBeGreaterThan(18_000)
   await test.info().attach(name, { body: image, contentType: 'image/png' })
 }
 

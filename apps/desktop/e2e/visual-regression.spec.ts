@@ -18,6 +18,9 @@ test.describe('visual regression', () => {
     await expect(page.getByRole('heading', { name: 'Coach desk' })).toBeVisible({ timeout: 15_000 })
     await page.getByRole('button', { name: 'Settings' }).click()
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+    await expect(
+      page.getByText('Browser preview uses deterministic math fallbacks'),
+    ).toBeVisible()
     await expect(page.locator('.settings-grid')).toHaveScreenshot('settings-page.png', {
       maxDiffPixelRatio: 0.03,
     })

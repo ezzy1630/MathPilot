@@ -124,6 +124,7 @@ Test **both** profiles on separate runs or machines if possible.
 | I2 | **Keyboard navigation** | Tab through Today → Start → Check answer; `Cmd+K` palette; modal Escape closes; Settings shortcuts list accurate. |
 | I3 | **Visual polish** | No broken layouts at default window size; math renders via MathLive; contrast readable (WCAG AA spot-check on coach desk + activity). |
 | I4 | **Packaged app identity** | Launch only from `/Applications/MathPilot.app` (not `pnpm tauri dev`) for this section. |
+| I5 | **CSP smoke** | With the packaged app open: Today, Activity math input/display, Knowledge map, Settings, homework modal, and Desmos/video surfaces load without blank panels or webview CSP errors. |
 
 ---
 

@@ -167,8 +167,14 @@ pub fn bundled_python(app: Option<&AppHandle>) -> PathBuf {
         .unwrap_or_else(|| PathBuf::from("python3"))
 }
 
+fn python_command(python: &PathBuf) -> Command {
+    let mut command = Command::new(python);
+    command.env("PYTHONDONTWRITEBYTECODE", "1");
+    command
+}
+
 fn python_imports(module: &str, python: &PathBuf) -> bool {
-    Command::new(python)
+    python_command(python)
         .args(["-c", &format!("import {module}")])
         .status()
         .map(|status| status.success())
@@ -719,7 +725,7 @@ fn run_math_check_script(app: &AppHandle, payload: serde_json::Value) -> Result<
     }
 
     let python = bundled_python(Some(app));
-    let mut child = Command::new(&python)
+    let mut child = python_command(&python)
         .arg(&script)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -814,7 +820,7 @@ fn ocr_homework_image_python(app: &AppHandle, image_path: String) -> Result<Stri
         return Ok(r#"{"ok":false,"text":""}"#.to_string());
     }
     let python = bundled_python(Some(app));
-    let output = Command::new(&python)
+    let output = python_command(&python)
         .arg(&script)
         .arg(&image_path)
         .output()
