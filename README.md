@@ -1,13 +1,4 @@
-<p align="center">
-  <img src="docs/assets/mathpilot-icon-512.png" alt="MathPilot" width="128" height="128">
-</p>
-
-<h1 align="center">MathPilot</h1>
-
-<p align="center">
-  <strong>Your private calculus mastery engine for macOS.</strong><br>
-  Diagnose what you know · practice what matters · review before you forget — no cloud account required.
-</p>
+![MathPilot banner](docs/assets/readme-banner.svg)
 
 <p align="center">
   <a href="https://github.com/ezzy1630/MathPilot/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/ezzy1630/MathPilot/ci.yml?branch=main&label=CI&style=for-the-badge"></a>
@@ -18,47 +9,26 @@
 </p>
 
 <p align="center">
-  <a href="#-highlights">Highlights</a> ·
-  <a href="#-features">Features</a> ·
-  <a href="#-how-it-works">How it works</a> ·
-  <a href="#-install">Install</a> ·
-  <a href="#-develop">Develop</a> ·
+  <a href="#highlights">Highlights</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#develop">Develop</a> ·
   <a href="MathPilot_spec.md">Spec</a>
 </p>
 
-<br>
+| **1,080+** | **171** | **Zero** | **One** |
+| :--: | :--: | :--: | :--: |
+| Curated Calc 1 & 2 problems | Unit tests · 15 E2E | Cloud accounts or API keys | Clear next action on Today |
 
-<table align="center">
-  <tr>
-    <td align="center" width="180">
-      <h3>1,080+</h3>
-      <sub>Curated Calc 1 &amp; 2 problems</sub>
-    </td>
-    <td align="center" width="180">
-      <h3>171</h3>
-      <sub>Unit tests · 15 E2E</sub>
-    </td>
-    <td align="center" width="180">
-      <h3>Zero</h3>
-      <sub>Cloud accounts or API keys required</sub>
-    </td>
-    <td align="center" width="180">
-      <h3>One</h3>
-      <sub>Clear next action on Today</sub>
-    </td>
-  </tr>
-</table>
-
-<br>
-
----
+![Section divider](docs/assets/readme-divider.svg)
 
 ## What is MathPilot?
 
 MathPilot is a **personal calculus study cockpit** for **Calculus 1** and **Calculus 2**. It is not a chatbot wrapper, not an LMS, and not a video playlist. It is a structured learning system that:
 
 | Step | What happens |
-|:----:|--------------|
+| :--: | ------------ |
 | **1** | **Diagnose** your level with an adaptive, branching assessment |
 | **2** | **Track mastery** on a skill graph with strict, evidence-based rules |
 | **3** | **Coach you** — one clear recommended action on the Today desk |
@@ -68,47 +38,35 @@ MathPilot is a **personal calculus study cockpit** for **Calculus 1** and **Calc
 > **Open the app → see Continue → start the best next step.**  
 > Everything else — map, resources, homework, settings — stays one click away.
 
-<br>
+## Highlights
 
-## ✨ Highlights
+![MathPilot highlights](docs/assets/readme-highlights.svg)
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-
-### Coach desk, not a dashboard
+#### Coach desk, not a dashboard
 
 Today is your **Coach desk**: a short insight naming your current blocker, one recommended action with evidence, and session pace controls (Short → Deep). Homework, resources, and analytics stay in a quiet drawer — available, not competing for attention.
 
-### Typeset math everywhere
+#### Typeset math everywhere
 
 Problem prompts, choices, hints, and worked examples render through **MathLive** with an auto-derived LaTeX enrichment pipeline. Calculus notation looks like calculus — not plain text with `^` and `/` symbols.
 
-    </td>
-    <td width="50%" valign="top">
-
-### Codex-first, works offline
+#### Codex-first, works offline
 
 Optional **Codex CLI** powers coach insights, homework analysis, maintenance, and problem generation — with deterministic fallbacks when AI is unavailable. No in-app API key. Manual ChatGPT/Gemini packet export as backup.
 
-### Release-ready macOS shell
+#### Release-ready macOS shell
 
 Native **Tauri 2** app with bundled **Python + SymPy** for symbolic checking and **Vision OCR** for homework photos. Sidebar navigation, command palette, and a restrained macOS-native palette.
 
-    </td>
-  </tr>
-</table>
+![Section divider](docs/assets/readme-divider.svg)
 
-<br>
-
-## 🧭 Features
+## Features
 
 <details open>
 <summary><strong>Core learning loop</strong></summary>
-<br>
 
 | Area | What you get |
-|------|--------------|
+| ---- | ------------ |
 | **Today / Continue** | Coach insight, one recommended next action, adjustable pace (Short → Deep, Custom), collapsible “more for today” tray |
 | **Knowledge map** | ALEKS-inspired wheel, list, and prerequisite tree — mastery states reflect real evidence, not guesswork |
 | **Activity studio** | Guided & independent practice, formula recall, video resources, Desmos + built-in graphs (polar, parametric, series, related rates), step-aware feedback |
@@ -121,11 +79,10 @@ Native **Tauri 2** app with bundled **Python + SymPy** for symbolic checking and
 </details>
 
 <details>
-<summary><strong>AI &amp; maintenance (optional)</strong></summary>
-<br>
+<summary><strong>AI & maintenance (optional)</strong></summary>
 
 | Area | What you get |
-|------|--------------|
+| ---- | ------------ |
 | **Codex CLI** | Coach curator, homework cluster analysis, maintenance passes, continuing-diagnostic probes — all with offline fallbacks |
 | **Problem generation** | Codex-generated problems (Developer mode toggle) plus 1,080+ banked items from the skill catalog |
 | **SymPy verification** | Symbolic answer checking when the bundled Python runtime is present |
@@ -134,21 +91,18 @@ Native **Tauri 2** app with bundled **Python + SymPy** for symbolic checking and
 </details>
 
 <details>
-<summary><strong>Privacy &amp; data</strong></summary>
-<br>
+<summary><strong>Privacy & data</strong></summary>
 
-| | |
-|---|---|
+| Topic | Detail |
+| ----- | ------ |
 | **No cloud account** | SQLite + local memory files under Application Support |
 | **Export / reset** | Full data export and typed `RESET` in Settings |
 | **Homework images** | Processed locally via Vision OCR; discarded by default |
-| **What's never committed** | `memory/`, `data/`, `*.sqlite`, homework images, API keys, `config/*.local.json` |
+| **Never committed** | `memory/`, `data/`, `*.sqlite`, homework images, API keys, `config/*.local.json` |
 
 </details>
 
-<br>
-
-## ⚙️ How it works
+## How it works
 
 ```mermaid
 flowchart TB
@@ -189,9 +143,9 @@ flowchart TB
 
 MathPilot optimizes for **durable mastery**, not same-day fluency: hints count, mixed review matters, and prerequisites block reckless advancement — with test-out and override when you choose.
 
-<br>
+![Section divider](docs/assets/readme-divider.svg)
 
-## 📦 Install
+## Install
 
 ### macOS app (recommended)
 
@@ -219,19 +173,18 @@ open -a MathPilot
 No `pip install` or Python setup is required for normal use. Release builds ship a **bundled Python + SymPy runtime** for symbolic answer checking.
 
 | Step | Action |
-|:----:|--------|
+| :--: | ------ |
 | 1 | Choose **Calculus 1** or **Calculus 2**, complete the short diagnostic |
 | 2 | Symbolic checking is ready immediately (bundled runtime included) |
 | 3 | **Optional:** install and sign in to **Codex CLI** for AI coach help, homework analysis, and generated problems |
 | 4 | Homework OCR uses the native Vision helper on macOS release builds |
 
 <details>
-<summary><strong>Data location &amp; reset</strong></summary>
-<br>
+<summary><strong>Data location & reset</strong></summary>
 
 Local data lives at:
 
-```
+```text
 ~/Library/Application Support/local.mathpilot.desktop/
 ```
 
@@ -241,14 +194,12 @@ Manual QA checklist: [docs/MANUAL_QA_CHECKLIST.md](docs/MANUAL_QA_CHECKLIST.md)
 
 </details>
 
-<br>
-
-## 🛠 Develop
+## Develop
 
 ### Requirements
 
 | Tool | Version |
-|------|---------|
+| ---- | ------- |
 | **Node.js** | 22 |
 | **pnpm** | 9+ |
 | **Rust** | latest stable (for Tauri) |
@@ -291,7 +242,7 @@ docs/                         Spec audit, QA, release hygiene
 
 ### Tech stack
 
-<p>
+<p align="center">
   <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square">
   <img alt="React 19" src="https://img.shields.io/badge/React-19-61dafb?style=flat-square">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-6-3178c6?style=flat-square">
@@ -304,7 +255,6 @@ docs/                         Spec audit, QA, release hygiene
 
 <details>
 <summary><strong>Regenerate the app icon</strong></summary>
-<br>
 
 ```bash
 cd apps/desktop
@@ -316,12 +266,12 @@ Sources: `app-icon-square.png`, `app-icon-source.svg`. See [apps/desktop/ICONS.m
 
 </details>
 
-<br>
+![Section divider](docs/assets/readme-divider.svg)
 
-## 📚 Documentation
+## Documentation
 
 | Document | Purpose |
-|----------|---------|
+| -------- | ------- |
 | [MathPilot_spec.md](MathPilot_spec.md) | Full product specification |
 | [PRODUCT.md](PRODUCT.md) | Brand and UX principles |
 | [docs/GAP_AUDIT.md](docs/GAP_AUDIT.md) | §0–§30 implementation checklist |
@@ -330,14 +280,12 @@ Sources: `app-icon-square.png`, `app-icon-source.svg`. See [apps/desktop/ICONS.m
 | [docs/RELEASE_HYGIENE.md](docs/RELEASE_HYGIENE.md) | Release and privacy hygiene |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes |
 
-<br>
-
-## 🔬 CI
+## CI
 
 GitHub Actions on every push and PR:
 
 | Check | Detail |
-|-------|--------|
+| ----- | ------ |
 | **Lint** | ESLint across the desktop app |
 | **Unit tests** | 171 Vitest tests across 50 files |
 | **E2E** | 15 Playwright tests (acceptance, smoke, visual, math display) |
@@ -345,16 +293,13 @@ GitHub Actions on every push and PR:
 | **Rust** | Migration and lib tests |
 | **macOS** | Desktop bundle build on `main` |
 
-<br>
-
-## 📋 Status
+## Status
 
 MathPilot implements the full [product spec](MathPilot_spec.md): core learning loop, 1,080+ banked problems, Codex integration with offline fallbacks, typeset math display, homework analysis, maintenance, and a native macOS shell with bundled Python + SymPy. Optional **HealthKit** is documented as N/A; Bevel energy import and pace presets are available in Settings.
-
-<br>
 
 ---
 
 <p align="center">
+  <img src="docs/assets/mathpilot-icon-256.png" alt="MathPilot" width="48" height="48"><br>
   <sub>MIT License · see <a href="LICENSE">LICENSE</a></sub>
 </p>

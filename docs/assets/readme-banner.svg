@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="MathPilot  private calculus mastery engine for macOS">
+  <defs>
+    <linearGradient id="banner-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#062a5c"/>
+      <stop offset="45%" stop-color="#0a4a9e"/>
+      <stop offset="100%" stop-color="#1264d8"/>
+    </linearGradient>
+    <linearGradient id="banner-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#b8d4ff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <filter id="icon-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#021428" flood-opacity="0.45"/>
+    </filter>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="320" rx="20" fill="url(#banner-bg)"/>
+  <rect width="1200" height="320" rx="20" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1200" height="320" rx="20" fill="url(#banner-glow)"/>
+
+  <!-- decorative mastery arc -->
+  <path fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="3" stroke-linecap="round"
+        d="M 920 260 C 980 180 1040 120 1120 80"/>
+  <circle cx="1120" cy="80" r="6" fill="#7eb8ff" fill-opacity="0.5"/>
+
+  <!-- app icon tile -->
+  <g filter="url(#icon-shadow)" transform="translate(88 60)">
+    <rect width="200" height="200" rx="44" fill="#0f5ec4"/>
+    <rect width="200" height="200" rx="44" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2"/>
+    <g transform="translate(100 100)">
+      <path fill="none" stroke="url(#mark)" stroke-width="10" stroke-linecap="round"
+            d="M -23 33 C -23 -18 -8 -33 8 -33 C 19 -33 27 -25 27 -14 C 27 -2 15 9 -2 9"/>
+      <path fill="none" stroke="#ffffff" stroke-width="8.5" stroke-linecap="round"
+            d="M -18 33 C -18 -14 -5 -27 9 -27 C 21 -27 29 -19 29 -9 C 29 4 17 11 2 11"/>
+      <path fill="none" stroke="#7eb8ff" stroke-width="5.5" stroke-linecap="round" opacity="0.95"
+            d="M 17 -39 C 33 -49 49 -45 61 -29 C 68 -18 68 -2 58 10"/>
+      <circle cx="58" cy="10" r="4.5" fill="#ffffff"/>
+    </g>
+  </g>
+
+  <!-- title -->
+  <text x="330" y="138" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="64" font-weight="700" letter-spacing="-1.5">MathPilot</text>
+  <text x="332" y="182" fill="#b8d4ff" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="500">Private calculus mastery engine for macOS</text>
+  <text x="332" y="222" fill="#e8f1ff" fill-opacity="0.85" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="17">Diagnose · practice · review  no cloud account required</text>
+
+  <!-- stat pills -->
+  <g font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <rect x="330" y="248" width="118" height="36" rx="18" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.18"/>
+    <text x="389" y="271" fill="#ffffff" font-size="14" font-weight="600" text-anchor="middle">1,080+ problems</text>
+
+    <rect x="460" y="248" width="108" height="36" rx="18" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.18"/>
+    <text x="514" y="271" fill="#ffffff" font-size="14" font-weight="600" text-anchor="middle">Local-first</text>
+
+    <rect x="580" y="248" width="118" height="36" rx="18" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.18"/>
+    <text x="639" y="271" fill="#ffffff" font-size="14" font-weight="600" text-anchor="middle">Calc 1 &amp; 2</text>
+
+    <rect x="710" y="248" width="108" height="36" rx="18" fill="#1f7a5a" fill-opacity="0.55" stroke="#7dffd4" stroke-opacity="0.35"/>
+    <text x="764" y="271" fill="#eafff8" font-size="14" font-weight="600" text-anchor="middle">Spec complete</text>
+  </g>
+</svg>
