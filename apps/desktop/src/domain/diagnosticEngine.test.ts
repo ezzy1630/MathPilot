@@ -18,7 +18,7 @@ describe('diagnostic engine', () => {
     expect(session.targetCount).toBe(DIAGNOSTIC_TARGET_QUESTIONS)
   })
 
-  it('reprioritizes queue after every third answer', () => {
+  it('preserves answered queue prefix until batch planner runs', () => {
     let state = createInitialState('Calculus 1')
     const { state: withDiag, session } = startDiagnostic(state)
     state = withDiag
@@ -31,7 +31,26 @@ describe('diagnostic engine', () => {
     }
 
     expect(state.diagnostic?.queue.slice(0, 3)).toEqual(initialQueue.slice(0, 3))
-    expect(state.diagnostic?.queue.length).toBeGreaterThanOrEqual(session.targetCount - 1)
+    expect(state.diagnostic?.answeredCount).toBe(3)
+  })
+
+  it('promotes suspected weak to weak after second miss', () => {
+    let state = createInitialState('Calculus 1')
+    state = startDiagnostic(state).state
+    const problemId = state.diagnostic!.queue[0]
+    const problem = state.problems[problemId]!
+    const skillId = problem.skillIds[0]
+
+    state = submitDiagnosticAnswer(state, problemId, 'wrong', false)
+    expect(state.diagnostic?.suspectedWeakSkills).toContain(skillId)
+    expect(state.diagnostic?.weakSkills).not.toContain(skillId)
+
+    const nextId = state.diagnostic!.queue[state.diagnostic!.currentIndex]
+    const nextProblem = state.problems[nextId]!
+    if (nextProblem.skillIds.includes(skillId)) {
+      state = submitDiagnosticAnswer(state, nextId, 'wrong', false)
+      expect(state.diagnostic?.weakSkills).toContain(skillId)
+    }
   })
 
   it('produces a summary after completing the diagnostic', () => {

@@ -37,6 +37,7 @@ export function codexSessionKindForTask(task: string): CodexSessionKind {
   if (lower.includes('maintenance') || lower === 'ping' || lower.includes('curator')) return 'maintenance'
   if (lower.includes('resource') || lower.includes('video')) return 'resource_search'
   if (lower.includes('generate') && lower.includes('problem')) return 'question_generation'
+  if (lower.includes('diagnostic_batch') || lower.includes('diagnostic_planner')) return 'question_generation'
   if (lower.includes('code') || lower.includes('self_improve')) return 'code_improvement'
   if (
     lower.includes('homework') ||

@@ -30,11 +30,26 @@ describe('diagnosticPlanner', () => {
     expect(shouldRunDiagnosticPlanner(session({ answeredCount: 3 }))).toBe(true)
     expect(shouldRunDiagnosticPlanner(session({ answeredCount: 2 }))).toBe(false)
     expect(shouldRunDiagnosticPlanner(session({ answeredCount: 0 }))).toBe(false)
-    expect(shouldRunDiagnosticPlanner(session({ answeredCount: 6, continuing: true }))).toBe(false)
+    expect(shouldRunDiagnosticPlanner(session({ answeredCount: 6, continuing: true }))).toBe(true)
     expect(shouldRunDiagnosticPlanner(session({ answeredCount: 6, completed: true }))).toBe(false)
   })
 
-  it('parses codex planner JSON', () => {
+  it('runs planner for continuing diagnostics at milestones', () => {
+    expect(shouldRunDiagnosticPlanner({
+      id: 'mini',
+      startedAt: new Date().toISOString(),
+      targetCount: 10,
+      answeredCount: 3,
+      currentIndex: 3,
+      queue: [],
+      weakSkills: [],
+      strongSkills: [],
+      completed: false,
+      continuing: true,
+    })).toBe(true)
+  })
+
+  it('parses codex batch JSON', () => {
     const payload = parseDiagnosticPlannerResponse(
       'noise\n{"priority_skill_ids":["chain_rule","limits"],"rationale":"probe gaps"}',
     )
