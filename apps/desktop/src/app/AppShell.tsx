@@ -8,7 +8,7 @@ import { SkillActionModal } from '../components/SkillActionModal'
 import { WhyPanel } from '../components/WhyPanel'
 import { ToastStack } from '../ui'
 import { PythonStatusBanner } from '../components/PythonStatusBanner'
-import { initNativeChrome, isTauriRuntime } from '../lib/nativeChrome'
+import { initNativeChrome, isTauriRuntime, syncNativeWindowBackground } from '../lib/nativeChrome'
 import { AttemptHistoryPanel } from '../components/AttemptHistoryPanel'
 import { HomeworkUpload } from '../components/HomeworkUpload'
 import { SyllabusMappingModal } from '../components/SyllabusMappingModal'
@@ -150,6 +150,22 @@ export function AppShell() {
     return () => window.removeEventListener('paste', onPaste)
   }, [analyzeHomeworkForDrop, homeworkDropReady, homeworkTextForDrop, setViewForDrop])
 
+  const themePreference = app.appState?.preferences?.theme ?? 'system'
+  const themeClass =
+    themePreference === 'dark'
+      ? 'theme-dark'
+      : themePreference === 'light'
+        ? 'theme-light'
+        : prefersDark
+          ? 'theme-dark'
+          : 'theme-light'
+
+  useEffect(() => {
+    document.documentElement.classList.remove('theme-dark', 'theme-light')
+    document.documentElement.classList.add(themeClass)
+    void syncNativeWindowBackground()
+  }, [themeClass])
+
   if (app.loading || !app.appState || !app.action) {
     return <LoadingShell />
   }
@@ -229,16 +245,6 @@ export function AppShell() {
     refreshCoachInsight,
     coachInsightRefreshing,
   } = app
-
-  const themePreference = appState.preferences?.theme ?? 'system'
-  const themeClass =
-    themePreference === 'dark'
-      ? 'theme-dark'
-      : themePreference === 'light'
-        ? 'theme-light'
-        : prefersDark
-          ? 'theme-dark'
-          : 'theme-light'
 
   const hasActiveDiagnostic = appState.diagnostic !== undefined && !appState.diagnostic.completed
   const showMain = appState.onboarded || appState.diagnostic?.completed

@@ -37,7 +37,9 @@ import { EmptyStateIllustration } from '../components/EmptyStateIllustration'
 import { SimilarExamplePanel } from '../components/SimilarExamplePanel'
 import { PrerequisiteTree } from '../components/PrerequisiteTree'
 import { KnowledgeMapWheel } from '../components/KnowledgeMapWheel'
+import { ActivityTeachingPanel } from '../components/ActivityTeachingPanel'
 import { SessionChrome } from '../components/SessionChrome'
+import { formatModeLabel } from '../lib/formatLabel'
 import { VideoEmbed } from '../components/VideoEmbed'
 import { SignChart } from '../components/SignChart'
 import { signChartForSkill } from '../domain/signChartData'
@@ -834,18 +836,23 @@ export function ActivityView({
   const showReviewExplain =
     attemptMode === 'review' && (wrongEscalation ?? 0) >= 2 && feedbackTone !== 'correct'
 
+  const sessionLabel = quickRepair
+    ? 'Quick repair'
+    : sessionPhase
+      ? sessionPhaseLabel(sessionPhase)
+      : formatModeLabel(problem.mode)
+
   return (
     <div className="page activity-page">
-      <SessionChrome state={state} diagnosticProgress={diagnosticProgress} />
-      <header className="topbar activity-topbar">
-        <div>
-          <p className="eyebrow">
-            {quickRepair ? 'Quick repair' : sessionPhase ? sessionPhaseLabel(sessionPhase) : problem.mode.replace('_', ' ')}
-          </p>
-          <h1>{skill?.name ?? problem.title}</h1>
-          {quickRepair && <p className="diagnostic-progress">{repairProgress(quickRepair)}</p>}
+      <header className="activity-header">
+        <SessionChrome state={state} diagnosticProgress={diagnosticProgress} />
+        <div className="activity-header-main">
+          <div>
+            <h1>{skill?.name ?? problem.title}</h1>
+            {quickRepair && <p className="diagnostic-progress">{repairProgress(quickRepair)}</p>}
+          </div>
+          <span className="activity-header-meta">{sessionLabel}</span>
         </div>
-        <div className="status-pill">{problem.title}</div>
       </header>
 
       {sessionPhase === 'resource_watch' && videoResource && (
@@ -973,10 +980,8 @@ export function ActivityView({
               ) : (
                 <>
                   <MathInput ref={mathFieldRef} value={answer} onChange={setAnswer} placeholder="Type your answer" />
-                  <p className="math-input-hint muted" id="math-input-shortcuts">
-                    Shortcuts: <kbd>/</kbd> fraction, <kbd>sqrt</kbd> root, <kbd>sin</kbd>{' '}
-                    <kbd>cos</kbd> <kbd>tan</kbd>, <kbd>pi</kbd> <kbd>infty</kbd>, <kbd>^</kbd> power,{' '}
-                    <kbd>int</kbd> <kbd>lim</kbd>
+                  <p className="math-input-hint" id="math-input-shortcuts">
+                    Type <strong>sqrt</strong>, <strong>sin</strong>, <strong>pi</strong>, or <strong>/</strong> for a fraction.
                   </p>
                 </>
               )}
@@ -1111,140 +1116,32 @@ export function ActivityView({
             </div>
           )}
         </div>
-        <aside className="teaching-inspector" role="complementary" aria-label="Teaching inspector">
-          <div
-            className={`inspector-card ${
-              feedbackTone === 'correct' ? 'inspector-correct' : feedbackTone === 'wrong' ? 'inspector-wrong' : 'inspector-almost'
-            }`}
-          >
-            <p className="meta-label">Teaching inspector</p>
-            <h3>{inspectorTitle}</h3>
-            <MathText text={inspectorBody} className="inspector-feedback-body" />
-            {(wrongEscalation ?? 0) > 0 && feedbackTone !== 'correct' && (
-              <p className="eyebrow feedback-escalation" data-testid="feedback-escalation">
-                Guided feedback · step {(wrongEscalation ?? 0) + 1} of 3
-                {attemptMode === 'independent' && ' · try again before more help'}
-                {attemptMode === 'review' && wrongEscalation! >= 2 && ' · explain-after-miss'}
-              </p>
-            )}
-            {feedbackTone === 'correct' && (
-              <section className="inspector-next">
-                <h4>Try next</h4>
-                <ul>
-                  {(feedbackNextSteps?.length ? feedbackNextSteps : ['Try a similar problem without hints to lock in the skill.']).map((step) => (
-                    <li key={step}>
-                      <MathText text={step} compact />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-            <div className="inspector-actions">
-              <Button variant="ghost" size="sm" onClick={() => setShowSteps(!showSteps)}>
-                {showSteps ? 'Hide steps' : 'Add steps'}
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => requestHelp('check my setup for this problem')} disabled={isDiagnostic}>
-                Check setup
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<Sparkles size={16} />}
-                onClick={() => requestHelp('explain this problem')}
-                disabled={codexBusy || isDiagnostic}
-              >
-                {codexBusy ? 'Getting help...' : 'Ask Codex'}
-              </Button>
-              {codexBusy && cancelCodex && (
-                <Button variant="ghost" size="sm" onClick={() => cancelCodex()}>
-                  Cancel Codex
-                </Button>
-              )}
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => startAction(problemForSkill(state, problem.skillIds[0], problem.mode))}
-              >
-                Try one like this
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => requestHelp('build a repair step for this mistake')}
-                disabled={isDiagnostic}
-              >
-                Build repair step
-              </Button>
-              {showReviewExplain && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => requestHelp('After a review miss, explain the concept without giving the full answer')}
-                  disabled={codexBusy || isDiagnostic}
-                >
-                  Explain after miss
-                </Button>
-              )}
-              {state.developerModeEnabled && (
-                <Button variant="ghost" size="sm" onClick={() => generatePacket('explain current problem attempt')}>
-                  Prompt packet
-                </Button>
-              )}
-            </div>
-            {showGraph && (
-              <div className="inspector-graph-links">
-                <p className="meta-label">External graph tools</p>
-                <div className="external-graph-links">
-                  <a
-                    className="desmos-link"
-                    href={`https://www.desmos.com/calculator?lang=en&expressions=${encodeURIComponent(graphExpression)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Desmos
-                  </a>
-                  <a className="desmos-link" href="https://www.geogebra.org/graphing?lang=en" target="_blank" rel="noreferrer">
-                    GeoGebra
-                  </a>
-                  <a
-                    className="desmos-link"
-                    href={`https://www.wolframalpha.com/input?i=plot+${encodeURIComponent(graphExpression.replace(/^y=/, ''))}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    WolframAlpha
-                  </a>
-                </div>
-              </div>
-            )}
-            {rankedResources.length > 0 && (
-              <div className="inspector-resources" aria-label="Ranked resources for this skill">
-                <p className="meta-label">Resources for this skill</p>
-                <ul className="inspector-resource-list">
-                  {rankedResources.map((resource: ResourceRecord) => (
-                    <li key={resource.id}>
-                      <a href={resource.url} target="_blank" rel="noreferrer">
-                        {resource.title}
-                      </a>
-                      <span className="muted">{Math.round(resource.effectivenessScore * 100)}%</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {analyzeHomework && setHomeworkText && (
-              <details className="inspector-upload" open>
-                <summary>Upload work photo</summary>
-                {homeworkAnalyzing && <p className="eyebrow">Analyzing homework...</p>}
-                <HomeworkUpload
-                  text={homeworkText ?? ''}
-                  onTextChange={setHomeworkText}
-                  onAnalyze={(p, saveRaw) => void analyzeHomework(p, saveRaw)}
-                  compact
-                />
-              </details>
-            )}
-          </div>
+        <aside className="activity-side-stack" role="complementary" aria-label="Coach panel">
+          <ActivityTeachingPanel
+            title={inspectorTitle}
+            body={inspectorBody}
+            feedbackTone={feedbackTone}
+            feedbackNextSteps={feedbackNextSteps}
+            wrongEscalation={wrongEscalation}
+            attemptMode={attemptMode}
+            isDiagnostic={isDiagnostic}
+            codexBusy={codexBusy}
+            showSteps={showSteps}
+            setShowSteps={setShowSteps}
+            showReviewExplain={showReviewExplain}
+            showGraph={showGraph}
+            graphExpression={graphExpression}
+            rankedResources={rankedResources}
+            developerModeEnabled={Boolean(state.developerModeEnabled)}
+            homeworkText={homeworkText}
+            setHomeworkText={setHomeworkText}
+            analyzeHomework={analyzeHomework}
+            homeworkAnalyzing={homeworkAnalyzing}
+            onRequestHelp={requestHelp}
+            onCancelCodex={cancelCodex}
+            onTrySimilar={() => startAction(problemForSkill(state, problem.skillIds[0], problem.mode))}
+            onGeneratePacket={() => generatePacket('explain current problem attempt')}
+          />
           {feedbackTone !== 'correct' && (
             <SimilarExamplePanel
               problem={problem}
