@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-01T20:35:48.185Z",
+  "generatedAt": "2026-06-02T00:33:00.140Z",
   "course": "Calculus 1",
   "count": 546,
   "problems": [
@@ -7,6 +7,7 @@
       "id": "cur-c1-algebra_manipulation-0-v0",
       "title": "Algebra checkpoint",
       "prompt": "Expand and simplify (2x + 3)(x - 4).",
+      "promptLatex": "\\text{Expand and simplify} (2x + 3)(x - 4).",
       "skillIds": [
         "algebra_manipulation"
       ],
@@ -24,6 +25,7 @@
       "id": "cur-c1-algebra_manipulation-0-v1",
       "title": "Algebra checkpoint (v2)",
       "prompt": "Expand and simplify (2x + 3)(x - 4).",
+      "promptLatex": "\\text{Expand and simplify} (2x + 3)(x - 4).",
       "skillIds": [
         "algebra_manipulation"
       ],
@@ -41,6 +43,7 @@
       "id": "cur-c1-algebra_manipulation-0-v2",
       "title": "Algebra checkpoint (v3)",
       "prompt": "Expand and simplify (2x + 3)(x - 4).",
+      "promptLatex": "\\text{Expand and simplify} (2x + 3)(x - 4).",
       "skillIds": [
         "algebra_manipulation"
       ],
@@ -58,6 +61,7 @@
       "id": "cur-c1-algebra_manipulation-1-v0",
       "title": "Polynomial expansion",
       "prompt": "Expand (x + 2)^2.",
+      "promptLatex": "\\text{Expand} (x + 2)^2.",
       "skillIds": [
         "algebra_manipulation"
       ],
@@ -75,6 +79,7 @@
       "id": "cur-c1-algebra_manipulation-1-v1",
       "title": "Polynomial expansion (v2)",
       "prompt": "Expand (x + 2)^2.",
+      "promptLatex": "\\text{Expand} (x + 2)^2.",
       "skillIds": [
         "algebra_manipulation"
       ],
@@ -92,6 +97,7 @@
       "id": "cur-c1-algebra_manipulation-1-v2",
       "title": "Polynomial expansion (v3)",
       "prompt": "Expand (x + 2)^2.",
+      "promptLatex": "\\text{Expand} (x + 2)^2.",
       "skillIds": [
         "algebra_manipulation"
       ],
@@ -109,6 +115,7 @@
       "id": "cur-c1-function_notation-0-v0",
       "title": "Function notation checkpoint",
       "prompt": "If f(x) = 2x + 1, find f(3).",
+      "promptLatex": "\\text{If} f(x) = 2x + 1, \\text{find} f(3).",
       "skillIds": [
         "function_notation"
       ],
@@ -126,6 +133,7 @@
       "id": "cur-c1-function_notation-0-v1",
       "title": "Function notation checkpoint (v2)",
       "prompt": "If f(x) = 2x + 1, find f(3).",
+      "promptLatex": "\\text{If} f(x) = 2x + 1, \\text{find} f(3).",
       "skillIds": [
         "function_notation"
       ],
@@ -143,6 +151,7 @@
       "id": "cur-c1-function_notation-0-v2",
       "title": "Function notation checkpoint (v3)",
       "prompt": "If f(x) = 2x + 1, find f(3).",
+      "promptLatex": "\\text{If} f(x) = 2x + 1, \\text{find} f(3).",
       "skillIds": [
         "function_notation"
       ],
@@ -160,6 +169,7 @@
       "id": "cur-c1-function_notation-1-v0",
       "title": "Evaluate a function",
       "prompt": "If g(x) = x^2 - 1, find g(4).",
+      "promptLatex": "\\text{If} g(x) = x^2 - 1, \\text{find} g(4).",
       "skillIds": [
         "function_notation"
       ],
@@ -177,6 +187,7 @@
       "id": "cur-c1-function_notation-1-v1",
       "title": "Evaluate a function (v2)",
       "prompt": "If g(x) = x^2 - 1, find g(4).",
+      "promptLatex": "\\text{If} g(x) = x^2 - 1, \\text{find} g(4).",
       "skillIds": [
         "function_notation"
       ],
@@ -194,6 +205,7 @@
       "id": "cur-c1-function_notation-1-v2",
       "title": "Evaluate a function (v3)",
       "prompt": "If g(x) = x^2 - 1, find g(4).",
+      "promptLatex": "\\text{If} g(x) = x^2 - 1, \\text{find} g(4).",
       "skillIds": [
         "function_notation"
       ],
@@ -211,6 +223,7 @@
       "id": "cur-c1-function_composition-0-v0",
       "title": "Composition checkpoint",
       "prompt": "For f(x) = x^2 and g(x) = 2x + 1, find (f ∘ g)(x).",
+      "promptLatex": "\\text{For} f(x) = x^2 \\text{and} g(x) = 2x + 1, \\text{find} (f \\circ g)(x).",
       "skillIds": [
         "function_composition"
       ],
@@ -228,6 +241,7 @@
       "id": "cur-c1-function_composition-0-v1",
       "title": "Composition checkpoint (v2)",
       "prompt": "For f(x) = x^2 and g(x) = 2x + 1, find (f ∘ g)(x).",
+      "promptLatex": "\\text{For} f(x) = x^2 \\text{and} g(x) = 2x + 1, \\text{find} (f \\circ g)(x).",
       "skillIds": [
         "function_composition"
       ],
@@ -245,6 +259,7 @@
       "id": "cur-c1-function_composition-0-v2",
       "title": "Composition checkpoint (v3)",
       "prompt": "For f(x) = x^2 and g(x) = 2x + 1, find (f ∘ g)(x).",
+      "promptLatex": "\\text{For} f(x) = x^2 \\text{and} g(x) = 2x + 1, \\text{find} (f \\circ g)(x).",
       "skillIds": [
         "function_composition"
       ],
@@ -262,6 +277,7 @@
       "id": "cur-c1-function_composition-1-v0",
       "title": "Composition practice",
       "prompt": "If f(x)=x^2 and g(x)=3x+1, find (f∘g)(x).",
+      "promptLatex": "\\text{If} f(x)=x^2 \\text{and} g(x)=3x+1, \\text{find} (f\\circg)(x).",
       "skillIds": [
         "function_composition"
       ],
@@ -279,6 +295,7 @@
       "id": "cur-c1-function_composition-1-v1",
       "title": "Composition practice (v2)",
       "prompt": "If f(x)=x^2 and g(x)=3x+1, find (f∘g)(x).",
+      "promptLatex": "\\text{If} f(x)=x^2 \\text{and} g(x)=3x+1, \\text{find} (f\\circg)(x).",
       "skillIds": [
         "function_composition"
       ],
@@ -296,6 +313,7 @@
       "id": "cur-c1-function_composition-1-v2",
       "title": "Composition practice (v3)",
       "prompt": "If f(x)=x^2 and g(x)=3x+1, find (f∘g)(x).",
+      "promptLatex": "\\text{If} f(x)=x^2 \\text{and} g(x)=3x+1, \\text{find} (f\\circg)(x).",
       "skillIds": [
         "function_composition"
       ],
@@ -313,6 +331,7 @@
       "id": "cur-c1-trig_values-0-v0",
       "title": "Trig values checkpoint",
       "prompt": "What is sin(π/6)? (exact value)",
+      "promptLatex": "\\text{What is} \\sin(\\pi/6) \\text{?} (exact value)",
       "skillIds": [
         "trig_values"
       ],
@@ -330,6 +349,7 @@
       "id": "cur-c1-trig_values-0-v1",
       "title": "Trig values checkpoint (v2)",
       "prompt": "What is sin(π/6)? (exact value)",
+      "promptLatex": "\\text{What is} \\sin(\\pi/6) \\text{?} (exact value)",
       "skillIds": [
         "trig_values"
       ],
@@ -347,6 +367,7 @@
       "id": "cur-c1-trig_values-0-v2",
       "title": "Trig values checkpoint (v3)",
       "prompt": "What is sin(π/6)? (exact value)",
+      "promptLatex": "\\text{What is} \\sin(\\pi/6) \\text{?} (exact value)",
       "skillIds": [
         "trig_values"
       ],
@@ -364,6 +385,7 @@
       "id": "cur-c1-trig_values-1-v0",
       "title": "Cosine at π/3",
       "prompt": "What is cos(π/3)? (exact value)",
+      "promptLatex": "\\text{What is} \\cos(\\pi/3) \\text{?} (exact value)",
       "skillIds": [
         "trig_values"
       ],
@@ -381,6 +403,7 @@
       "id": "cur-c1-trig_values-1-v1",
       "title": "Cosine at π/3 (v2)",
       "prompt": "What is cos(π/3)? (exact value)",
+      "promptLatex": "\\text{What is} \\cos(\\pi/3) \\text{?} (exact value)",
       "skillIds": [
         "trig_values"
       ],
@@ -398,6 +421,7 @@
       "id": "cur-c1-trig_values-1-v2",
       "title": "Cosine at π/3 (v3)",
       "prompt": "What is cos(π/3)? (exact value)",
+      "promptLatex": "\\text{What is} \\cos(\\pi/3) \\text{?} (exact value)",
       "skillIds": [
         "trig_values"
       ],
@@ -415,6 +439,7 @@
       "id": "cur-c1-solving_equations-0-v0",
       "title": "Linear equation checkpoint",
       "prompt": "Solve for x: 2x + 5 = 11.",
+      "promptLatex": "\\text{Solve for x:} 2x + 5 = 11.",
       "skillIds": [
         "solving_equations"
       ],
@@ -432,6 +457,7 @@
       "id": "cur-c1-solving_equations-0-v1",
       "title": "Linear equation checkpoint (v2)",
       "prompt": "Solve for x: 2x + 5 = 11.",
+      "promptLatex": "\\text{Solve for x:} 2x + 5 = 11.",
       "skillIds": [
         "solving_equations"
       ],
@@ -449,6 +475,7 @@
       "id": "cur-c1-solving_equations-0-v2",
       "title": "Linear equation checkpoint (v3)",
       "prompt": "Solve for x: 2x + 5 = 11.",
+      "promptLatex": "\\text{Solve for x:} 2x + 5 = 11.",
       "skillIds": [
         "solving_equations"
       ],
@@ -466,6 +493,7 @@
       "id": "cur-c1-solving_equations-1-v0",
       "title": "Solve linear equation",
       "prompt": "Solve for x: 3x - 7 = 8.",
+      "promptLatex": "\\text{Solve for x:} 3x - 7 = 8.",
       "skillIds": [
         "solving_equations"
       ],
@@ -483,6 +511,7 @@
       "id": "cur-c1-solving_equations-1-v1",
       "title": "Solve linear equation (v2)",
       "prompt": "Solve for x: 3x - 7 = 8.",
+      "promptLatex": "\\text{Solve for x:} 3x - 7 = 8.",
       "skillIds": [
         "solving_equations"
       ],
@@ -500,6 +529,7 @@
       "id": "cur-c1-solving_equations-1-v2",
       "title": "Solve linear equation (v3)",
       "prompt": "Solve for x: 3x - 7 = 8.",
+      "promptLatex": "\\text{Solve for x:} 3x - 7 = 8.",
       "skillIds": [
         "solving_equations"
       ],
@@ -517,6 +547,7 @@
       "id": "cur-c1-factoring-0-v0",
       "title": "Factoring checkpoint",
       "prompt": "Factor x^2 - 9.",
+      "promptLatex": "\\text{Factor} x^2 - 9.",
       "skillIds": [
         "factoring"
       ],
@@ -534,6 +565,7 @@
       "id": "cur-c1-factoring-0-v1",
       "title": "Factoring checkpoint (v2)",
       "prompt": "Factor x^2 - 9.",
+      "promptLatex": "\\text{Factor} x^2 - 9.",
       "skillIds": [
         "factoring"
       ],
@@ -551,6 +583,7 @@
       "id": "cur-c1-factoring-0-v2",
       "title": "Factoring checkpoint (v3)",
       "prompt": "Factor x^2 - 9.",
+      "promptLatex": "\\text{Factor} x^2 - 9.",
       "skillIds": [
         "factoring"
       ],
@@ -568,6 +601,7 @@
       "id": "cur-c1-factoring-1-v0",
       "title": "Factor quadratic",
       "prompt": "Factor x^2 + 5x + 6.",
+      "promptLatex": "\\text{Factor} x^2 + 5x + 6.",
       "skillIds": [
         "factoring"
       ],
@@ -585,6 +619,7 @@
       "id": "cur-c1-factoring-1-v1",
       "title": "Factor quadratic (v2)",
       "prompt": "Factor x^2 + 5x + 6.",
+      "promptLatex": "\\text{Factor} x^2 + 5x + 6.",
       "skillIds": [
         "factoring"
       ],
@@ -602,6 +637,7 @@
       "id": "cur-c1-factoring-1-v2",
       "title": "Factor quadratic (v3)",
       "prompt": "Factor x^2 + 5x + 6.",
+      "promptLatex": "\\text{Factor} x^2 + 5x + 6.",
       "skillIds": [
         "factoring"
       ],
@@ -619,6 +655,7 @@
       "id": "cur-c1-rational_expressions-0-v0",
       "title": "Rational expression checkpoint",
       "prompt": "Simplify (x^2 - 1)/(x - 1) for x ≠ 1.",
+      "promptLatex": "\\text{Simplify} \\frac{x^2 - 1}{x - 1} \\text{for x} \\neq 1.",
       "skillIds": [
         "rational_expressions"
       ],
@@ -636,6 +673,7 @@
       "id": "cur-c1-rational_expressions-0-v1",
       "title": "Rational expression checkpoint (v2)",
       "prompt": "Simplify (x^2 - 1)/(x - 1) for x ≠ 1.",
+      "promptLatex": "\\text{Simplify} \\frac{x^2 - 1}{x - 1} \\text{for x} \\neq 1.",
       "skillIds": [
         "rational_expressions"
       ],
@@ -653,6 +691,7 @@
       "id": "cur-c1-rational_expressions-0-v2",
       "title": "Rational expression checkpoint (v3)",
       "prompt": "Simplify (x^2 - 1)/(x - 1) for x ≠ 1.",
+      "promptLatex": "\\text{Simplify} \\frac{x^2 - 1}{x - 1} \\text{for x} \\neq 1.",
       "skillIds": [
         "rational_expressions"
       ],
@@ -670,6 +709,7 @@
       "id": "cur-c1-rational_expressions-1-v0",
       "title": "Simplify rational",
       "prompt": "Simplify (x^2 - 4)/(x + 2) for x ≠ -2.",
+      "promptLatex": "\\text{Simplify} \\frac{x^2 - 4}{x + 2} \\text{for x} \\neq -2.",
       "skillIds": [
         "rational_expressions"
       ],
@@ -687,6 +727,7 @@
       "id": "cur-c1-rational_expressions-1-v1",
       "title": "Simplify rational (v2)",
       "prompt": "Simplify (x^2 - 4)/(x + 2) for x ≠ -2.",
+      "promptLatex": "\\text{Simplify} \\frac{x^2 - 4}{x + 2} \\text{for x} \\neq -2.",
       "skillIds": [
         "rational_expressions"
       ],
@@ -704,6 +745,7 @@
       "id": "cur-c1-rational_expressions-1-v2",
       "title": "Simplify rational (v3)",
       "prompt": "Simplify (x^2 - 4)/(x + 2) for x ≠ -2.",
+      "promptLatex": "\\text{Simplify} \\frac{x^2 - 4}{x + 2} \\text{for x} \\neq -2.",
       "skillIds": [
         "rational_expressions"
       ],
@@ -721,6 +763,7 @@
       "id": "cur-c1-limits_intro-0-v0",
       "title": "Limits checkpoint",
       "prompt": "Evaluate lim x→1 of (x^2 - 1)/(x - 1).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 1} \\text{of} \\frac{x^2 - 1}{x - 1}.",
       "skillIds": [
         "limits_intro"
       ],
@@ -738,6 +781,7 @@
       "id": "cur-c1-limits_intro-0-v1",
       "title": "Limits checkpoint (v2)",
       "prompt": "Evaluate lim x→1 of (x^2 - 1)/(x - 1).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 1} \\text{of} \\frac{x^2 - 1}{x - 1}.",
       "skillIds": [
         "limits_intro"
       ],
@@ -755,6 +799,7 @@
       "id": "cur-c1-limits_intro-0-v2",
       "title": "Limits checkpoint (v3)",
       "prompt": "Evaluate lim x→1 of (x^2 - 1)/(x - 1).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 1} \\text{of} \\frac{x^2 - 1}{x - 1}.",
       "skillIds": [
         "limits_intro"
       ],
@@ -772,6 +817,7 @@
       "id": "cur-c1-limits_intro-1-v0",
       "title": "Limit evaluation",
       "prompt": "Evaluate lim x→2 of (x^2 - 4)/(x - 2).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 2} \\text{of} \\frac{x^2 - 4}{x - 2}.",
       "skillIds": [
         "limits_intro"
       ],
@@ -789,6 +835,7 @@
       "id": "cur-c1-limits_intro-1-v1",
       "title": "Limit evaluation (v2)",
       "prompt": "Evaluate lim x→2 of (x^2 - 4)/(x - 2).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 2} \\text{of} \\frac{x^2 - 4}{x - 2}.",
       "skillIds": [
         "limits_intro"
       ],
@@ -806,6 +853,7 @@
       "id": "cur-c1-limits_intro-1-v2",
       "title": "Limit evaluation (v3)",
       "prompt": "Evaluate lim x→2 of (x^2 - 4)/(x - 2).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 2} \\text{of} \\frac{x^2 - 4}{x - 2}.",
       "skillIds": [
         "limits_intro"
       ],
@@ -823,6 +871,7 @@
       "id": "cur-c1-one_sided_limits-0-v0",
       "title": "One-sided limit checkpoint",
       "prompt": "For f(x) = |x|/x, what is lim x→0⁺ f(x)?",
+      "promptLatex": "\\text{For} f(x) = |x|/x, \\text{what is} \\lim_{x \\to 0^+} f(x) \\text{?}",
       "skillIds": [
         "one_sided_limits"
       ],
@@ -840,6 +889,7 @@
       "id": "cur-c1-one_sided_limits-0-v1",
       "title": "One-sided limit checkpoint (v2)",
       "prompt": "For f(x) = |x|/x, what is lim x→0⁺ f(x)?",
+      "promptLatex": "\\text{For} f(x) = |x|/x, \\text{what is} \\lim_{x \\to 0^+} f(x) \\text{?}",
       "skillIds": [
         "one_sided_limits"
       ],
@@ -857,6 +907,7 @@
       "id": "cur-c1-one_sided_limits-0-v2",
       "title": "One-sided limit checkpoint (v3)",
       "prompt": "For f(x) = |x|/x, what is lim x→0⁺ f(x)?",
+      "promptLatex": "\\text{For} f(x) = |x|/x, \\text{what is} \\lim_{x \\to 0^+} f(x) \\text{?}",
       "skillIds": [
         "one_sided_limits"
       ],
@@ -874,6 +925,7 @@
       "id": "cur-c1-one_sided_limits-1-v0",
       "title": "Left-hand limit",
       "prompt": "For f(x) = (x^2 - 1)/(x - 1), find lim x→1⁻ f(x).",
+      "promptLatex": "\\text{For} f(x) = \\frac{x^2 - 1}{x - 1}, \\text{find} \\lim_{x \\to 1^-} f(x).",
       "skillIds": [
         "one_sided_limits"
       ],
@@ -891,6 +943,7 @@
       "id": "cur-c1-one_sided_limits-1-v1",
       "title": "Left-hand limit (v2)",
       "prompt": "For f(x) = (x^2 - 1)/(x - 1), find lim x→1⁻ f(x).",
+      "promptLatex": "\\text{For} f(x) = \\frac{x^2 - 1}{x - 1}, \\text{find} \\lim_{x \\to 1^-} f(x).",
       "skillIds": [
         "one_sided_limits"
       ],
@@ -908,6 +961,7 @@
       "id": "cur-c1-one_sided_limits-1-v2",
       "title": "Left-hand limit (v3)",
       "prompt": "For f(x) = (x^2 - 1)/(x - 1), find lim x→1⁻ f(x).",
+      "promptLatex": "\\text{For} f(x) = \\frac{x^2 - 1}{x - 1}, \\text{find} \\lim_{x \\to 1^-} f(x).",
       "skillIds": [
         "one_sided_limits"
       ],
@@ -925,6 +979,7 @@
       "id": "cur-c1-infinite_limits-0-v0",
       "title": "Infinite limits checkpoint",
       "prompt": "Evaluate lim x→∞ of (3x^2 + 1)/(x^2 - 2).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to \\infty} \\text{of} \\frac{3x^2 + 1}{x^2 - 2}.",
       "skillIds": [
         "infinite_limits"
       ],
@@ -942,6 +997,7 @@
       "id": "cur-c1-infinite_limits-0-v1",
       "title": "Infinite limits checkpoint (v2)",
       "prompt": "Evaluate lim x→∞ of (3x^2 + 1)/(x^2 - 2).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to \\infty} \\text{of} \\frac{3x^2 + 1}{x^2 - 2}.",
       "skillIds": [
         "infinite_limits"
       ],
@@ -959,6 +1015,7 @@
       "id": "cur-c1-infinite_limits-0-v2",
       "title": "Infinite limits checkpoint (v3)",
       "prompt": "Evaluate lim x→∞ of (3x^2 + 1)/(x^2 - 2).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to \\infty} \\text{of} \\frac{3x^2 + 1}{x^2 - 2}.",
       "skillIds": [
         "infinite_limits"
       ],
@@ -976,6 +1033,7 @@
       "id": "cur-c1-infinite_limits-1-v0",
       "title": "Horizontal asymptote",
       "prompt": "Evaluate lim x→∞ of (2x + 1)/(x + 5).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to \\infty} \\text{of} \\frac{2x + 1}{x + 5}.",
       "skillIds": [
         "infinite_limits"
       ],
@@ -993,6 +1051,7 @@
       "id": "cur-c1-infinite_limits-1-v1",
       "title": "Horizontal asymptote (v2)",
       "prompt": "Evaluate lim x→∞ of (2x + 1)/(x + 5).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to \\infty} \\text{of} \\frac{2x + 1}{x + 5}.",
       "skillIds": [
         "infinite_limits"
       ],
@@ -1010,6 +1069,7 @@
       "id": "cur-c1-infinite_limits-1-v2",
       "title": "Horizontal asymptote (v3)",
       "prompt": "Evaluate lim x→∞ of (2x + 1)/(x + 5).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to \\infty} \\text{of} \\frac{2x + 1}{x + 5}.",
       "skillIds": [
         "infinite_limits"
       ],
@@ -1027,6 +1087,7 @@
       "id": "cur-c1-squeeze_theorem-0-v0",
       "title": "Squeeze theorem checkpoint",
       "prompt": "Evaluate lim x→0 of x^2*sin(1/x).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} x^2*\\sin(1/x).",
       "skillIds": [
         "squeeze_theorem"
       ],
@@ -1044,6 +1105,7 @@
       "id": "cur-c1-squeeze_theorem-0-v1",
       "title": "Squeeze theorem checkpoint (v2)",
       "prompt": "Evaluate lim x→0 of x^2*sin(1/x).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} x^2*\\sin(1/x).",
       "skillIds": [
         "squeeze_theorem"
       ],
@@ -1061,6 +1123,7 @@
       "id": "cur-c1-squeeze_theorem-0-v2",
       "title": "Squeeze theorem checkpoint (v3)",
       "prompt": "Evaluate lim x→0 of x^2*sin(1/x).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} x^2*\\sin(1/x).",
       "skillIds": [
         "squeeze_theorem"
       ],
@@ -1078,6 +1141,7 @@
       "id": "cur-c1-squeeze_theorem-1-v0",
       "title": "Squeeze practice",
       "prompt": "Evaluate lim x→0 of x*cos(1/x).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} x*\\cos(1/x).",
       "skillIds": [
         "squeeze_theorem"
       ],
@@ -1095,6 +1159,7 @@
       "id": "cur-c1-squeeze_theorem-1-v1",
       "title": "Squeeze practice (v2)",
       "prompt": "Evaluate lim x→0 of x*cos(1/x).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} x*\\cos(1/x).",
       "skillIds": [
         "squeeze_theorem"
       ],
@@ -1112,6 +1177,7 @@
       "id": "cur-c1-squeeze_theorem-1-v2",
       "title": "Squeeze practice (v3)",
       "prompt": "Evaluate lim x→0 of x*cos(1/x).",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} x*\\cos(1/x).",
       "skillIds": [
         "squeeze_theorem"
       ],
@@ -1129,6 +1195,7 @@
       "id": "cur-c1-continuity-0-v0",
       "title": "Continuity checkpoint",
       "prompt": "Is f(x) = (x^2 - 1)/(x - 1) continuous at x = 1 if we define f(1) = 2? Answer yes or no.",
+      "promptLatex": "\\text{Is} f(x) = \\frac{x^2 - 1}{x - 1} \\text{continuous at} x = 1 \\text{if we define} f(1) = 2 \\text{? Answer yes or no.}",
       "skillIds": [
         "continuity"
       ],
@@ -1146,6 +1213,7 @@
       "id": "cur-c1-continuity-0-v1",
       "title": "Continuity checkpoint (v2)",
       "prompt": "Is f(x) = (x^2 - 1)/(x - 1) continuous at x = 1 if we define f(1) = 2? Answer yes or no.",
+      "promptLatex": "\\text{Is} f(x) = \\frac{x^2 - 1}{x - 1} \\text{continuous at} x = 1 \\text{if we define} f(1) = 2 \\text{? Answer yes or no.}",
       "skillIds": [
         "continuity"
       ],
@@ -1163,6 +1231,7 @@
       "id": "cur-c1-continuity-0-v2",
       "title": "Continuity checkpoint (v3)",
       "prompt": "Is f(x) = (x^2 - 1)/(x - 1) continuous at x = 1 if we define f(1) = 2? Answer yes or no.",
+      "promptLatex": "\\text{Is} f(x) = \\frac{x^2 - 1}{x - 1} \\text{continuous at} x = 1 \\text{if we define} f(1) = 2 \\text{? Answer yes or no.}",
       "skillIds": [
         "continuity"
       ],
@@ -1180,6 +1249,7 @@
       "id": "cur-c1-continuity-1-v0",
       "title": "Continuity at a point",
       "prompt": "Is f(x) = x^2 continuous everywhere? Answer yes or no.",
+      "promptLatex": "\\text{Is} f(x) = x^2 \\text{continuous everywhere? Answer yes or no.}",
       "skillIds": [
         "continuity"
       ],
@@ -1197,6 +1267,7 @@
       "id": "cur-c1-continuity-1-v1",
       "title": "Continuity at a point (v2)",
       "prompt": "Is f(x) = x^2 continuous everywhere? Answer yes or no.",
+      "promptLatex": "\\text{Is} f(x) = x^2 \\text{continuous everywhere? Answer yes or no.}",
       "skillIds": [
         "continuity"
       ],
@@ -1214,6 +1285,7 @@
       "id": "cur-c1-continuity-1-v2",
       "title": "Continuity at a point (v3)",
       "prompt": "Is f(x) = x^2 continuous everywhere? Answer yes or no.",
+      "promptLatex": "\\text{Is} f(x) = x^2 \\text{continuous everywhere? Answer yes or no.}",
       "skillIds": [
         "continuity"
       ],
@@ -1231,6 +1303,7 @@
       "id": "cur-c1-derivative_definition-0-v0",
       "title": "Derivative definition checkpoint",
       "prompt": "Using the limit definition, find f'(x) for f(x) = x^2.",
+      "promptLatex": "\\text{Using the limit definition, find} f^{\\prime}(x) \\text{for} f(x) = x^2.",
       "skillIds": [
         "derivative_definition"
       ],
@@ -1248,6 +1321,7 @@
       "id": "cur-c1-derivative_definition-0-v1",
       "title": "Derivative definition checkpoint (v2)",
       "prompt": "Using the limit definition, find f'(x) for f(x) = x^2.",
+      "promptLatex": "\\text{Using the limit definition, find} f^{\\prime}(x) \\text{for} f(x) = x^2.",
       "skillIds": [
         "derivative_definition"
       ],
@@ -1265,6 +1339,7 @@
       "id": "cur-c1-derivative_definition-0-v2",
       "title": "Derivative definition checkpoint (v3)",
       "prompt": "Using the limit definition, find f'(x) for f(x) = x^2.",
+      "promptLatex": "\\text{Using the limit definition, find} f^{\\prime}(x) \\text{for} f(x) = x^2.",
       "skillIds": [
         "derivative_definition"
       ],
@@ -1282,6 +1357,7 @@
       "id": "cur-c1-derivative_definition-1-v0",
       "title": "Limit definition",
       "prompt": "Find the derivative of f(x) = 3x using the limit definition.",
+      "promptLatex": "\\text{Find the derivative of} f(x) = 3x \\text{using the limit definition.}",
       "skillIds": [
         "derivative_definition"
       ],
@@ -1299,6 +1375,7 @@
       "id": "cur-c1-derivative_definition-1-v1",
       "title": "Limit definition (v2)",
       "prompt": "Find the derivative of f(x) = 3x using the limit definition.",
+      "promptLatex": "\\text{Find the derivative of} f(x) = 3x \\text{using the limit definition.}",
       "skillIds": [
         "derivative_definition"
       ],
@@ -1316,6 +1393,7 @@
       "id": "cur-c1-derivative_definition-1-v2",
       "title": "Limit definition (v3)",
       "prompt": "Find the derivative of f(x) = 3x using the limit definition.",
+      "promptLatex": "\\text{Find the derivative of} f(x) = 3x \\text{using the limit definition.}",
       "skillIds": [
         "derivative_definition"
       ],
@@ -1333,6 +1411,7 @@
       "id": "cur-c1-tangent_instantaneous-0-v0",
       "title": "Tangent line checkpoint",
       "prompt": "Find the slope of the tangent line to f(x) = x^2 at x = 3.",
+      "promptLatex": "\\text{Find the slope of the tangent line to} f(x) = x^2 \\text{at} x = 3.",
       "skillIds": [
         "tangent_instantaneous"
       ],
@@ -1350,6 +1429,7 @@
       "id": "cur-c1-tangent_instantaneous-0-v1",
       "title": "Tangent line checkpoint (v2)",
       "prompt": "Find the slope of the tangent line to f(x) = x^2 at x = 3.",
+      "promptLatex": "\\text{Find the slope of the tangent line to} f(x) = x^2 \\text{at} x = 3.",
       "skillIds": [
         "tangent_instantaneous"
       ],
@@ -1367,6 +1447,7 @@
       "id": "cur-c1-tangent_instantaneous-0-v2",
       "title": "Tangent line checkpoint (v3)",
       "prompt": "Find the slope of the tangent line to f(x) = x^2 at x = 3.",
+      "promptLatex": "\\text{Find the slope of the tangent line to} f(x) = x^2 \\text{at} x = 3.",
       "skillIds": [
         "tangent_instantaneous"
       ],
@@ -1384,6 +1465,7 @@
       "id": "cur-c1-tangent_instantaneous-1-v0",
       "title": "Instantaneous rate",
       "prompt": "Find f'(2) for f(x) = x^3.",
+      "promptLatex": "\\text{Find} f^{\\prime}(2) \\text{for} f(x) = x^3.",
       "skillIds": [
         "tangent_instantaneous"
       ],
@@ -1401,6 +1483,7 @@
       "id": "cur-c1-tangent_instantaneous-1-v1",
       "title": "Instantaneous rate (v2)",
       "prompt": "Find f'(2) for f(x) = x^3.",
+      "promptLatex": "\\text{Find} f^{\\prime}(2) \\text{for} f(x) = x^3.",
       "skillIds": [
         "tangent_instantaneous"
       ],
@@ -1418,6 +1501,7 @@
       "id": "cur-c1-tangent_instantaneous-1-v2",
       "title": "Instantaneous rate (v3)",
       "prompt": "Find f'(2) for f(x) = x^3.",
+      "promptLatex": "\\text{Find} f^{\\prime}(2) \\text{for} f(x) = x^3.",
       "skillIds": [
         "tangent_instantaneous"
       ],
@@ -1435,6 +1519,7 @@
       "id": "cur-c1-derivative_rules_basic-0-v0",
       "title": "Derivative rules checkpoint",
       "prompt": "Differentiate f(x) = 5x^4 - 2x.",
+      "promptLatex": "\\text{Differentiate} f(x) = 5x^4 - 2x.",
       "skillIds": [
         "derivative_rules_basic"
       ],
@@ -1452,6 +1537,7 @@
       "id": "cur-c1-derivative_rules_basic-0-v1",
       "title": "Derivative rules checkpoint (v2)",
       "prompt": "Differentiate f(x) = 5x^4 - 2x.",
+      "promptLatex": "\\text{Differentiate} f(x) = 5x^4 - 2x.",
       "skillIds": [
         "derivative_rules_basic"
       ],
@@ -1469,6 +1555,7 @@
       "id": "cur-c1-derivative_rules_basic-0-v2",
       "title": "Derivative rules checkpoint (v3)",
       "prompt": "Differentiate f(x) = 5x^4 - 2x.",
+      "promptLatex": "\\text{Differentiate} f(x) = 5x^4 - 2x.",
       "skillIds": [
         "derivative_rules_basic"
       ],
@@ -1486,6 +1573,7 @@
       "id": "cur-c1-derivative_rules_basic-1-v0",
       "title": "Power rule practice",
       "prompt": "Differentiate f(x) = 4x^5 - 3x + 7.",
+      "promptLatex": "\\text{Differentiate} f(x) = 4x^5 - 3x + 7.",
       "skillIds": [
         "derivative_rules_basic"
       ],
@@ -1503,6 +1591,7 @@
       "id": "cur-c1-derivative_rules_basic-1-v1",
       "title": "Power rule practice (v2)",
       "prompt": "Differentiate f(x) = 4x^5 - 3x + 7.",
+      "promptLatex": "\\text{Differentiate} f(x) = 4x^5 - 3x + 7.",
       "skillIds": [
         "derivative_rules_basic"
       ],
@@ -1520,6 +1609,7 @@
       "id": "cur-c1-derivative_rules_basic-1-v2",
       "title": "Power rule practice (v3)",
       "prompt": "Differentiate f(x) = 4x^5 - 3x + 7.",
+      "promptLatex": "\\text{Differentiate} f(x) = 4x^5 - 3x + 7.",
       "skillIds": [
         "derivative_rules_basic"
       ],
@@ -1537,6 +1627,7 @@
       "id": "cur-c1-product_rule-0-v0",
       "title": "Product rule checkpoint",
       "prompt": "Differentiate f(x) = x^2 * sin(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = x^2 * \\sin(x).",
       "skillIds": [
         "product_rule"
       ],
@@ -1554,6 +1645,7 @@
       "id": "cur-c1-product_rule-0-v1",
       "title": "Product rule checkpoint (v2)",
       "prompt": "Differentiate f(x) = x^2 * sin(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = x^2 * \\sin(x).",
       "skillIds": [
         "product_rule"
       ],
@@ -1571,6 +1663,7 @@
       "id": "cur-c1-product_rule-0-v2",
       "title": "Product rule checkpoint (v3)",
       "prompt": "Differentiate f(x) = x^2 * sin(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = x^2 * \\sin(x).",
       "skillIds": [
         "product_rule"
       ],
@@ -1588,6 +1681,7 @@
       "id": "cur-c1-product_rule-1-v0",
       "title": "Product rule practice",
       "prompt": "Differentiate y = x * e^x.",
+      "promptLatex": "\\text{Differentiate} y = x * e^x.",
       "skillIds": [
         "product_rule"
       ],
@@ -1605,6 +1699,7 @@
       "id": "cur-c1-product_rule-1-v1",
       "title": "Product rule practice (v2)",
       "prompt": "Differentiate y = x * e^x.",
+      "promptLatex": "\\text{Differentiate} y = x * e^x.",
       "skillIds": [
         "product_rule"
       ],
@@ -1622,6 +1717,7 @@
       "id": "cur-c1-product_rule-1-v2",
       "title": "Product rule practice (v3)",
       "prompt": "Differentiate y = x * e^x.",
+      "promptLatex": "\\text{Differentiate} y = x * e^x.",
       "skillIds": [
         "product_rule"
       ],
@@ -1639,6 +1735,7 @@
       "id": "cur-c1-quotient_rule-0-v0",
       "title": "Quotient rule checkpoint",
       "prompt": "Differentiate f(x) = (x + 1)/(x - 1).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\frac{x + 1}{x - 1}.",
       "skillIds": [
         "quotient_rule"
       ],
@@ -1656,6 +1753,7 @@
       "id": "cur-c1-quotient_rule-0-v1",
       "title": "Quotient rule checkpoint (v2)",
       "prompt": "Differentiate f(x) = (x + 1)/(x - 1).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\frac{x + 1}{x - 1}.",
       "skillIds": [
         "quotient_rule"
       ],
@@ -1673,6 +1771,7 @@
       "id": "cur-c1-quotient_rule-0-v2",
       "title": "Quotient rule checkpoint (v3)",
       "prompt": "Differentiate f(x) = (x + 1)/(x - 1).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\frac{x + 1}{x - 1}.",
       "skillIds": [
         "quotient_rule"
       ],
@@ -1690,6 +1789,7 @@
       "id": "cur-c1-quotient_rule-1-v0",
       "title": "Quotient rule practice",
       "prompt": "Differentiate y = sin(x)/x.",
+      "promptLatex": "\\text{Differentiate} y = \\sin\\frac{x}{x}.",
       "skillIds": [
         "quotient_rule"
       ],
@@ -1707,6 +1807,7 @@
       "id": "cur-c1-quotient_rule-1-v1",
       "title": "Quotient rule practice (v2)",
       "prompt": "Differentiate y = sin(x)/x.",
+      "promptLatex": "\\text{Differentiate} y = \\sin\\frac{x}{x}.",
       "skillIds": [
         "quotient_rule"
       ],
@@ -1724,6 +1825,7 @@
       "id": "cur-c1-quotient_rule-1-v2",
       "title": "Quotient rule practice (v3)",
       "prompt": "Differentiate y = sin(x)/x.",
+      "promptLatex": "\\text{Differentiate} y = \\sin\\frac{x}{x}.",
       "skillIds": [
         "quotient_rule"
       ],
@@ -1741,6 +1843,7 @@
       "id": "cur-c1-chain_rule-0-v0",
       "title": "Chain rule checkpoint",
       "prompt": "Differentiate f(x) = (x^2 + 3)^2.",
+      "promptLatex": "\\text{Differentiate} f(x) = (x^2 + 3)^2.",
       "skillIds": [
         "chain_rule"
       ],
@@ -1758,6 +1861,7 @@
       "id": "cur-c1-chain_rule-0-v1",
       "title": "Chain rule checkpoint (v2)",
       "prompt": "Differentiate f(x) = (x^2 + 3)^2.",
+      "promptLatex": "\\text{Differentiate} f(x) = (x^2 + 3)^2.",
       "skillIds": [
         "chain_rule"
       ],
@@ -1775,6 +1879,7 @@
       "id": "cur-c1-chain_rule-0-v2",
       "title": "Chain rule checkpoint (v3)",
       "prompt": "Differentiate f(x) = (x^2 + 3)^2.",
+      "promptLatex": "\\text{Differentiate} f(x) = (x^2 + 3)^2.",
       "skillIds": [
         "chain_rule"
       ],
@@ -1792,6 +1897,7 @@
       "id": "cur-c1-chain_rule-1-v0",
       "title": "Chain rule variant",
       "prompt": "Differentiate y = sin(5x^2).",
+      "promptLatex": "\\text{Differentiate} y = \\sin(5x^2).",
       "skillIds": [
         "chain_rule"
       ],
@@ -1809,6 +1915,7 @@
       "id": "cur-c1-chain_rule-1-v1",
       "title": "Chain rule variant (v2)",
       "prompt": "Differentiate y = sin(5x^2).",
+      "promptLatex": "\\text{Differentiate} y = \\sin(5x^2).",
       "skillIds": [
         "chain_rule"
       ],
@@ -1826,6 +1933,7 @@
       "id": "cur-c1-chain_rule-1-v2",
       "title": "Chain rule variant (v3)",
       "prompt": "Differentiate y = sin(5x^2).",
+      "promptLatex": "\\text{Differentiate} y = \\sin(5x^2).",
       "skillIds": [
         "chain_rule"
       ],
@@ -1843,6 +1951,7 @@
       "id": "cur-c1-chain_rule-2-v0",
       "title": "Chain rule: power composition",
       "prompt": "Differentiate f(x) = (3x^2 + 1)^4.",
+      "promptLatex": "\\text{Differentiate} f(x) = (3x^2 + 1)^4.",
       "skillIds": [
         "chain_rule"
       ],
@@ -1860,6 +1969,7 @@
       "id": "cur-c1-chain_rule-2-v1",
       "title": "Chain rule: power composition (v2)",
       "prompt": "Differentiate f(x) = (3x^2 + 1)^4.",
+      "promptLatex": "\\text{Differentiate} f(x) = (3x^2 + 1)^4.",
       "skillIds": [
         "chain_rule"
       ],
@@ -1877,6 +1987,7 @@
       "id": "cur-c1-chain_rule-2-v2",
       "title": "Chain rule: power composition (v3)",
       "prompt": "Differentiate f(x) = (3x^2 + 1)^4.",
+      "promptLatex": "\\text{Differentiate} f(x) = (3x^2 + 1)^4.",
       "skillIds": [
         "chain_rule"
       ],
@@ -1894,6 +2005,7 @@
       "id": "cur-c1-chain_rule-3-v0",
       "title": "Chain rule: trig composition",
       "prompt": "Differentiate y = sin(4x^2).",
+      "promptLatex": "\\text{Differentiate} y = \\sin(4x^2).",
       "skillIds": [
         "chain_rule"
       ],
@@ -1911,6 +2023,7 @@
       "id": "cur-c1-chain_rule-3-v1",
       "title": "Chain rule: trig composition (v2)",
       "prompt": "Differentiate y = sin(4x^2).",
+      "promptLatex": "\\text{Differentiate} y = \\sin(4x^2).",
       "skillIds": [
         "chain_rule"
       ],
@@ -1928,6 +2041,7 @@
       "id": "cur-c1-chain_rule-3-v2",
       "title": "Chain rule: trig composition (v3)",
       "prompt": "Differentiate y = sin(4x^2).",
+      "promptLatex": "\\text{Differentiate} y = \\sin(4x^2).",
       "skillIds": [
         "chain_rule"
       ],
@@ -1945,6 +2059,7 @@
       "id": "cur-c1-derivatives_trig-0-v0",
       "title": "Trig derivatives checkpoint",
       "prompt": "Differentiate f(x) = cos(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\cos(x).",
       "skillIds": [
         "derivatives_trig"
       ],
@@ -1962,6 +2077,7 @@
       "id": "cur-c1-derivatives_trig-0-v1",
       "title": "Trig derivatives checkpoint (v2)",
       "prompt": "Differentiate f(x) = cos(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\cos(x).",
       "skillIds": [
         "derivatives_trig"
       ],
@@ -1979,6 +2095,7 @@
       "id": "cur-c1-derivatives_trig-0-v2",
       "title": "Trig derivatives checkpoint (v3)",
       "prompt": "Differentiate f(x) = cos(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\cos(x).",
       "skillIds": [
         "derivatives_trig"
       ],
@@ -1996,6 +2113,7 @@
       "id": "cur-c1-derivatives_trig-1-v0",
       "title": "Trig derivative",
       "prompt": "Differentiate f(x) = sin(3x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\sin(3x).",
       "skillIds": [
         "derivatives_trig"
       ],
@@ -2013,6 +2131,7 @@
       "id": "cur-c1-derivatives_trig-1-v1",
       "title": "Trig derivative (v2)",
       "prompt": "Differentiate f(x) = sin(3x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\sin(3x).",
       "skillIds": [
         "derivatives_trig"
       ],
@@ -2030,6 +2149,7 @@
       "id": "cur-c1-derivatives_trig-1-v2",
       "title": "Trig derivative (v3)",
       "prompt": "Differentiate f(x) = sin(3x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\sin(3x).",
       "skillIds": [
         "derivatives_trig"
       ],
@@ -2047,6 +2167,7 @@
       "id": "cur-c1-derivatives_exp_log-0-v0",
       "title": "Exp/log derivatives checkpoint",
       "prompt": "Differentiate f(x) = e^(3x).",
+      "promptLatex": "\\text{Differentiate} f(x) = e^(3x).",
       "skillIds": [
         "derivatives_exp_log"
       ],
@@ -2064,6 +2185,7 @@
       "id": "cur-c1-derivatives_exp_log-0-v1",
       "title": "Exp/log derivatives checkpoint (v2)",
       "prompt": "Differentiate f(x) = e^(3x).",
+      "promptLatex": "\\text{Differentiate} f(x) = e^(3x).",
       "skillIds": [
         "derivatives_exp_log"
       ],
@@ -2081,6 +2203,7 @@
       "id": "cur-c1-derivatives_exp_log-0-v2",
       "title": "Exp/log derivatives checkpoint (v3)",
       "prompt": "Differentiate f(x) = e^(3x).",
+      "promptLatex": "\\text{Differentiate} f(x) = e^(3x).",
       "skillIds": [
         "derivatives_exp_log"
       ],
@@ -2098,6 +2221,7 @@
       "id": "cur-c1-derivatives_exp_log-1-v0",
       "title": "Logarithmic derivative",
       "prompt": "Differentiate f(x) = ln(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\ln(x).",
       "skillIds": [
         "derivatives_exp_log"
       ],
@@ -2115,6 +2239,7 @@
       "id": "cur-c1-derivatives_exp_log-1-v1",
       "title": "Logarithmic derivative (v2)",
       "prompt": "Differentiate f(x) = ln(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\ln(x).",
       "skillIds": [
         "derivatives_exp_log"
       ],
@@ -2132,6 +2257,7 @@
       "id": "cur-c1-derivatives_exp_log-1-v2",
       "title": "Logarithmic derivative (v3)",
       "prompt": "Differentiate f(x) = ln(x).",
+      "promptLatex": "\\text{Differentiate} f(x) = \\ln(x).",
       "skillIds": [
         "derivatives_exp_log"
       ],
@@ -2149,6 +2275,7 @@
       "id": "cur-c1-implicit_differentiation-0-v0",
       "title": "Implicit diff checkpoint",
       "prompt": "Find dy/dx if x^2 + y^2 = 25.",
+      "promptLatex": "\\text{Find} \\frac{dy}{dx} \\text{if} x^2 + y^2 = 25.",
       "skillIds": [
         "implicit_differentiation"
       ],
@@ -2166,6 +2293,7 @@
       "id": "cur-c1-implicit_differentiation-0-v1",
       "title": "Implicit diff checkpoint (v2)",
       "prompt": "Find dy/dx if x^2 + y^2 = 25.",
+      "promptLatex": "\\text{Find} \\frac{dy}{dx} \\text{if} x^2 + y^2 = 25.",
       "skillIds": [
         "implicit_differentiation"
       ],
@@ -2183,6 +2311,7 @@
       "id": "cur-c1-implicit_differentiation-0-v2",
       "title": "Implicit diff checkpoint (v3)",
       "prompt": "Find dy/dx if x^2 + y^2 = 25.",
+      "promptLatex": "\\text{Find} \\frac{dy}{dx} \\text{if} x^2 + y^2 = 25.",
       "skillIds": [
         "implicit_differentiation"
       ],
@@ -2200,6 +2329,7 @@
       "id": "cur-c1-implicit_differentiation-1-v0",
       "title": "Implicit differentiation",
       "prompt": "Find dy/dx if x*y = 6.",
+      "promptLatex": "\\text{Find} \\frac{dy}{dx} \\text{if} x*y = 6.",
       "skillIds": [
         "implicit_differentiation"
       ],
@@ -2217,6 +2347,7 @@
       "id": "cur-c1-implicit_differentiation-1-v1",
       "title": "Implicit differentiation (v2)",
       "prompt": "Find dy/dx if x*y = 6.",
+      "promptLatex": "\\text{Find} \\frac{dy}{dx} \\text{if} x*y = 6.",
       "skillIds": [
         "implicit_differentiation"
       ],
@@ -2234,6 +2365,7 @@
       "id": "cur-c1-implicit_differentiation-1-v2",
       "title": "Implicit differentiation (v3)",
       "prompt": "Find dy/dx if x*y = 6.",
+      "promptLatex": "\\text{Find} \\frac{dy}{dx} \\text{if} x*y = 6.",
       "skillIds": [
         "implicit_differentiation"
       ],
@@ -2251,6 +2383,7 @@
       "id": "cur-c1-implicit_log_diff-0-v0",
       "title": "Log diff checkpoint",
       "prompt": "Use logarithmic differentiation setup: for y = x^x, ln(y) equals what expression?",
+      "promptLatex": "\\text{Use logarithmic differentiation setup: for} y = x^x, \\ln(y) \\text{equals what expression?}",
       "skillIds": [
         "implicit_log_diff"
       ],
@@ -2268,6 +2401,7 @@
       "id": "cur-c1-implicit_log_diff-0-v1",
       "title": "Log diff checkpoint (v2)",
       "prompt": "Use logarithmic differentiation setup: for y = x^x, ln(y) equals what expression?",
+      "promptLatex": "\\text{Use logarithmic differentiation setup: for} y = x^x, \\ln(y) \\text{equals what expression?}",
       "skillIds": [
         "implicit_log_diff"
       ],
@@ -2285,6 +2419,7 @@
       "id": "cur-c1-implicit_log_diff-0-v2",
       "title": "Log diff checkpoint (v3)",
       "prompt": "Use logarithmic differentiation setup: for y = x^x, ln(y) equals what expression?",
+      "promptLatex": "\\text{Use logarithmic differentiation setup: for} y = x^x, \\ln(y) \\text{equals what expression?}",
       "skillIds": [
         "implicit_log_diff"
       ],
@@ -2302,6 +2437,7 @@
       "id": "cur-c1-implicit_log_diff-1-v0",
       "title": "Log diff practice",
       "prompt": "For y = x^(2x), after taking ln both sides, ln(y) = ?",
+      "promptLatex": "\\text{For} y = x^(2x), \\text{after taking} \\ln \\text{both sides,} \\ln(y) = \\text{?}",
       "skillIds": [
         "implicit_log_diff"
       ],
@@ -2319,6 +2455,7 @@
       "id": "cur-c1-implicit_log_diff-1-v1",
       "title": "Log diff practice (v2)",
       "prompt": "For y = x^(2x), after taking ln both sides, ln(y) = ?",
+      "promptLatex": "\\text{For} y = x^(2x), \\text{after taking} \\ln \\text{both sides,} \\ln(y) = \\text{?}",
       "skillIds": [
         "implicit_log_diff"
       ],
@@ -2336,6 +2473,7 @@
       "id": "cur-c1-implicit_log_diff-1-v2",
       "title": "Log diff practice (v3)",
       "prompt": "For y = x^(2x), after taking ln both sides, ln(y) = ?",
+      "promptLatex": "\\text{For} y = x^(2x), \\text{after taking} \\ln \\text{both sides,} \\ln(y) = \\text{?}",
       "skillIds": [
         "implicit_log_diff"
       ],
@@ -2353,6 +2491,7 @@
       "id": "cur-c1-related_rates-0-v0",
       "title": "Related rates checkpoint",
       "prompt": "A circle's radius increases at 3 cm/s. When r=5 cm, how fast is the area increasing?",
+      "promptLatex": "\\text{A circl} e^{\\prime}s \\text{radius increases at} 3 \\text{c} m/s. \\text{When} r=5 \\text{cm, how fast is the area increasing?}",
       "skillIds": [
         "related_rates"
       ],
@@ -2370,6 +2509,7 @@
       "id": "cur-c1-related_rates-0-v1",
       "title": "Related rates checkpoint (v2)",
       "prompt": "A circle's radius increases at 3 cm/s. When r=5 cm, how fast is the area increasing?",
+      "promptLatex": "\\text{A circl} e^{\\prime}s \\text{radius increases at} 3 \\text{c} m/s. \\text{When} r=5 \\text{cm, how fast is the area increasing?}",
       "skillIds": [
         "related_rates"
       ],
@@ -2387,6 +2527,7 @@
       "id": "cur-c1-related_rates-0-v2",
       "title": "Related rates checkpoint (v3)",
       "prompt": "A circle's radius increases at 3 cm/s. When r=5 cm, how fast is the area increasing?",
+      "promptLatex": "\\text{A circl} e^{\\prime}s \\text{radius increases at} 3 \\text{c} m/s. \\text{When} r=5 \\text{cm, how fast is the area increasing?}",
       "skillIds": [
         "related_rates"
       ],
@@ -2404,6 +2545,7 @@
       "id": "cur-c1-related_rates-1-v0",
       "title": "Related rates: expanding circle",
       "prompt": "A balloon's radius grows at 2 cm/s. When r=4 cm, find dA/dt.",
+      "promptLatex": "\\text{A balloo} n^{\\prime}s \\text{radius grows at} 2 \\text{c} m/s. \\text{When} r=4 \\text{cm, find} \\frac{dA}{dt}.",
       "skillIds": [
         "related_rates"
       ],
@@ -2421,6 +2563,7 @@
       "id": "cur-c1-related_rates-1-v1",
       "title": "Related rates: expanding circle (v2)",
       "prompt": "A balloon's radius grows at 2 cm/s. When r=4 cm, find dA/dt.",
+      "promptLatex": "\\text{A balloo} n^{\\prime}s \\text{radius grows at} 2 \\text{c} m/s. \\text{When} r=4 \\text{cm, find} \\frac{dA}{dt}.",
       "skillIds": [
         "related_rates"
       ],
@@ -2438,6 +2581,7 @@
       "id": "cur-c1-related_rates-1-v2",
       "title": "Related rates: expanding circle (v3)",
       "prompt": "A balloon's radius grows at 2 cm/s. When r=4 cm, find dA/dt.",
+      "promptLatex": "\\text{A balloo} n^{\\prime}s \\text{radius grows at} 2 \\text{c} m/s. \\text{When} r=4 \\text{cm, find} \\frac{dA}{dt}.",
       "skillIds": [
         "related_rates"
       ],
@@ -2455,6 +2599,7 @@
       "id": "cur-c1-extrema-0-v0",
       "title": "Extrema checkpoint",
       "prompt": "Find all critical points of f(x) = x^3 - 3x (give x-values only, comma-separated).",
+      "promptLatex": "\\text{Find all critical points of} f(x) = x^3 - 3x (give x-values only, comma-separated).",
       "skillIds": [
         "extrema"
       ],
@@ -2472,6 +2617,7 @@
       "id": "cur-c1-extrema-0-v1",
       "title": "Extrema checkpoint (v2)",
       "prompt": "Find all critical points of f(x) = x^3 - 3x (give x-values only, comma-separated).",
+      "promptLatex": "\\text{Find all critical points of} f(x) = x^3 - 3x (give x-values only, comma-separated).",
       "skillIds": [
         "extrema"
       ],
@@ -2489,6 +2635,7 @@
       "id": "cur-c1-extrema-0-v2",
       "title": "Extrema checkpoint (v3)",
       "prompt": "Find all critical points of f(x) = x^3 - 3x (give x-values only, comma-separated).",
+      "promptLatex": "\\text{Find all critical points of} f(x) = x^3 - 3x (give x-values only, comma-separated).",
       "skillIds": [
         "extrema"
       ],
@@ -2506,6 +2653,7 @@
       "id": "cur-c1-extrema-1-v0",
       "title": "Critical points",
       "prompt": "Find critical points of f(x) = x^2 - 4x + 3.",
+      "promptLatex": "\\text{Find critical points of} f(x) = x^2 - 4x + 3.",
       "skillIds": [
         "extrema"
       ],
@@ -2523,6 +2671,7 @@
       "id": "cur-c1-extrema-1-v1",
       "title": "Critical points (v2)",
       "prompt": "Find critical points of f(x) = x^2 - 4x + 3.",
+      "promptLatex": "\\text{Find critical points of} f(x) = x^2 - 4x + 3.",
       "skillIds": [
         "extrema"
       ],
@@ -2540,6 +2689,7 @@
       "id": "cur-c1-extrema-1-v2",
       "title": "Critical points (v3)",
       "prompt": "Find critical points of f(x) = x^2 - 4x + 3.",
+      "promptLatex": "\\text{Find critical points of} f(x) = x^2 - 4x + 3.",
       "skillIds": [
         "extrema"
       ],
@@ -2557,6 +2707,7 @@
       "id": "cur-c1-concavity-0-v0",
       "title": "Concavity checkpoint",
       "prompt": "Where is f(x) = x^3 concave up? Answer: x > 0, x < 0, or all x.",
+      "promptLatex": "\\text{Where is} f(x) = x^3 \\text{concave up? Answer: x >} 0, \\text{x <} 0, \\text{or all x.}",
       "skillIds": [
         "concavity"
       ],
@@ -2574,6 +2725,7 @@
       "id": "cur-c1-concavity-0-v1",
       "title": "Concavity checkpoint (v2)",
       "prompt": "Where is f(x) = x^3 concave up? Answer: x > 0, x < 0, or all x.",
+      "promptLatex": "\\text{Where is} f(x) = x^3 \\text{concave up? Answer: x >} 0, \\text{x <} 0, \\text{or all x.}",
       "skillIds": [
         "concavity"
       ],
@@ -2591,6 +2743,7 @@
       "id": "cur-c1-concavity-0-v2",
       "title": "Concavity checkpoint (v3)",
       "prompt": "Where is f(x) = x^3 concave up? Answer: x > 0, x < 0, or all x.",
+      "promptLatex": "\\text{Where is} f(x) = x^3 \\text{concave up? Answer: x >} 0, \\text{x <} 0, \\text{or all x.}",
       "skillIds": [
         "concavity"
       ],
@@ -2608,6 +2761,7 @@
       "id": "cur-c1-concavity-1-v0",
       "title": "Second derivative test",
       "prompt": "For f(x) = x^4, is f concave up at x = 1? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^4, \\text{is f concave up at} x = 1 \\text{? Answer yes or no.}",
       "skillIds": [
         "concavity"
       ],
@@ -2625,6 +2779,7 @@
       "id": "cur-c1-concavity-1-v1",
       "title": "Second derivative test (v2)",
       "prompt": "For f(x) = x^4, is f concave up at x = 1? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^4, \\text{is f concave up at} x = 1 \\text{? Answer yes or no.}",
       "skillIds": [
         "concavity"
       ],
@@ -2642,6 +2797,7 @@
       "id": "cur-c1-concavity-1-v2",
       "title": "Second derivative test (v3)",
       "prompt": "For f(x) = x^4, is f concave up at x = 1? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^4, \\text{is f concave up at} x = 1 \\text{? Answer yes or no.}",
       "skillIds": [
         "concavity"
       ],
@@ -2659,6 +2815,7 @@
       "id": "cur-c1-optimization-0-v0",
       "title": "Optimization checkpoint",
       "prompt": "Find the x that minimizes f(x) = x^2 - 6x + 10.",
+      "promptLatex": "\\text{Find the x that minimizes} f(x) = x^2 - 6x + 10.",
       "skillIds": [
         "optimization"
       ],
@@ -2676,6 +2833,7 @@
       "id": "cur-c1-optimization-0-v1",
       "title": "Optimization checkpoint (v2)",
       "prompt": "Find the x that minimizes f(x) = x^2 - 6x + 10.",
+      "promptLatex": "\\text{Find the x that minimizes} f(x) = x^2 - 6x + 10.",
       "skillIds": [
         "optimization"
       ],
@@ -2693,6 +2851,7 @@
       "id": "cur-c1-optimization-0-v2",
       "title": "Optimization checkpoint (v3)",
       "prompt": "Find the x that minimizes f(x) = x^2 - 6x + 10.",
+      "promptLatex": "\\text{Find the x that minimizes} f(x) = x^2 - 6x + 10.",
       "skillIds": [
         "optimization"
       ],
@@ -2710,6 +2869,7 @@
       "id": "cur-c1-optimization-1-v0",
       "title": "Optimization practice",
       "prompt": "A rectangle has perimeter 20. If width = x, find x that maximizes area (square).",
+      "promptLatex": "\\text{A rectangle has perimeter} 20. \\text{If widt} h = \\text{x, find x that maximizes area} (square).",
       "skillIds": [
         "optimization"
       ],
@@ -2727,6 +2887,7 @@
       "id": "cur-c1-optimization-1-v1",
       "title": "Optimization practice (v2)",
       "prompt": "A rectangle has perimeter 20. If width = x, find x that maximizes area (square).",
+      "promptLatex": "\\text{A rectangle has perimeter} 20. \\text{If widt} h = \\text{x, find x that maximizes area} (square).",
       "skillIds": [
         "optimization"
       ],
@@ -2744,6 +2905,7 @@
       "id": "cur-c1-optimization-1-v2",
       "title": "Optimization practice (v3)",
       "prompt": "A rectangle has perimeter 20. If width = x, find x that maximizes area (square).",
+      "promptLatex": "\\text{A rectangle has perimeter} 20. \\text{If widt} h = \\text{x, find x that maximizes area} (square).",
       "skillIds": [
         "optimization"
       ],
@@ -2761,6 +2923,7 @@
       "id": "cur-c1-curve_sketching-0-v0",
       "title": "Curve sketch checkpoint",
       "prompt": "For f(x) = x^2, is the function increasing on (0, ∞)? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^2, \\text{is the function increasing on} (0, \\infty) \\text{? Answer yes or no.}",
       "skillIds": [
         "curve_sketching"
       ],
@@ -2778,6 +2941,7 @@
       "id": "cur-c1-curve_sketching-0-v1",
       "title": "Curve sketch checkpoint (v2)",
       "prompt": "For f(x) = x^2, is the function increasing on (0, ∞)? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^2, \\text{is the function increasing on} (0, \\infty) \\text{? Answer yes or no.}",
       "skillIds": [
         "curve_sketching"
       ],
@@ -2795,6 +2959,7 @@
       "id": "cur-c1-curve_sketching-0-v2",
       "title": "Curve sketch checkpoint (v3)",
       "prompt": "For f(x) = x^2, is the function increasing on (0, ∞)? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^2, \\text{is the function increasing on} (0, \\infty) \\text{? Answer yes or no.}",
       "skillIds": [
         "curve_sketching"
       ],
@@ -2812,6 +2977,7 @@
       "id": "cur-c1-curve_sketching-1-v0",
       "title": "Sign chart",
       "prompt": "For f(x) = x^3 - 3x, is f decreasing on (-1, 1)? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^3 - 3x, \\text{is f decreasing on} (-1, 1) \\text{? Answer yes or no.}",
       "skillIds": [
         "curve_sketching"
       ],
@@ -2829,6 +2995,7 @@
       "id": "cur-c1-curve_sketching-1-v1",
       "title": "Sign chart (v2)",
       "prompt": "For f(x) = x^3 - 3x, is f decreasing on (-1, 1)? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^3 - 3x, \\text{is f decreasing on} (-1, 1) \\text{? Answer yes or no.}",
       "skillIds": [
         "curve_sketching"
       ],
@@ -2846,6 +3013,7 @@
       "id": "cur-c1-curve_sketching-1-v2",
       "title": "Sign chart (v3)",
       "prompt": "For f(x) = x^3 - 3x, is f decreasing on (-1, 1)? Answer yes or no.",
+      "promptLatex": "\\text{For} f(x) = x^3 - 3x, \\text{is f decreasing on} (-1, 1) \\text{? Answer yes or no.}",
       "skillIds": [
         "curve_sketching"
       ],
@@ -2863,6 +3031,7 @@
       "id": "cur-c1-linear_approximation-0-v0",
       "title": "Linear approximation checkpoint",
       "prompt": "Find L(x), the linearization of f(x) = √x at a = 4 (simplified form).",
+      "promptLatex": "\\text{Find L} (x), \\text{the linearization of} f(x) = \\text{√x at} a = 4 (simplified form).",
       "skillIds": [
         "linear_approximation"
       ],
@@ -2880,6 +3049,7 @@
       "id": "cur-c1-linear_approximation-0-v1",
       "title": "Linear approximation checkpoint (v2)",
       "prompt": "Find L(x), the linearization of f(x) = √x at a = 4 (simplified form).",
+      "promptLatex": "\\text{Find L} (x), \\text{the linearization of} f(x) = \\text{√x at} a = 4 (simplified form).",
       "skillIds": [
         "linear_approximation"
       ],
@@ -2897,6 +3067,7 @@
       "id": "cur-c1-linear_approximation-0-v2",
       "title": "Linear approximation checkpoint (v3)",
       "prompt": "Find L(x), the linearization of f(x) = √x at a = 4 (simplified form).",
+      "promptLatex": "\\text{Find L} (x), \\text{the linearization of} f(x) = \\text{√x at} a = 4 (simplified form).",
       "skillIds": [
         "linear_approximation"
       ],
@@ -2914,6 +3085,7 @@
       "id": "cur-c1-linear_approximation-1-v0",
       "title": "Linearization",
       "prompt": "Linearize f(x) = e^x at x = 0.",
+      "promptLatex": "\\text{Linearize} f(x) = e^x \\text{at} x = 0.",
       "skillIds": [
         "linear_approximation"
       ],
@@ -2931,6 +3103,7 @@
       "id": "cur-c1-linear_approximation-1-v1",
       "title": "Linearization (v2)",
       "prompt": "Linearize f(x) = e^x at x = 0.",
+      "promptLatex": "\\text{Linearize} f(x) = e^x \\text{at} x = 0.",
       "skillIds": [
         "linear_approximation"
       ],
@@ -2948,6 +3121,7 @@
       "id": "cur-c1-linear_approximation-1-v2",
       "title": "Linearization (v3)",
       "prompt": "Linearize f(x) = e^x at x = 0.",
+      "promptLatex": "\\text{Linearize} f(x) = e^x \\text{at} x = 0.",
       "skillIds": [
         "linear_approximation"
       ],
@@ -2965,6 +3139,7 @@
       "id": "cur-c1-newtons_method-0-v0",
       "title": "Newton's method checkpoint",
       "prompt": "One Newton step for f(x)=x^2-2 starting at x₀=1: x₁ = ?",
+      "promptLatex": "\\text{One Newton step for} f(x)=x^2-2 \\text{starting at x₀} =1 \\text{: x₁} = \\text{?}",
       "skillIds": [
         "newtons_method"
       ],
@@ -2982,6 +3157,7 @@
       "id": "cur-c1-newtons_method-0-v1",
       "title": "Newton's method checkpoint (v2)",
       "prompt": "One Newton step for f(x)=x^2-2 starting at x₀=1: x₁ = ?",
+      "promptLatex": "\\text{One Newton step for} f(x)=x^2-2 \\text{starting at x₀} =1 \\text{: x₁} = \\text{?}",
       "skillIds": [
         "newtons_method"
       ],
@@ -2999,6 +3175,7 @@
       "id": "cur-c1-newtons_method-0-v2",
       "title": "Newton's method checkpoint (v3)",
       "prompt": "One Newton step for f(x)=x^2-2 starting at x₀=1: x₁ = ?",
+      "promptLatex": "\\text{One Newton step for} f(x)=x^2-2 \\text{starting at x₀} =1 \\text{: x₁} = \\text{?}",
       "skillIds": [
         "newtons_method"
       ],
@@ -3016,6 +3193,7 @@
       "id": "cur-c1-newtons_method-1-v0",
       "title": "Newton iteration",
       "prompt": "One Newton step for f(x)=x^2-3 at x₀=2 gives x₁ = ?",
+      "promptLatex": "\\text{One Newton step for} f(x)=x^2-3 \\text{at x₀} =2 \\text{gives x₁} = \\text{?}",
       "skillIds": [
         "newtons_method"
       ],
@@ -3033,6 +3211,7 @@
       "id": "cur-c1-newtons_method-1-v1",
       "title": "Newton iteration (v2)",
       "prompt": "One Newton step for f(x)=x^2-3 at x₀=2 gives x₁ = ?",
+      "promptLatex": "\\text{One Newton step for} f(x)=x^2-3 \\text{at x₀} =2 \\text{gives x₁} = \\text{?}",
       "skillIds": [
         "newtons_method"
       ],
@@ -3050,6 +3229,7 @@
       "id": "cur-c1-newtons_method-1-v2",
       "title": "Newton iteration (v3)",
       "prompt": "One Newton step for f(x)=x^2-3 at x₀=2 gives x₁ = ?",
+      "promptLatex": "\\text{One Newton step for} f(x)=x^2-3 \\text{at x₀} =2 \\text{gives x₁} = \\text{?}",
       "skillIds": [
         "newtons_method"
       ],
@@ -3067,6 +3247,7 @@
       "id": "cur-c1-lhopital-0-v0",
       "title": "L'Hopital checkpoint",
       "prompt": "Evaluate lim x→0 of sin(x)/x.",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} \\sin\\frac{x}{x}.",
       "skillIds": [
         "lhopital"
       ],
@@ -3084,6 +3265,7 @@
       "id": "cur-c1-lhopital-0-v1",
       "title": "L'Hopital checkpoint (v2)",
       "prompt": "Evaluate lim x→0 of sin(x)/x.",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} \\sin\\frac{x}{x}.",
       "skillIds": [
         "lhopital"
       ],
@@ -3101,6 +3283,7 @@
       "id": "cur-c1-lhopital-0-v2",
       "title": "L'Hopital checkpoint (v3)",
       "prompt": "Evaluate lim x→0 of sin(x)/x.",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} \\sin\\frac{x}{x}.",
       "skillIds": [
         "lhopital"
       ],
@@ -3118,6 +3301,7 @@
       "id": "cur-c1-lhopital-1-v0",
       "title": "L'Hopital practice",
       "prompt": "Evaluate lim x→0 of (e^x - 1)/x.",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} \\frac{e^x - 1}{x}.",
       "skillIds": [
         "lhopital"
       ],
@@ -3135,6 +3319,7 @@
       "id": "cur-c1-lhopital-1-v1",
       "title": "L'Hopital practice (v2)",
       "prompt": "Evaluate lim x→0 of (e^x - 1)/x.",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} \\frac{e^x - 1}{x}.",
       "skillIds": [
         "lhopital"
       ],
@@ -3152,6 +3337,7 @@
       "id": "cur-c1-lhopital-1-v2",
       "title": "L'Hopital practice (v3)",
       "prompt": "Evaluate lim x→0 of (e^x - 1)/x.",
+      "promptLatex": "\\text{Evaluate} \\lim_{x \\to 0} \\text{of} \\frac{e^x - 1}{x}.",
       "skillIds": [
         "lhopital"
       ],
@@ -3169,6 +3355,7 @@
       "id": "cur-c1-antiderivatives-0-v0",
       "title": "Antiderivative checkpoint",
       "prompt": "Find ∫ 3x^2 dx (antiderivative only, omit +C).",
+      "promptLatex": "\\text{Find} \\int 3x^2 \\, \\text{dx} (antiderivative only, omit +C).",
       "skillIds": [
         "antiderivatives"
       ],
@@ -3186,6 +3373,7 @@
       "id": "cur-c1-antiderivatives-0-v1",
       "title": "Antiderivative checkpoint (v2)",
       "prompt": "Find ∫ 3x^2 dx (antiderivative only, omit +C).",
+      "promptLatex": "\\text{Find} \\int 3x^2 \\, \\text{dx} (antiderivative only, omit +C).",
       "skillIds": [
         "antiderivatives"
       ],
@@ -3203,6 +3391,7 @@
       "id": "cur-c1-antiderivatives-0-v2",
       "title": "Antiderivative checkpoint (v3)",
       "prompt": "Find ∫ 3x^2 dx (antiderivative only, omit +C).",
+      "promptLatex": "\\text{Find} \\int 3x^2 \\, \\text{dx} (antiderivative only, omit +C).",
       "skillIds": [
         "antiderivatives"
       ],
@@ -3220,6 +3409,7 @@
       "id": "cur-c1-antiderivatives-1-v0",
       "title": "Basic antiderivative",
       "prompt": "Find ∫ (4x - 1) dx (omit +C).",
+      "promptLatex": "\\text{Find} \\int (4x - 1) \\, \\text{dx} (omit +C).",
       "skillIds": [
         "antiderivatives"
       ],
@@ -3237,6 +3427,7 @@
       "id": "cur-c1-antiderivatives-1-v1",
       "title": "Basic antiderivative (v2)",
       "prompt": "Find ∫ (4x - 1) dx (omit +C).",
+      "promptLatex": "\\text{Find} \\int (4x - 1) \\, \\text{dx} (omit +C).",
       "skillIds": [
         "antiderivatives"
       ],
@@ -3254,6 +3445,7 @@
       "id": "cur-c1-antiderivatives-1-v2",
       "title": "Basic antiderivative (v3)",
       "prompt": "Find ∫ (4x - 1) dx (omit +C).",
+      "promptLatex": "\\text{Find} \\int (4x - 1) \\, \\text{dx} (omit +C).",
       "skillIds": [
         "antiderivatives"
       ],
@@ -3271,6 +3463,7 @@
       "id": "cur-c1-riemann_sums-0-v0",
       "title": "Riemann sum checkpoint",
       "prompt": "Approximate ∫₀² x dx using 2 subintervals and right endpoints.",
+      "promptLatex": "\\text{Approximate} \\int \\text{₀² x} \\, \\text{dx using} 2 \\text{subintervals and right endpoints.}",
       "skillIds": [
         "riemann_sums"
       ],
@@ -3288,6 +3481,7 @@
       "id": "cur-c1-riemann_sums-0-v1",
       "title": "Riemann sum checkpoint (v2)",
       "prompt": "Approximate ∫₀² x dx using 2 subintervals and right endpoints.",
+      "promptLatex": "\\text{Approximate} \\int \\text{₀² x} \\, \\text{dx using} 2 \\text{subintervals and right endpoints.}",
       "skillIds": [
         "riemann_sums"
       ],
@@ -3305,6 +3499,7 @@
       "id": "cur-c1-riemann_sums-0-v2",
       "title": "Riemann sum checkpoint (v3)",
       "prompt": "Approximate ∫₀² x dx using 2 subintervals and right endpoints.",
+      "promptLatex": "\\text{Approximate} \\int \\text{₀² x} \\, \\text{dx using} 2 \\text{subintervals and right endpoints.}",
       "skillIds": [
         "riemann_sums"
       ],
@@ -3322,6 +3517,7 @@
       "id": "cur-c1-riemann_sums-1-v0",
       "title": "Left Riemann sum",
       "prompt": "Left-endpoint Riemann sum for ∫₀¹ 2x dx with n=2 subintervals.",
+      "promptLatex": "\\text{Lef} t-endpoint \\text{Riemann sum for} \\int \\text{₀¹} 2x \\, \\text{dx with} n=2 \\text{subintervals.}",
       "skillIds": [
         "riemann_sums"
       ],
@@ -3339,6 +3535,7 @@
       "id": "cur-c1-riemann_sums-1-v1",
       "title": "Left Riemann sum (v2)",
       "prompt": "Left-endpoint Riemann sum for ∫₀¹ 2x dx with n=2 subintervals.",
+      "promptLatex": "\\text{Lef} t-endpoint \\text{Riemann sum for} \\int \\text{₀¹} 2x \\, \\text{dx with} n=2 \\text{subintervals.}",
       "skillIds": [
         "riemann_sums"
       ],
@@ -3356,6 +3553,7 @@
       "id": "cur-c1-riemann_sums-1-v2",
       "title": "Left Riemann sum (v3)",
       "prompt": "Left-endpoint Riemann sum for ∫₀¹ 2x dx with n=2 subintervals.",
+      "promptLatex": "\\text{Lef} t-endpoint \\text{Riemann sum for} \\int \\text{₀¹} 2x \\, \\text{dx with} n=2 \\text{subintervals.}",
       "skillIds": [
         "riemann_sums"
       ],
@@ -3373,6 +3571,7 @@
       "id": "cur-c1-definite_integrals-0-v0",
       "title": "Definite integral checkpoint",
       "prompt": "Evaluate ∫₀¹ 2x dx.",
+      "promptLatex": "\\text{Evaluate} \\int \\text{₀¹} 2x \\, \\text{dx.}",
       "skillIds": [
         "definite_integrals"
       ],
@@ -3390,6 +3589,7 @@
       "id": "cur-c1-definite_integrals-0-v1",
       "title": "Definite integral checkpoint (v2)",
       "prompt": "Evaluate ∫₀¹ 2x dx.",
+      "promptLatex": "\\text{Evaluate} \\int \\text{₀¹} 2x \\, \\text{dx.}",
       "skillIds": [
         "definite_integrals"
       ],
@@ -3407,6 +3607,7 @@
       "id": "cur-c1-definite_integrals-0-v2",
       "title": "Definite integral checkpoint (v3)",
       "prompt": "Evaluate ∫₀¹ 2x dx.",
+      "promptLatex": "\\text{Evaluate} \\int \\text{₀¹} 2x \\, \\text{dx.}",
       "skillIds": [
         "definite_integrals"
       ],
@@ -3424,6 +3625,7 @@
       "id": "cur-c1-definite_integrals-1-v0",
       "title": "Definite integral",
       "prompt": "Evaluate ∫₀² (3x^2) dx.",
+      "promptLatex": "\\text{Evaluate} \\int \\text{₀²} (3x^2) \\, \\text{dx.}",
       "skillIds": [
         "definite_integrals"
       ],
@@ -3441,6 +3643,7 @@
       "id": "cur-c1-definite_integrals-1-v1",
       "title": "Definite integral (v2)",
       "prompt": "Evaluate ∫₀² (3x^2) dx.",
+      "promptLatex": "\\text{Evaluate} \\int \\text{₀²} (3x^2) \\, \\text{dx.}",
       "skillIds": [
         "definite_integrals"
       ],
@@ -3458,6 +3661,7 @@
       "id": "cur-c1-definite_integrals-1-v2",
       "title": "Definite integral (v3)",
       "prompt": "Evaluate ∫₀² (3x^2) dx.",
+      "promptLatex": "\\text{Evaluate} \\int \\text{₀²} (3x^2) \\, \\text{dx.}",
       "skillIds": [
         "definite_integrals"
       ],
@@ -3475,6 +3679,7 @@
       "id": "cur-c1-ftc-0-v0",
       "title": "FTC checkpoint",
       "prompt": "If F(x) = ∫₀ˣ t² dt, find F'(x).",
+      "promptLatex": "\\text{If} F(x) = \\int \\text{₀ˣ t²} \\, \\text{dt, find} F^{\\prime}(x).",
       "skillIds": [
         "ftc"
       ],
@@ -3492,6 +3697,7 @@
       "id": "cur-c1-ftc-0-v1",
       "title": "FTC checkpoint (v2)",
       "prompt": "If F(x) = ∫₀ˣ t² dt, find F'(x).",
+      "promptLatex": "\\text{If} F(x) = \\int \\text{₀ˣ t²} \\, \\text{dt, find} F^{\\prime}(x).",
       "skillIds": [
         "ftc"
       ],
@@ -3509,6 +3715,7 @@
       "id": "cur-c1-ftc-0-v2",
       "title": "FTC checkpoint (v3)",
       "prompt": "If F(x) = ∫₀ˣ t² dt, find F'(x).",
+      "promptLatex": "\\text{If} F(x) = \\int \\text{₀ˣ t²} \\, \\text{dt, find} F^{\\prime}(x).",
       "skillIds": [
         "ftc"
       ],
@@ -3526,6 +3733,7 @@
       "id": "cur-c1-ftc-1-v0",
       "title": "FTC application",
       "prompt": "Differentiate ∫₁ˣ sin(t) dt with respect to x.",
+      "promptLatex": "\\text{Differentiate} \\int \\text{₁ˣ} \\sin(t) \\, \\text{dt with respect to x.}",
       "skillIds": [
         "ftc"
       ],
@@ -3543,6 +3751,7 @@
       "id": "cur-c1-ftc-1-v1",
       "title": "FTC application (v2)",
       "prompt": "Differentiate ∫₁ˣ sin(t) dt with respect to x.",
+      "promptLatex": "\\text{Differentiate} \\int \\text{₁ˣ} \\sin(t) \\, \\text{dt with respect to x.}",
       "skillIds": [
         "ftc"
       ],
@@ -3560,6 +3769,7 @@
       "id": "cur-c1-ftc-1-v2",
       "title": "FTC application (v3)",
       "prompt": "Differentiate ∫₁ˣ sin(t) dt with respect to x.",
+      "promptLatex": "\\text{Differentiate} \\int \\text{₁ˣ} \\sin(t) \\, \\text{dt with respect to x.}",
       "skillIds": [
         "ftc"
       ],
@@ -3577,6 +3787,7 @@
       "id": "cur-c1-u_substitution-0-v0",
       "title": "u-substitution checkpoint",
       "prompt": "Evaluate ∫ 2x*(x^2+1)^3 dx (antiderivative only, +C omitted).",
+      "promptLatex": "\\text{Evaluate} \\int 2x*(x^2+1)^3 \\, \\text{dx} (antiderivative only, +C omitted).",
       "skillIds": [
         "u_substitution"
       ],
@@ -3594,6 +3805,7 @@
       "id": "cur-c1-u_substitution-0-v1",
       "title": "u-substitution checkpoint (v2)",
       "prompt": "Evaluate ∫ 2x*(x^2+1)^3 dx (antiderivative only, +C omitted).",
+      "promptLatex": "\\text{Evaluate} \\int 2x*(x^2+1)^3 \\, \\text{dx} (antiderivative only, +C omitted).",
       "skillIds": [
         "u_substitution"
       ],
@@ -3611,6 +3823,7 @@
       "id": "cur-c1-u_substitution-0-v2",
       "title": "u-substitution checkpoint (v3)",
       "prompt": "Evaluate ∫ 2x*(x^2+1)^3 dx (antiderivative only, +C omitted).",
+      "promptLatex": "\\text{Evaluate} \\int 2x*(x^2+1)^3 \\, \\text{dx} (antiderivative only, +C omitted).",
       "skillIds": [
         "u_substitution"
       ],
@@ -3628,6 +3841,7 @@
       "id": "cur-c1-u_substitution-1-v0",
       "title": "u-substitution",
       "prompt": "Evaluate ∫ 2x*cos(x^2) dx (antiderivative only).",
+      "promptLatex": "\\text{Evaluate} \\int 2x*\\cos(x^2) \\, \\text{dx} (antiderivative only).",
       "skillIds": [
         "u_substitution"
       ],
@@ -3645,6 +3859,7 @@
       "id": "cur-c1-u_substitution-1-v1",
       "title": "u-substitution (v2)",
       "prompt": "Evaluate ∫ 2x*cos(x^2) dx (antiderivative only).",
+      "promptLatex": "\\text{Evaluate} \\int 2x*\\cos(x^2) \\, \\text{dx} (antiderivative only).",
       "skillIds": [
         "u_substitution"
       ],
@@ -3662,6 +3877,7 @@
       "id": "cur-c1-u_substitution-1-v2",
       "title": "u-substitution (v3)",
       "prompt": "Evaluate ∫ 2x*cos(x^2) dx (antiderivative only).",
+      "promptLatex": "\\text{Evaluate} \\int 2x*\\cos(x^2) \\, \\text{dx} (antiderivative only).",
       "skillIds": [
         "u_substitution"
       ],
@@ -3679,6 +3895,7 @@
       "id": "cur-c1-integration_basics_review-0-v0",
       "title": "Integration review checkpoint",
       "prompt": "Evaluate ∫ x dx (antiderivative only, omit +C).",
+      "promptLatex": "\\text{Evaluate} \\int \\text{x} \\, \\text{dx} (antiderivative only, omit +C).",
       "skillIds": [
         "integration_basics_review"
       ],
@@ -3696,6 +3913,7 @@
       "id": "cur-c1-integration_basics_review-0-v1",
       "title": "Integration review checkpoint (v2)",
       "prompt": "Evaluate ∫ x dx (antiderivative only, omit +C).",
+      "promptLatex": "\\text{Evaluate} \\int \\text{x} \\, \\text{dx} (antiderivative only, omit +C).",
       "skillIds": [
         "integration_basics_review"
       ],
@@ -3713,6 +3931,7 @@
       "id": "cur-c1-integration_basics_review-0-v2",
       "title": "Integration review checkpoint (v3)",
       "prompt": "Evaluate ∫ x dx (antiderivative only, omit +C).",
+      "promptLatex": "\\text{Evaluate} \\int \\text{x} \\, \\text{dx} (antiderivative only, omit +C).",
       "skillIds": [
         "integration_basics_review"
       ],
@@ -3730,6 +3949,7 @@
       "id": "cur-c1-integration_basics_review-1-v0",
       "title": "Basic integration",
       "prompt": "Evaluate ∫ 5 dx (omit +C).",
+      "promptLatex": "\\text{Evaluate} \\int 5 \\, \\text{dx} (omit +C).",
       "skillIds": [
         "integration_basics_review"
       ],
@@ -3747,6 +3967,7 @@
       "id": "cur-c1-integration_basics_review-1-v1",
       "title": "Basic integration (v2)",
       "prompt": "Evaluate ∫ 5 dx (omit +C).",
+      "promptLatex": "\\text{Evaluate} \\int 5 \\, \\text{dx} (omit +C).",
       "skillIds": [
         "integration_basics_review"
       ],
@@ -3764,6 +3985,7 @@
       "id": "cur-c1-integration_basics_review-1-v2",
       "title": "Basic integration (v3)",
       "prompt": "Evaluate ∫ 5 dx (omit +C).",
+      "promptLatex": "\\text{Evaluate} \\int 5 \\, \\text{dx} (omit +C).",
       "skillIds": [
         "integration_basics_review"
       ],
@@ -3781,6 +4003,7 @@
       "id": "cur-c1-partial_fractions-0-v0",
       "title": "Partial fractions checkpoint",
       "prompt": "Partial fraction form of 1/(x(x+1)): A/x + B/(x+1). What is A?",
+      "promptLatex": "\\text{Partial fraction form of} 1/(x(x+1)) \\text{:} A/x + B/(x+1). \\text{What is A?}",
       "skillIds": [
         "partial_fractions"
       ],
@@ -3798,6 +4021,7 @@
       "id": "cur-c1-partial_fractions-0-v1",
       "title": "Partial fractions checkpoint (v2)",
       "prompt": "Partial fraction form of 1/(x(x+1)): A/x + B/(x+1). What is A?",
+      "promptLatex": "\\text{Partial fraction form of} 1/(x(x+1)) \\text{:} A/x + B/(x+1). \\text{What is A?}",
       "skillIds": [
         "partial_fractions"
       ],
@@ -3815,6 +4039,7 @@
       "id": "cur-c1-partial_fractions-0-v2",
       "title": "Partial fractions checkpoint (v3)",
       "prompt": "Partial fraction form of 1/(x(x+1)): A/x + B/(x+1). What is A?",
+      "promptLatex": "\\text{Partial fraction form of} 1/(x(x+1)) \\text{:} A/x + B/(x+1). \\text{What is A?}",
       "skillIds": [
         "partial_fractions"
       ],
@@ -3832,6 +4057,7 @@
       "id": "cur-c1-partial_fractions-1-v0",
       "title": "Partial fractions",
       "prompt": "In 1/((x-1)(x+2)) = A/(x-1) + B/(x+2), find A.",
+      "promptLatex": "\\text{In} 1/((x-1)(x+2)) = A/(x-1) + B/(x+2), \\text{find A.}",
       "skillIds": [
         "partial_fractions"
       ],
@@ -3849,6 +4075,7 @@
       "id": "cur-c1-partial_fractions-1-v1",
       "title": "Partial fractions (v2)",
       "prompt": "In 1/((x-1)(x+2)) = A/(x-1) + B/(x+2), find A.",
+      "promptLatex": "\\text{In} 1/((x-1)(x+2)) = A/(x-1) + B/(x+2), \\text{find A.}",
       "skillIds": [
         "partial_fractions"
       ],
@@ -3866,6 +4093,7 @@
       "id": "cur-c1-partial_fractions-1-v2",
       "title": "Partial fractions (v3)",
       "prompt": "In 1/((x-1)(x+2)) = A/(x-1) + B/(x+2), find A.",
+      "promptLatex": "\\text{In} 1/((x-1)(x+2)) = A/(x-1) + B/(x+2), \\text{find A.}",
       "skillIds": [
         "partial_fractions"
       ],
@@ -3883,6 +4111,7 @@
       "id": "cur-c1-improper_integrals-0-v0",
       "title": "Improper integral checkpoint",
       "prompt": "Does ∫₁^∞ 1/x² dx converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\int \\text{₁} ^\\infty 1/x \\text{²} \\, \\text{dx converge? Answer yes or no.}",
       "skillIds": [
         "improper_integrals"
       ],
@@ -3900,6 +4129,7 @@
       "id": "cur-c1-improper_integrals-0-v1",
       "title": "Improper integral checkpoint (v2)",
       "prompt": "Does ∫₁^∞ 1/x² dx converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\int \\text{₁} ^\\infty 1/x \\text{²} \\, \\text{dx converge? Answer yes or no.}",
       "skillIds": [
         "improper_integrals"
       ],
@@ -3917,6 +4147,7 @@
       "id": "cur-c1-improper_integrals-0-v2",
       "title": "Improper integral checkpoint (v3)",
       "prompt": "Does ∫₁^∞ 1/x² dx converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\int \\text{₁} ^\\infty 1/x \\text{²} \\, \\text{dx converge? Answer yes or no.}",
       "skillIds": [
         "improper_integrals"
       ],
@@ -3934,6 +4165,7 @@
       "id": "cur-c1-improper_integrals-1-v0",
       "title": "Improper integral",
       "prompt": "Does ∫₁^∞ 1/x dx converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\int \\text{₁} ^\\infty 1/x \\, \\text{dx converge? Answer yes or no.}",
       "skillIds": [
         "improper_integrals"
       ],
@@ -3951,6 +4183,7 @@
       "id": "cur-c1-improper_integrals-1-v1",
       "title": "Improper integral (v2)",
       "prompt": "Does ∫₁^∞ 1/x dx converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\int \\text{₁} ^\\infty 1/x \\, \\text{dx converge? Answer yes or no.}",
       "skillIds": [
         "improper_integrals"
       ],
@@ -3968,6 +4201,7 @@
       "id": "cur-c1-improper_integrals-1-v2",
       "title": "Improper integral (v3)",
       "prompt": "Does ∫₁^∞ 1/x dx converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\int \\text{₁} ^\\infty 1/x \\, \\text{dx converge? Answer yes or no.}",
       "skillIds": [
         "improper_integrals"
       ],
@@ -3985,6 +4219,7 @@
       "id": "cur-c1-arc_length-0-v0",
       "title": "Arc length checkpoint",
       "prompt": "Arc length integrand for y = f(x) is sqrt(1 + ?). Fill in the expression in terms of f'(x).",
+      "promptLatex": "\\text{Arc length integrand for} y = f(x) \\text{is} \\sqrt{1 + ?}. \\text{Fill in the expression in terms of} f^{\\prime}(x).",
       "skillIds": [
         "arc_length"
       ],
@@ -4002,6 +4237,7 @@
       "id": "cur-c1-arc_length-0-v1",
       "title": "Arc length checkpoint (v2)",
       "prompt": "Arc length integrand for y = f(x) is sqrt(1 + ?). Fill in the expression in terms of f'(x).",
+      "promptLatex": "\\text{Arc length integrand for} y = f(x) \\text{is} \\sqrt{1 + ?}. \\text{Fill in the expression in terms of} f^{\\prime}(x).",
       "skillIds": [
         "arc_length"
       ],
@@ -4019,6 +4255,7 @@
       "id": "cur-c1-arc_length-0-v2",
       "title": "Arc length checkpoint (v3)",
       "prompt": "Arc length integrand for y = f(x) is sqrt(1 + ?). Fill in the expression in terms of f'(x).",
+      "promptLatex": "\\text{Arc length integrand for} y = f(x) \\text{is} \\sqrt{1 + ?}. \\text{Fill in the expression in terms of} f^{\\prime}(x).",
       "skillIds": [
         "arc_length"
       ],
@@ -4036,6 +4273,7 @@
       "id": "cur-c1-arc_length-1-v0",
       "title": "Arc length setup",
       "prompt": "For y = x^2 on [0,1], the integrand inside sqrt is 1 + ?",
+      "promptLatex": "\\text{For} y = x^2 \\text{on [} 0,1 \\text{], the integrand inside sqrt is} 1 + \\text{?}",
       "skillIds": [
         "arc_length"
       ],
@@ -4053,6 +4291,7 @@
       "id": "cur-c1-arc_length-1-v1",
       "title": "Arc length setup (v2)",
       "prompt": "For y = x^2 on [0,1], the integrand inside sqrt is 1 + ?",
+      "promptLatex": "\\text{For} y = x^2 \\text{on [} 0,1 \\text{], the integrand inside sqrt is} 1 + \\text{?}",
       "skillIds": [
         "arc_length"
       ],
@@ -4070,6 +4309,7 @@
       "id": "cur-c1-arc_length-1-v2",
       "title": "Arc length setup (v3)",
       "prompt": "For y = x^2 on [0,1], the integrand inside sqrt is 1 + ?",
+      "promptLatex": "\\text{For} y = x^2 \\text{on [} 0,1 \\text{], the integrand inside sqrt is} 1 + \\text{?}",
       "skillIds": [
         "arc_length"
       ],
@@ -4087,6 +4327,7 @@
       "id": "cur-c1-separable_de-0-v0",
       "title": "Separable DE checkpoint",
       "prompt": "Solve dy/dx = 2y with y(0) = 3. What is y?",
+      "promptLatex": "\\text{Solve} \\frac{dy}{dx} = 2y \\text{with y} (0) = 3. \\text{What is y?}",
       "skillIds": [
         "separable_de"
       ],
@@ -4104,6 +4345,7 @@
       "id": "cur-c1-separable_de-0-v1",
       "title": "Separable DE checkpoint (v2)",
       "prompt": "Solve dy/dx = 2y with y(0) = 3. What is y?",
+      "promptLatex": "\\text{Solve} \\frac{dy}{dx} = 2y \\text{with y} (0) = 3. \\text{What is y?}",
       "skillIds": [
         "separable_de"
       ],
@@ -4121,6 +4363,7 @@
       "id": "cur-c1-separable_de-0-v2",
       "title": "Separable DE checkpoint (v3)",
       "prompt": "Solve dy/dx = 2y with y(0) = 3. What is y?",
+      "promptLatex": "\\text{Solve} \\frac{dy}{dx} = 2y \\text{with y} (0) = 3. \\text{What is y?}",
       "skillIds": [
         "separable_de"
       ],
@@ -4138,6 +4381,7 @@
       "id": "cur-c1-separable_de-1-v0",
       "title": "Separable differential equation",
       "prompt": "Solve dy/dx = y with y(0) = 1.",
+      "promptLatex": "\\text{Solve} \\frac{dy}{dx} = \\text{y with y} (0) = 1.",
       "skillIds": [
         "separable_de"
       ],
@@ -4155,6 +4399,7 @@
       "id": "cur-c1-separable_de-1-v1",
       "title": "Separable differential equation (v2)",
       "prompt": "Solve dy/dx = y with y(0) = 1.",
+      "promptLatex": "\\text{Solve} \\frac{dy}{dx} = \\text{y with y} (0) = 1.",
       "skillIds": [
         "separable_de"
       ],
@@ -4172,6 +4417,7 @@
       "id": "cur-c1-separable_de-1-v2",
       "title": "Separable differential equation (v3)",
       "prompt": "Solve dy/dx = y with y(0) = 1.",
+      "promptLatex": "\\text{Solve} \\frac{dy}{dx} = \\text{y with y} (0) = 1.",
       "skillIds": [
         "separable_de"
       ],
@@ -4189,6 +4435,7 @@
       "id": "cur-c1-divergence_test-0-v0",
       "title": "Divergence test checkpoint",
       "prompt": "If lim a_n ≠ 0, the series ∑ a_n diverges. For a_n = 1, does the test apply? Answer yes or no.",
+      "promptLatex": "\\text{If lim} a_n \\neq 0, \\text{the series} \\sum a_n \\text{diverges. For} a_n = 1, \\text{does the test apply? Answer yes or no.}",
       "skillIds": [
         "divergence_test"
       ],
@@ -4206,6 +4453,7 @@
       "id": "cur-c1-divergence_test-0-v1",
       "title": "Divergence test checkpoint (v2)",
       "prompt": "If lim a_n ≠ 0, the series ∑ a_n diverges. For a_n = 1, does the test apply? Answer yes or no.",
+      "promptLatex": "\\text{If lim} a_n \\neq 0, \\text{the series} \\sum a_n \\text{diverges. For} a_n = 1, \\text{does the test apply? Answer yes or no.}",
       "skillIds": [
         "divergence_test"
       ],
@@ -4223,6 +4471,7 @@
       "id": "cur-c1-divergence_test-0-v2",
       "title": "Divergence test checkpoint (v3)",
       "prompt": "If lim a_n ≠ 0, the series ∑ a_n diverges. For a_n = 1, does the test apply? Answer yes or no.",
+      "promptLatex": "\\text{If lim} a_n \\neq 0, \\text{the series} \\sum a_n \\text{diverges. For} a_n = 1, \\text{does the test apply? Answer yes or no.}",
       "skillIds": [
         "divergence_test"
       ],
@@ -4240,6 +4489,7 @@
       "id": "cur-c1-divergence_test-1-v0",
       "title": "nth term test",
       "prompt": "For ∑ 1/n, does lim a_n = 0? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum 1/n, \\text{does lim} a_n = 0 \\text{? Answer yes or no.}",
       "skillIds": [
         "divergence_test"
       ],
@@ -4257,6 +4507,7 @@
       "id": "cur-c1-divergence_test-1-v1",
       "title": "nth term test (v2)",
       "prompt": "For ∑ 1/n, does lim a_n = 0? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum 1/n, \\text{does lim} a_n = 0 \\text{? Answer yes or no.}",
       "skillIds": [
         "divergence_test"
       ],
@@ -4274,6 +4525,7 @@
       "id": "cur-c1-divergence_test-1-v2",
       "title": "nth term test (v3)",
       "prompt": "For ∑ 1/n, does lim a_n = 0? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum 1/n, \\text{does lim} a_n = 0 \\text{? Answer yes or no.}",
       "skillIds": [
         "divergence_test"
       ],
@@ -4291,6 +4543,7 @@
       "id": "cur-c1-integral_test-0-v0",
       "title": "Integral test checkpoint",
       "prompt": "Does ∑ 1/n² converge by the integral test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n \\text{² converge by the integral test? Answer yes or no.}",
       "skillIds": [
         "integral_test"
       ],
@@ -4308,6 +4561,7 @@
       "id": "cur-c1-integral_test-0-v1",
       "title": "Integral test checkpoint (v2)",
       "prompt": "Does ∑ 1/n² converge by the integral test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n \\text{² converge by the integral test? Answer yes or no.}",
       "skillIds": [
         "integral_test"
       ],
@@ -4325,6 +4579,7 @@
       "id": "cur-c1-integral_test-0-v2",
       "title": "Integral test checkpoint (v3)",
       "prompt": "Does ∑ 1/n² converge by the integral test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n \\text{² converge by the integral test? Answer yes or no.}",
       "skillIds": [
         "integral_test"
       ],
@@ -4342,6 +4597,7 @@
       "id": "cur-c1-integral_test-1-v0",
       "title": "Integral test",
       "prompt": "Does ∑ 1/n converge by the integral test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n \\text{converge by the integral test? Answer yes or no.}",
       "skillIds": [
         "integral_test"
       ],
@@ -4359,6 +4615,7 @@
       "id": "cur-c1-integral_test-1-v1",
       "title": "Integral test (v2)",
       "prompt": "Does ∑ 1/n converge by the integral test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n \\text{converge by the integral test? Answer yes or no.}",
       "skillIds": [
         "integral_test"
       ],
@@ -4376,6 +4633,7 @@
       "id": "cur-c1-integral_test-1-v2",
       "title": "Integral test (v3)",
       "prompt": "Does ∑ 1/n converge by the integral test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n \\text{converge by the integral test? Answer yes or no.}",
       "skillIds": [
         "integral_test"
       ],
@@ -4393,6 +4651,7 @@
       "id": "cur-c1-comparison_tests-0-v0",
       "title": "Comparison test checkpoint",
       "prompt": "To show ∑ 1/(n^2+1) converges, compare to which series? (answer: 1/n^2)",
+      "promptLatex": "\\text{To show} \\sum 1/(n^2+1) \\text{converges, compare to which series?} (answer: 1/n^2)",
       "skillIds": [
         "comparison_tests"
       ],
@@ -4410,6 +4669,7 @@
       "id": "cur-c1-comparison_tests-0-v1",
       "title": "Comparison test checkpoint (v2)",
       "prompt": "To show ∑ 1/(n^2+1) converges, compare to which series? (answer: 1/n^2)",
+      "promptLatex": "\\text{To show} \\sum 1/(n^2+1) \\text{converges, compare to which series?} (answer: 1/n^2)",
       "skillIds": [
         "comparison_tests"
       ],
@@ -4427,6 +4687,7 @@
       "id": "cur-c1-comparison_tests-0-v2",
       "title": "Comparison test checkpoint (v3)",
       "prompt": "To show ∑ 1/(n^2+1) converges, compare to which series? (answer: 1/n^2)",
+      "promptLatex": "\\text{To show} \\sum 1/(n^2+1) \\text{converges, compare to which series?} (answer: 1/n^2)",
       "skillIds": [
         "comparison_tests"
       ],
@@ -4444,6 +4705,7 @@
       "id": "cur-c1-comparison_tests-1-v0",
       "title": "Direct comparison",
       "prompt": "Does ∑ 1/n^2 converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n^2 \\text{converge? Answer yes or no.}",
       "skillIds": [
         "comparison_tests"
       ],
@@ -4461,6 +4723,7 @@
       "id": "cur-c1-comparison_tests-1-v1",
       "title": "Direct comparison (v2)",
       "prompt": "Does ∑ 1/n^2 converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n^2 \\text{converge? Answer yes or no.}",
       "skillIds": [
         "comparison_tests"
       ],
@@ -4478,6 +4741,7 @@
       "id": "cur-c1-comparison_tests-1-v2",
       "title": "Direct comparison (v3)",
       "prompt": "Does ∑ 1/n^2 converge? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum 1/n^2 \\text{converge? Answer yes or no.}",
       "skillIds": [
         "comparison_tests"
       ],
@@ -4495,6 +4759,7 @@
       "id": "cur-c1-alternating_series-0-v0",
       "title": "Alternating series checkpoint",
       "prompt": "Does ∑ (-1)^n/n converge by the alternating series test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum (-1)^n/n \\text{converge by the alternating series test? Answer yes or no.}",
       "skillIds": [
         "alternating_series"
       ],
@@ -4512,6 +4777,7 @@
       "id": "cur-c1-alternating_series-0-v1",
       "title": "Alternating series checkpoint (v2)",
       "prompt": "Does ∑ (-1)^n/n converge by the alternating series test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum (-1)^n/n \\text{converge by the alternating series test? Answer yes or no.}",
       "skillIds": [
         "alternating_series"
       ],
@@ -4529,6 +4795,7 @@
       "id": "cur-c1-alternating_series-0-v2",
       "title": "Alternating series checkpoint (v3)",
       "prompt": "Does ∑ (-1)^n/n converge by the alternating series test? Answer yes or no.",
+      "promptLatex": "\\text{Does} \\sum (-1)^n/n \\text{converge by the alternating series test? Answer yes or no.}",
       "skillIds": [
         "alternating_series"
       ],
@@ -4546,6 +4813,7 @@
       "id": "cur-c1-alternating_series-1-v0",
       "title": "Alternating series",
       "prompt": "Is ∑ (-1)^n/n conditionally convergent? Answer yes or no.",
+      "promptLatex": "\\text{Is} \\sum (-1)^n/n \\text{conditionally convergent? Answer yes or no.}",
       "skillIds": [
         "alternating_series"
       ],
@@ -4563,6 +4831,7 @@
       "id": "cur-c1-alternating_series-1-v1",
       "title": "Alternating series (v2)",
       "prompt": "Is ∑ (-1)^n/n conditionally convergent? Answer yes or no.",
+      "promptLatex": "\\text{Is} \\sum (-1)^n/n \\text{conditionally convergent? Answer yes or no.}",
       "skillIds": [
         "alternating_series"
       ],
@@ -4580,6 +4849,7 @@
       "id": "cur-c1-alternating_series-1-v2",
       "title": "Alternating series (v3)",
       "prompt": "Is ∑ (-1)^n/n conditionally convergent? Answer yes or no.",
+      "promptLatex": "\\text{Is} \\sum (-1)^n/n \\text{conditionally convergent? Answer yes or no.}",
       "skillIds": [
         "alternating_series"
       ],
@@ -4597,6 +4867,7 @@
       "id": "cur-c1-power_series_interval-0-v0",
       "title": "Interval of convergence checkpoint",
       "prompt": "For ∑ x^n/n, radius R = 1. Does x = 1 converge? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum x^n/n, \\text{radius} R = 1. \\text{Does} x = 1 \\text{converge? Answer yes or no.}",
       "skillIds": [
         "power_series_interval"
       ],
@@ -4614,6 +4885,7 @@
       "id": "cur-c1-power_series_interval-0-v1",
       "title": "Interval of convergence checkpoint (v2)",
       "prompt": "For ∑ x^n/n, radius R = 1. Does x = 1 converge? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum x^n/n, \\text{radius} R = 1. \\text{Does} x = 1 \\text{converge? Answer yes or no.}",
       "skillIds": [
         "power_series_interval"
       ],
@@ -4631,6 +4903,7 @@
       "id": "cur-c1-power_series_interval-0-v2",
       "title": "Interval of convergence checkpoint (v3)",
       "prompt": "For ∑ x^n/n, radius R = 1. Does x = 1 converge? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum x^n/n, \\text{radius} R = 1. \\text{Does} x = 1 \\text{converge? Answer yes or no.}",
       "skillIds": [
         "power_series_interval"
       ],
@@ -4648,6 +4921,7 @@
       "id": "cur-c1-power_series_interval-1-v0",
       "title": "Endpoint check",
       "prompt": "For ∑ x^n, is x = -1 in the interval of convergence? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum x^n, \\text{is} x = -1 \\text{in the interval of convergence? Answer yes or no.}",
       "skillIds": [
         "power_series_interval"
       ],
@@ -4665,6 +4939,7 @@
       "id": "cur-c1-power_series_interval-1-v1",
       "title": "Endpoint check (v2)",
       "prompt": "For ∑ x^n, is x = -1 in the interval of convergence? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum x^n, \\text{is} x = -1 \\text{in the interval of convergence? Answer yes or no.}",
       "skillIds": [
         "power_series_interval"
       ],
@@ -4682,6 +4957,7 @@
       "id": "cur-c1-power_series_interval-1-v2",
       "title": "Endpoint check (v3)",
       "prompt": "For ∑ x^n, is x = -1 in the interval of convergence? Answer yes or no.",
+      "promptLatex": "\\text{For} \\sum x^n, \\text{is} x = -1 \\text{in the interval of convergence? Answer yes or no.}",
       "skillIds": [
         "power_series_interval"
       ],
@@ -4699,6 +4975,7 @@
       "id": "cur-c1-taylor_polynomials-0-v0",
       "title": "Taylor polynomial checkpoint",
       "prompt": "Degree-2 Taylor polynomial for e^x at 0: 1 + x + ?",
+      "promptLatex": "\\text{Degre} e-2 \\text{Taylor polynomial for} e^x \\text{at} 0 \\text{:} 1 + x + \\text{?}",
       "skillIds": [
         "taylor_polynomials"
       ],
@@ -4716,6 +4993,7 @@
       "id": "cur-c1-taylor_polynomials-0-v1",
       "title": "Taylor polynomial checkpoint (v2)",
       "prompt": "Degree-2 Taylor polynomial for e^x at 0: 1 + x + ?",
+      "promptLatex": "\\text{Degre} e-2 \\text{Taylor polynomial for} e^x \\text{at} 0 \\text{:} 1 + x + \\text{?}",
       "skillIds": [
         "taylor_polynomials"
       ],
@@ -4733,6 +5011,7 @@
       "id": "cur-c1-taylor_polynomials-0-v2",
       "title": "Taylor polynomial checkpoint (v3)",
       "prompt": "Degree-2 Taylor polynomial for e^x at 0: 1 + x + ?",
+      "promptLatex": "\\text{Degre} e-2 \\text{Taylor polynomial for} e^x \\text{at} 0 \\text{:} 1 + x + \\text{?}",
       "skillIds": [
         "taylor_polynomials"
       ],
@@ -4750,6 +5029,7 @@
       "id": "cur-c1-taylor_polynomials-1-v0",
       "title": "Taylor polynomial",
       "prompt": "Degree-1 Taylor polynomial for ln(1+x) at 0?",
+      "promptLatex": "\\text{Degre} e-1 \\text{Taylor polynomial for} \\ln(1+x) \\text{at} 0 \\text{?}",
       "skillIds": [
         "taylor_polynomials"
       ],
@@ -4767,6 +5047,7 @@
       "id": "cur-c1-taylor_polynomials-1-v1",
       "title": "Taylor polynomial (v2)",
       "prompt": "Degree-1 Taylor polynomial for ln(1+x) at 0?",
+      "promptLatex": "\\text{Degre} e-1 \\text{Taylor polynomial for} \\ln(1+x) \\text{at} 0 \\text{?}",
       "skillIds": [
         "taylor_polynomials"
       ],
@@ -4784,6 +5065,7 @@
       "id": "cur-c1-taylor_polynomials-1-v2",
       "title": "Taylor polynomial (v3)",
       "prompt": "Degree-1 Taylor polynomial for ln(1+x) at 0?",
+      "promptLatex": "\\text{Degre} e-1 \\text{Taylor polynomial for} \\ln(1+x) \\text{at} 0 \\text{?}",
       "skillIds": [
         "taylor_polynomials"
       ],
@@ -4801,6 +5083,7 @@
       "id": "cur-c1-parametric_derivatives-0-v0",
       "title": "Parametric derivative checkpoint",
       "prompt": "For x = 2t, y = t², find dy/dx at t = 1.",
+      "promptLatex": "\\text{For} x = 2t, y = \\text{t², find} \\frac{dy}{dx} \\text{at} t = 1.",
       "skillIds": [
         "parametric_derivatives"
       ],
@@ -4818,6 +5101,7 @@
       "id": "cur-c1-parametric_derivatives-0-v1",
       "title": "Parametric derivative checkpoint (v2)",
       "prompt": "For x = 2t, y = t², find dy/dx at t = 1.",
+      "promptLatex": "\\text{For} x = 2t, y = \\text{t², find} \\frac{dy}{dx} \\text{at} t = 1.",
       "skillIds": [
         "parametric_derivatives"
       ],
@@ -4835,6 +5119,7 @@
       "id": "cur-c1-parametric_derivatives-0-v2",
       "title": "Parametric derivative checkpoint (v3)",
       "prompt": "For x = 2t, y = t², find dy/dx at t = 1.",
+      "promptLatex": "\\text{For} x = 2t, y = \\text{t², find} \\frac{dy}{dx} \\text{at} t = 1.",
       "skillIds": [
         "parametric_derivatives"
       ],
@@ -4852,6 +5137,7 @@
       "id": "cur-c1-parametric_derivatives-1-v0",
       "title": "Parametric slope",
       "prompt": "For x = t, y = t², find dy/dx.",
+      "promptLatex": "\\text{For} x = \\text{t,} y = \\text{t², find} \\frac{dy}{dx}.",
       "skillIds": [
         "parametric_derivatives"
       ],
@@ -4869,6 +5155,7 @@
       "id": "cur-c1-parametric_derivatives-1-v1",
       "title": "Parametric slope (v2)",
       "prompt": "For x = t, y = t², find dy/dx.",
+      "promptLatex": "\\text{For} x = \\text{t,} y = \\text{t², find} \\frac{dy}{dx}.",
       "skillIds": [
         "parametric_derivatives"
       ],
@@ -4886,6 +5173,7 @@
       "id": "cur-c1-parametric_derivatives-1-v2",
       "title": "Parametric slope (v3)",
       "prompt": "For x = t, y = t², find dy/dx.",
+      "promptLatex": "\\text{For} x = \\text{t,} y = \\text{t², find} \\frac{dy}{dx}.",
       "skillIds": [
         "parametric_derivatives"
       ],
@@ -4903,6 +5191,7 @@
       "id": "cur-c1-polar_area-0-v0",
       "title": "Polar area checkpoint",
       "prompt": "Area in polar: dA = (1/2) r² dθ. Area of one petal of r = sin(θ) setup uses integrand?",
+      "promptLatex": "\\text{Area in polar:} \\, \\text{d} A = (1/2) \\text{r² d} \\theta. \\text{Area of one petal of} r = \\sin(\\theta) \\text{setup uses integrand?}",
       "skillIds": [
         "polar_area"
       ],
@@ -4920,6 +5209,7 @@
       "id": "cur-c1-polar_area-0-v1",
       "title": "Polar area checkpoint (v2)",
       "prompt": "Area in polar: dA = (1/2) r² dθ. Area of one petal of r = sin(θ) setup uses integrand?",
+      "promptLatex": "\\text{Area in polar:} \\, \\text{d} A = (1/2) \\text{r² d} \\theta. \\text{Area of one petal of} r = \\sin(\\theta) \\text{setup uses integrand?}",
       "skillIds": [
         "polar_area"
       ],
@@ -4937,6 +5227,7 @@
       "id": "cur-c1-polar_area-0-v2",
       "title": "Polar area checkpoint (v3)",
       "prompt": "Area in polar: dA = (1/2) r² dθ. Area of one petal of r = sin(θ) setup uses integrand?",
+      "promptLatex": "\\text{Area in polar:} \\, \\text{d} A = (1/2) \\text{r² d} \\theta. \\text{Area of one petal of} r = \\sin(\\theta) \\text{setup uses integrand?}",
       "skillIds": [
         "polar_area"
       ],
@@ -4954,6 +5245,7 @@
       "id": "cur-c1-polar_area-1-v0",
       "title": "Polar area setup",
       "prompt": "For r = 2, area of circle in polar: integrand (before 1/2 factor) is?",
+      "promptLatex": "\\text{For} r = 2, \\text{area of circle in polar: integrand} (before 1/2 factor) \\text{is?}",
       "skillIds": [
         "polar_area"
       ],
@@ -4971,6 +5263,7 @@
       "id": "cur-c1-polar_area-1-v1",
       "title": "Polar area setup (v2)",
       "prompt": "For r = 2, area of circle in polar: integrand (before 1/2 factor) is?",
+      "promptLatex": "\\text{For} r = 2, \\text{area of circle in polar: integrand} (before 1/2 factor) \\text{is?}",
       "skillIds": [
         "polar_area"
       ],
@@ -4988,6 +5281,7 @@
       "id": "cur-c1-polar_area-1-v2",
       "title": "Polar area setup (v3)",
       "prompt": "For r = 2, area of circle in polar: integrand (before 1/2 factor) is?",
+      "promptLatex": "\\text{For} r = 2, \\text{area of circle in polar: integrand} (before 1/2 factor) \\text{is?}",
       "skillIds": [
         "polar_area"
       ],
@@ -5005,6 +5299,7 @@
       "id": "cur-c1-exponents_radicals-0-v0",
       "title": "Exponents checkpoint",
       "prompt": "Simplify x^(3/2) · x^(1/2).",
+      "promptLatex": "\\text{Simplify} x^(3/2) \\text{·} x^(1/2).",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5022,6 +5317,7 @@
       "id": "cur-c1-exponents_radicals-0-v1",
       "title": "Exponents checkpoint (v2)",
       "prompt": "Simplify x^(3/2) · x^(1/2).",
+      "promptLatex": "\\text{Simplify} x^(3/2) \\text{·} x^(1/2).",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5039,6 +5335,7 @@
       "id": "cur-c1-exponents_radicals-0-v2",
       "title": "Exponents checkpoint (v3)",
       "prompt": "Simplify x^(3/2) · x^(1/2).",
+      "promptLatex": "\\text{Simplify} x^(3/2) \\text{·} x^(1/2).",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5056,6 +5353,7 @@
       "id": "cur-c1-exponents_radicals-1-v0",
       "title": "Exponent rule",
       "prompt": "Simplify (x^2)^3.",
+      "promptLatex": "\\text{Simplify} (x^2)^3.",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5073,6 +5371,7 @@
       "id": "cur-c1-exponents_radicals-1-v1",
       "title": "Exponent rule (v2)",
       "prompt": "Simplify (x^2)^3.",
+      "promptLatex": "\\text{Simplify} (x^2)^3.",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5090,6 +5389,7 @@
       "id": "cur-c1-exponents_radicals-1-v2",
       "title": "Exponent rule (v3)",
       "prompt": "Simplify (x^2)^3.",
+      "promptLatex": "\\text{Simplify} (x^2)^3.",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5107,6 +5407,7 @@
       "id": "cur-c1-exponents_radicals-2-v0",
       "title": "Radical to power",
       "prompt": "Write sqrt(x) as a power of x.",
+      "promptLatex": "\\text{Write} \\sqrt{x} \\text{as a power of x.}",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5124,6 +5425,7 @@
       "id": "cur-c1-exponents_radicals-2-v1",
       "title": "Radical to power (v2)",
       "prompt": "Write sqrt(x) as a power of x.",
+      "promptLatex": "\\text{Write} \\sqrt{x} \\text{as a power of x.}",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5141,6 +5443,7 @@
       "id": "cur-c1-exponents_radicals-2-v2",
       "title": "Radical to power (v3)",
       "prompt": "Write sqrt(x) as a power of x.",
+      "promptLatex": "\\text{Write} \\sqrt{x} \\text{as a power of x.}",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5158,6 +5461,7 @@
       "id": "cur-c1-exponents_radicals-3-v0",
       "title": "Negative exponent",
       "prompt": "Simplify x^(-2) · x^5.",
+      "promptLatex": "\\text{Simplify} x^(-2) \\text{·} x^5.",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5175,6 +5479,7 @@
       "id": "cur-c1-exponents_radicals-3-v1",
       "title": "Negative exponent (v2)",
       "prompt": "Simplify x^(-2) · x^5.",
+      "promptLatex": "\\text{Simplify} x^(-2) \\text{·} x^5.",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5192,6 +5497,7 @@
       "id": "cur-c1-exponents_radicals-3-v2",
       "title": "Negative exponent (v3)",
       "prompt": "Simplify x^(-2) · x^5.",
+      "promptLatex": "\\text{Simplify} x^(-2) \\text{·} x^5.",
       "skillIds": [
         "exponents_radicals"
       ],
@@ -5209,6 +5515,7 @@
       "id": "cur-c1-logarithms-0-v0",
       "title": "Log checkpoint",
       "prompt": "Solve for x: ln(x) = 2.",
+      "promptLatex": "\\text{Solve for x:} \\ln(x) = 2.",
       "skillIds": [
         "logarithms"
       ],
@@ -5226,6 +5533,7 @@
       "id": "cur-c1-logarithms-0-v1",
       "title": "Log checkpoint (v2)",
       "prompt": "Solve for x: ln(x) = 2.",
+      "promptLatex": "\\text{Solve for x:} \\ln(x) = 2.",
       "skillIds": [
         "logarithms"
       ],
@@ -5243,6 +5551,7 @@
       "id": "cur-c1-logarithms-0-v2",
       "title": "Log checkpoint (v3)",
       "prompt": "Solve for x: ln(x) = 2.",
+      "promptLatex": "\\text{Solve for x:} \\ln(x) = 2.",
       "skillIds": [
         "logarithms"
       ],
@@ -5260,6 +5569,7 @@
       "id": "cur-c1-logarithms-1-v0",
       "title": "Log property",
       "prompt": "Write ln(a) + ln(b) as a single log.",
+      "promptLatex": "\\text{Write} \\ln(a) + \\ln(b) \\text{as a single} \\log.",
       "skillIds": [
         "logarithms"
       ],
@@ -5277,6 +5587,7 @@
       "id": "cur-c1-logarithms-1-v1",
       "title": "Log property (v2)",
       "prompt": "Write ln(a) + ln(b) as a single log.",
+      "promptLatex": "\\text{Write} \\ln(a) + \\ln(b) \\text{as a single} \\log.",
       "skillIds": [
         "logarithms"
       ],
@@ -5294,6 +5605,7 @@
       "id": "cur-c1-logarithms-1-v2",
       "title": "Log property (v3)",
       "prompt": "Write ln(a) + ln(b) as a single log.",
+      "promptLatex": "\\text{Write} \\ln(a) + \\ln(b) \\text{as a single} \\log.",
       "skillIds": [
         "logarithms"
       ],
@@ -5311,6 +5623,7 @@
       "id": "cur-c1-logarithms-2-v0",
       "title": "Change of base",
       "prompt": "log_2(8) equals?",
+      "promptLatex": "\\text{lo} g_2(8) \\text{equals?}",
       "skillIds": [
         "logarithms"
       ],
@@ -5328,6 +5641,7 @@
       "id": "cur-c1-logarithms-2-v1",
       "title": "Change of base (v2)",
       "prompt": "log_2(8) equals?",
+      "promptLatex": "\\text{lo} g_2(8) \\text{equals?}",
       "skillIds": [
         "logarithms"
       ],
@@ -5345,6 +5659,7 @@
       "id": "cur-c1-logarithms-2-v2",
       "title": "Change of base (v3)",
       "prompt": "log_2(8) equals?",
+      "promptLatex": "\\text{lo} g_2(8) \\text{equals?}",
       "skillIds": [
         "logarithms"
       ],
@@ -5362,6 +5677,7 @@
       "id": "cur-c1-logarithms-3-v0",
       "title": "Solve log equation",
       "prompt": "If log(x) = 1, then x = ?",
+      "promptLatex": "\\text{If} \\log(x) = 1, \\text{then} x = \\text{?}",
       "skillIds": [
         "logarithms"
       ],
@@ -5379,6 +5695,7 @@
       "id": "cur-c1-logarithms-3-v1",
       "title": "Solve log equation (v2)",
       "prompt": "If log(x) = 1, then x = ?",
+      "promptLatex": "\\text{If} \\log(x) = 1, \\text{then} x = \\text{?}",
       "skillIds": [
         "logarithms"
       ],
@@ -5396,6 +5713,7 @@
       "id": "cur-c1-logarithms-3-v2",
       "title": "Solve log equation (v3)",
       "prompt": "If log(x) = 1, then x = ?",
+      "promptLatex": "\\text{If} \\log(x) = 1, \\text{then} x = \\text{?}",
       "skillIds": [
         "logarithms"
       ],
@@ -5413,6 +5731,7 @@
       "id": "cur-c1-exponential_functions-0-v0",
       "title": "Exponential checkpoint",
       "prompt": "f(x) = 3·2^x. Find f(2).",
+      "promptLatex": "f(x) = 3 \\text{·} 2^x. \\text{Find} f(2).",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5430,6 +5749,7 @@
       "id": "cur-c1-exponential_functions-0-v1",
       "title": "Exponential checkpoint (v2)",
       "prompt": "f(x) = 3·2^x. Find f(2).",
+      "promptLatex": "f(x) = 3 \\text{·} 2^x. \\text{Find} f(2).",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5447,6 +5767,7 @@
       "id": "cur-c1-exponential_functions-0-v2",
       "title": "Exponential checkpoint (v3)",
       "prompt": "f(x) = 3·2^x. Find f(2).",
+      "promptLatex": "f(x) = 3 \\text{·} 2^x. \\text{Find} f(2).",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5464,6 +5785,7 @@
       "id": "cur-c1-exponential_functions-1-v0",
       "title": "Growth factor",
       "prompt": "A population doubles every hour from 100. After 3 hours?",
+      "promptLatex": "\\text{A population doubles every hour from} 100. \\text{After} 3 \\text{hours?}",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5481,6 +5803,7 @@
       "id": "cur-c1-exponential_functions-1-v1",
       "title": "Growth factor (v2)",
       "prompt": "A population doubles every hour from 100. After 3 hours?",
+      "promptLatex": "\\text{A population doubles every hour from} 100. \\text{After} 3 \\text{hours?}",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5498,6 +5821,7 @@
       "id": "cur-c1-exponential_functions-1-v2",
       "title": "Growth factor (v3)",
       "prompt": "A population doubles every hour from 100. After 3 hours?",
+      "promptLatex": "\\text{A population doubles every hour from} 100. \\text{After} 3 \\text{hours?}",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5515,6 +5839,7 @@
       "id": "cur-c1-exponential_functions-2-v0",
       "title": "Half-life decay",
       "prompt": "500 mg decays by factor 1/2 each day. After 2 days?",
+      "promptLatex": "500 \\text{mg decays by factor} 1/2 \\text{each day. After} 2 \\text{days?}",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5532,6 +5857,7 @@
       "id": "cur-c1-exponential_functions-2-v1",
       "title": "Half-life decay (v2)",
       "prompt": "500 mg decays by factor 1/2 each day. After 2 days?",
+      "promptLatex": "500 \\text{mg decays by factor} 1/2 \\text{each day. After} 2 \\text{days?}",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5549,6 +5875,7 @@
       "id": "cur-c1-exponential_functions-2-v2",
       "title": "Half-life decay (v3)",
       "prompt": "500 mg decays by factor 1/2 each day. After 2 days?",
+      "promptLatex": "500 \\text{mg decays by factor} 1/2 \\text{each day. After} 2 \\text{days?}",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5566,6 +5893,7 @@
       "id": "cur-c1-exponential_functions-3-v0",
       "title": "Exponential equation",
       "prompt": "Solve 3^x = 81.",
+      "promptLatex": "\\text{Solve} 3^x = 81.",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5583,6 +5911,7 @@
       "id": "cur-c1-exponential_functions-3-v1",
       "title": "Exponential equation (v2)",
       "prompt": "Solve 3^x = 81.",
+      "promptLatex": "\\text{Solve} 3^x = 81.",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5600,6 +5929,7 @@
       "id": "cur-c1-exponential_functions-3-v2",
       "title": "Exponential equation (v3)",
       "prompt": "Solve 3^x = 81.",
+      "promptLatex": "\\text{Solve} 3^x = 81.",
       "skillIds": [
         "exponential_functions"
       ],
@@ -5617,6 +5947,7 @@
       "id": "cur-c1-inverse_functions-0-v0",
       "title": "Inverse checkpoint",
       "prompt": "If f(x) = 2x + 4, find f⁻¹(x).",
+      "promptLatex": "\\text{If} f(x) = 2x + 4, \\text{find} f^- \\text{¹} (x).",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5634,6 +5965,7 @@
       "id": "cur-c1-inverse_functions-0-v1",
       "title": "Inverse checkpoint (v2)",
       "prompt": "If f(x) = 2x + 4, find f⁻¹(x).",
+      "promptLatex": "\\text{If} f(x) = 2x + 4, \\text{find} f^- \\text{¹} (x).",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5651,6 +5983,7 @@
       "id": "cur-c1-inverse_functions-0-v2",
       "title": "Inverse checkpoint (v3)",
       "prompt": "If f(x) = 2x + 4, find f⁻¹(x).",
+      "promptLatex": "\\text{If} f(x) = 2x + 4, \\text{find} f^- \\text{¹} (x).",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5668,6 +6001,7 @@
       "id": "cur-c1-inverse_functions-1-v0",
       "title": "Composition",
       "prompt": "If f(x)=x+1, is f(f⁻¹(x)) equal to x?",
+      "promptLatex": "\\text{If} f(x)=x+1, \\text{is} f(f^-¹(x)) \\text{equal to x?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5685,6 +6019,7 @@
       "id": "cur-c1-inverse_functions-1-v1",
       "title": "Composition (v2)",
       "prompt": "If f(x)=x+1, is f(f⁻¹(x)) equal to x?",
+      "promptLatex": "\\text{If} f(x)=x+1, \\text{is} f(f^-¹(x)) \\text{equal to x?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5702,6 +6037,7 @@
       "id": "cur-c1-inverse_functions-1-v2",
       "title": "Composition (v3)",
       "prompt": "If f(x)=x+1, is f(f⁻¹(x)) equal to x?",
+      "promptLatex": "\\text{If} f(x)=x+1, \\text{is} f(f^-¹(x)) \\text{equal to x?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5719,6 +6055,7 @@
       "id": "cur-c1-inverse_functions-2-v0",
       "title": "Domain swap",
       "prompt": "If f(x)=x^2 for x≥0, f⁻¹(x)=?",
+      "promptLatex": "\\text{If} f(x)=x^2 \\text{for x≥} 0, f^- \\text{¹} (x)= \\text{?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5736,6 +6073,7 @@
       "id": "cur-c1-inverse_functions-2-v1",
       "title": "Domain swap (v2)",
       "prompt": "If f(x)=x^2 for x≥0, f⁻¹(x)=?",
+      "promptLatex": "\\text{If} f(x)=x^2 \\text{for x≥} 0, f^- \\text{¹} (x)= \\text{?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5753,6 +6091,7 @@
       "id": "cur-c1-inverse_functions-2-v2",
       "title": "Domain swap (v3)",
       "prompt": "If f(x)=x^2 for x≥0, f⁻¹(x)=?",
+      "promptLatex": "\\text{If} f(x)=x^2 \\text{for x≥} 0, f^- \\text{¹} (x)= \\text{?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5770,6 +6109,7 @@
       "id": "cur-c1-inverse_functions-3-v0",
       "title": "Verify inverse",
       "prompt": "For f(x)=3x-6, f⁻¹(9) equals?",
+      "promptLatex": "\\text{For} f(x)=3x-6, f^- \\text{¹} (9) \\text{equals?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5787,6 +6127,7 @@
       "id": "cur-c1-inverse_functions-3-v1",
       "title": "Verify inverse (v2)",
       "prompt": "For f(x)=3x-6, f⁻¹(9) equals?",
+      "promptLatex": "\\text{For} f(x)=3x-6, f^- \\text{¹} (9) \\text{equals?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5804,6 +6145,7 @@
       "id": "cur-c1-inverse_functions-3-v2",
       "title": "Verify inverse (v3)",
       "prompt": "For f(x)=3x-6, f⁻¹(9) equals?",
+      "promptLatex": "\\text{For} f(x)=3x-6, f^- \\text{¹} (9) \\text{equals?}",
       "skillIds": [
         "inverse_functions"
       ],
@@ -5821,6 +6163,7 @@
       "id": "cur-c1-graph_interpretation-0-v0",
       "title": "Graph checkpoint",
       "prompt": "A graph rises left to right. Sign of f' on that interval?",
+      "promptLatex": "\\text{A graph rises left to right. Sign of} f^{\\prime} \\text{on that interval?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5838,6 +6181,7 @@
       "id": "cur-c1-graph_interpretation-0-v1",
       "title": "Graph checkpoint (v2)",
       "prompt": "A graph rises left to right. Sign of f' on that interval?",
+      "promptLatex": "\\text{A graph rises left to right. Sign of} f^{\\prime} \\text{on that interval?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5855,6 +6199,7 @@
       "id": "cur-c1-graph_interpretation-0-v2",
       "title": "Graph checkpoint (v3)",
       "prompt": "A graph rises left to right. Sign of f' on that interval?",
+      "promptLatex": "\\text{A graph rises left to right. Sign of} f^{\\prime} \\text{on that interval?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5872,6 +6217,7 @@
       "id": "cur-c1-graph_interpretation-1-v0",
       "title": "Intercept",
       "prompt": "Graph crosses x-axis at x=2. What is a zero of f?",
+      "promptLatex": "\\text{Graph crosses} x-axis \\text{at} x=2. \\text{What is a zero of f?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5889,6 +6235,7 @@
       "id": "cur-c1-graph_interpretation-1-v1",
       "title": "Intercept (v2)",
       "prompt": "Graph crosses x-axis at x=2. What is a zero of f?",
+      "promptLatex": "\\text{Graph crosses} x-axis \\text{at} x=2. \\text{What is a zero of f?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5906,6 +6253,7 @@
       "id": "cur-c1-graph_interpretation-1-v2",
       "title": "Intercept (v3)",
       "prompt": "Graph crosses x-axis at x=2. What is a zero of f?",
+      "promptLatex": "\\text{Graph crosses} x-axis \\text{at} x=2. \\text{What is a zero of f?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5923,6 +6271,7 @@
       "id": "cur-c1-graph_interpretation-2-v0",
       "title": "Increasing interval",
       "prompt": "Where graph is steepest upward, |f'| is?",
+      "promptLatex": "\\text{Where graph is steepest upward,} |f'| \\text{is?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5940,6 +6289,7 @@
       "id": "cur-c1-graph_interpretation-2-v1",
       "title": "Increasing interval (v2)",
       "prompt": "Where graph is steepest upward, |f'| is?",
+      "promptLatex": "\\text{Where graph is steepest upward,} |f'| \\text{is?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5957,6 +6307,7 @@
       "id": "cur-c1-graph_interpretation-2-v2",
       "title": "Increasing interval (v3)",
       "prompt": "Where graph is steepest upward, |f'| is?",
+      "promptLatex": "\\text{Where graph is steepest upward,} |f'| \\text{is?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5974,6 +6325,7 @@
       "id": "cur-c1-graph_interpretation-3-v0",
       "title": "Value read",
       "prompt": "Graph passes through (0, -1). f(0) = ?",
+      "promptLatex": "\\text{Graph passes through} (0, -1). f(0) = \\text{?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -5991,6 +6343,7 @@
       "id": "cur-c1-graph_interpretation-3-v1",
       "title": "Value read (v2)",
       "prompt": "Graph passes through (0, -1). f(0) = ?",
+      "promptLatex": "\\text{Graph passes through} (0, -1). f(0) = \\text{?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -6008,6 +6361,7 @@
       "id": "cur-c1-graph_interpretation-3-v2",
       "title": "Value read (v3)",
       "prompt": "Graph passes through (0, -1). f(0) = ?",
+      "promptLatex": "\\text{Graph passes through} (0, -1). f(0) = \\text{?}",
       "skillIds": [
         "graph_interpretation"
       ],
@@ -6025,6 +6379,7 @@
       "id": "cur-c1-transformations-0-v0",
       "title": "Transform checkpoint",
       "prompt": "f(x)=x^2 shifted right 3 units: g(x)=?",
+      "promptLatex": "f(x)=x^2 \\text{shifted right} 3 \\text{units:} g(x)= \\text{?}",
       "skillIds": [
         "transformations"
       ],
@@ -6042,6 +6397,7 @@
       "id": "cur-c1-transformations-0-v1",
       "title": "Transform checkpoint (v2)",
       "prompt": "f(x)=x^2 shifted right 3 units: g(x)=?",
+      "promptLatex": "f(x)=x^2 \\text{shifted right} 3 \\text{units:} g(x)= \\text{?}",
       "skillIds": [
         "transformations"
       ],
@@ -6059,6 +6415,7 @@
       "id": "cur-c1-transformations-0-v2",
       "title": "Transform checkpoint (v3)",
       "prompt": "f(x)=x^2 shifted right 3 units: g(x)=?",
+      "promptLatex": "f(x)=x^2 \\text{shifted right} 3 \\text{units:} g(x)= \\text{?}",
       "skillIds": [
         "transformations"
       ],
@@ -6076,6 +6433,7 @@
       "id": "cur-c1-transformations-1-v0",
       "title": "Reflection",
       "prompt": "Reflect y=x^2 across x-axis: h(x)=?",
+      "promptLatex": "\\text{Reflect} y=x^2 \\text{across} x-axis \\text{:} h(x)= \\text{?}",
       "skillIds": [
         "transformations"
       ],
@@ -6093,6 +6451,7 @@
       "id": "cur-c1-transformations-1-v1",
       "title": "Reflection (v2)",
       "prompt": "Reflect y=x^2 across x-axis: h(x)=?",
+      "promptLatex": "\\text{Reflect} y=x^2 \\text{across} x-axis \\text{:} h(x)= \\text{?}",
       "skillIds": [
         "transformations"
       ],
@@ -6110,6 +6469,7 @@
       "id": "cur-c1-transformations-1-v2",
       "title": "Reflection (v3)",
       "prompt": "Reflect y=x^2 across x-axis: h(x)=?",
+      "promptLatex": "\\text{Reflect} y=x^2 \\text{across} x-axis \\text{:} h(x)= \\text{?}",
       "skillIds": [
         "transformations"
       ],
@@ -6127,6 +6487,7 @@
       "id": "cur-c1-transformations-2-v0",
       "title": "Vertical stretch",
       "prompt": "Graph y=3f(x) stretches vertically by factor?",
+      "promptLatex": "\\text{Graph} y=3f(x) \\text{stretches vertically by factor?}",
       "skillIds": [
         "transformations"
       ],
@@ -6144,6 +6505,7 @@
       "id": "cur-c1-transformations-2-v1",
       "title": "Vertical stretch (v2)",
       "prompt": "Graph y=3f(x) stretches vertically by factor?",
+      "promptLatex": "\\text{Graph} y=3f(x) \\text{stretches vertically by factor?}",
       "skillIds": [
         "transformations"
       ],
@@ -6161,6 +6523,7 @@
       "id": "cur-c1-transformations-2-v2",
       "title": "Vertical stretch (v3)",
       "prompt": "Graph y=3f(x) stretches vertically by factor?",
+      "promptLatex": "\\text{Graph} y=3f(x) \\text{stretches vertically by factor?}",
       "skillIds": [
         "transformations"
       ],
@@ -6178,6 +6541,7 @@
       "id": "cur-c1-transformations-3-v0",
       "title": "Horizontal shift",
       "prompt": "f(x+5) shifts the graph of f which direction?",
+      "promptLatex": "f(x+5) \\text{shifts the graph of f which direction?}",
       "skillIds": [
         "transformations"
       ],
@@ -6195,6 +6559,7 @@
       "id": "cur-c1-transformations-3-v1",
       "title": "Horizontal shift (v2)",
       "prompt": "f(x+5) shifts the graph of f which direction?",
+      "promptLatex": "f(x+5) \\text{shifts the graph of f which direction?}",
       "skillIds": [
         "transformations"
       ],
@@ -6212,6 +6577,7 @@
       "id": "cur-c1-transformations-3-v2",
       "title": "Horizontal shift (v3)",
       "prompt": "f(x+5) shifts the graph of f which direction?",
+      "promptLatex": "f(x+5) \\text{shifts the graph of f which direction?}",
       "skillIds": [
         "transformations"
       ],
@@ -6229,6 +6595,7 @@
       "id": "cur-c1-trig_identities_calc-0-v0",
       "title": "Trig identity checkpoint",
       "prompt": "Simplify sin²x + cos²x.",
+      "promptLatex": "\\text{Simplify} \\sin \\text{²} x + \\cos \\text{²x.}",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6246,6 +6613,7 @@
       "id": "cur-c1-trig_identities_calc-0-v1",
       "title": "Trig identity checkpoint (v2)",
       "prompt": "Simplify sin²x + cos²x.",
+      "promptLatex": "\\text{Simplify} \\sin \\text{²} x + \\cos \\text{²x.}",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6263,6 +6631,7 @@
       "id": "cur-c1-trig_identities_calc-0-v2",
       "title": "Trig identity checkpoint (v3)",
       "prompt": "Simplify sin²x + cos²x.",
+      "promptLatex": "\\text{Simplify} \\sin \\text{²} x + \\cos \\text{²x.}",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6280,6 +6649,7 @@
       "id": "cur-c1-trig_identities_calc-1-v0",
       "title": "Double angle",
       "prompt": "cos(2x) in terms of cos x only (no +).",
+      "promptLatex": "\\cos(2x) \\text{in terms of} \\cos \\text{x only} (no +).",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6297,6 +6667,7 @@
       "id": "cur-c1-trig_identities_calc-1-v1",
       "title": "Double angle (v2)",
       "prompt": "cos(2x) in terms of cos x only (no +).",
+      "promptLatex": "\\cos(2x) \\text{in terms of} \\cos \\text{x only} (no +).",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6314,6 +6685,7 @@
       "id": "cur-c1-trig_identities_calc-1-v2",
       "title": "Double angle (v3)",
       "prompt": "cos(2x) in terms of cos x only (no +).",
+      "promptLatex": "\\cos(2x) \\text{in terms of} \\cos \\text{x only} (no +).",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6331,6 +6703,7 @@
       "id": "cur-c1-trig_identities_calc-2-v0",
       "title": "Tan identity",
       "prompt": "tan(x) in terms of sin and cos.",
+      "promptLatex": "\\tan(x) \\text{in terms of} \\sin \\text{and} \\cos.",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6348,6 +6721,7 @@
       "id": "cur-c1-trig_identities_calc-2-v1",
       "title": "Tan identity (v2)",
       "prompt": "tan(x) in terms of sin and cos.",
+      "promptLatex": "\\tan(x) \\text{in terms of} \\sin \\text{and} \\cos.",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6365,6 +6739,7 @@
       "id": "cur-c1-trig_identities_calc-2-v2",
       "title": "Tan identity (v3)",
       "prompt": "tan(x) in terms of sin and cos.",
+      "promptLatex": "\\tan(x) \\text{in terms of} \\sin \\text{and} \\cos.",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6382,6 +6757,7 @@
       "id": "cur-c1-trig_identities_calc-3-v0",
       "title": "Cofunction",
       "prompt": "sin(pi/2 - x) equals?",
+      "promptLatex": "\\sin(pi/2 - x) \\text{equals?}",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6399,6 +6775,7 @@
       "id": "cur-c1-trig_identities_calc-3-v1",
       "title": "Cofunction (v2)",
       "prompt": "sin(pi/2 - x) equals?",
+      "promptLatex": "\\sin(pi/2 - x) \\text{equals?}",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6416,6 +6793,7 @@
       "id": "cur-c1-trig_identities_calc-3-v2",
       "title": "Cofunction (v3)",
       "prompt": "sin(pi/2 - x) equals?",
+      "promptLatex": "\\sin(pi/2 - x) \\text{equals?}",
       "skillIds": [
         "trig_identities_calc"
       ],
@@ -6433,6 +6811,7 @@
       "id": "cur-c1-word_problem_translation-0-v0",
       "title": "Modeling checkpoint",
       "prompt": "A rectangle has width w and length 2w. Area A in terms of w?",
+      "promptLatex": "\\text{A rectangle has width w and length} 2w. \\text{Area A in terms of w?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6450,6 +6829,7 @@
       "id": "cur-c1-word_problem_translation-0-v1",
       "title": "Modeling checkpoint (v2)",
       "prompt": "A rectangle has width w and length 2w. Area A in terms of w?",
+      "promptLatex": "\\text{A rectangle has width w and length} 2w. \\text{Area A in terms of w?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6467,6 +6847,7 @@
       "id": "cur-c1-word_problem_translation-0-v2",
       "title": "Modeling checkpoint (v3)",
       "prompt": "A rectangle has width w and length 2w. Area A in terms of w?",
+      "promptLatex": "\\text{A rectangle has width w and length} 2w. \\text{Area A in terms of w?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6484,6 +6865,7 @@
       "id": "cur-c1-word_problem_translation-1-v0",
       "title": "Constraint",
       "prompt": "Perimeter 20 for width w and length 2w. Equation?",
+      "promptLatex": "\\text{Perimeter} 20 \\text{for width w and length} 2w. \\text{Equation?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6501,6 +6883,7 @@
       "id": "cur-c1-word_problem_translation-1-v1",
       "title": "Constraint (v2)",
       "prompt": "Perimeter 20 for width w and length 2w. Equation?",
+      "promptLatex": "\\text{Perimeter} 20 \\text{for width w and length} 2w. \\text{Equation?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6518,6 +6901,7 @@
       "id": "cur-c1-word_problem_translation-1-v2",
       "title": "Constraint (v3)",
       "prompt": "Perimeter 20 for width w and length 2w. Equation?",
+      "promptLatex": "\\text{Perimeter} 20 \\text{for width w and length} 2w. \\text{Equation?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6535,6 +6919,7 @@
       "id": "cur-c1-word_problem_translation-2-v0",
       "title": "Rate wording",
       "prompt": "Water flows at 4 gal/min into a tank. dV/dt = ?",
+      "promptLatex": "\\text{Water flows at} 4 \\text{ga} l/min \\text{into a tank.} \\frac{dV}{dt} = \\text{?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6552,6 +6937,7 @@
       "id": "cur-c1-word_problem_translation-2-v1",
       "title": "Rate wording (v2)",
       "prompt": "Water flows at 4 gal/min into a tank. dV/dt = ?",
+      "promptLatex": "\\text{Water flows at} 4 \\text{ga} l/min \\text{into a tank.} \\frac{dV}{dt} = \\text{?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6569,6 +6955,7 @@
       "id": "cur-c1-word_problem_translation-2-v2",
       "title": "Rate wording (v3)",
       "prompt": "Water flows at 4 gal/min into a tank. dV/dt = ?",
+      "promptLatex": "\\text{Water flows at} 4 \\text{ga} l/min \\text{into a tank.} \\frac{dV}{dt} = \\text{?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6586,6 +6973,7 @@
       "id": "cur-c1-word_problem_translation-3-v0",
       "title": "Geometric relation",
       "prompt": "Circle radius r. Circumference C in terms of r?",
+      "promptLatex": "\\text{Circle radius r. Circumference C in terms of r?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6603,6 +6991,7 @@
       "id": "cur-c1-word_problem_translation-3-v1",
       "title": "Geometric relation (v2)",
       "prompt": "Circle radius r. Circumference C in terms of r?",
+      "promptLatex": "\\text{Circle radius r. Circumference C in terms of r?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6620,6 +7009,7 @@
       "id": "cur-c1-word_problem_translation-3-v2",
       "title": "Geometric relation (v3)",
       "prompt": "Circle radius r. Circumference C in terms of r?",
+      "promptLatex": "\\text{Circle radius r. Circumference C in terms of r?}",
       "skillIds": [
         "word_problem_translation"
       ],
@@ -6637,6 +7027,7 @@
       "id": "cur-c1-rates_units-0-v0",
       "title": "Rates checkpoint",
       "prompt": "A tank drains 5 L/min. Sign of dV/dt?",
+      "promptLatex": "\\text{A tank drains} 5 L/min. \\text{Sign of} \\frac{dV}{dt} \\text{?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6654,6 +7045,7 @@
       "id": "cur-c1-rates_units-0-v1",
       "title": "Rates checkpoint (v2)",
       "prompt": "A tank drains 5 L/min. Sign of dV/dt?",
+      "promptLatex": "\\text{A tank drains} 5 L/min. \\text{Sign of} \\frac{dV}{dt} \\text{?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6671,6 +7063,7 @@
       "id": "cur-c1-rates_units-0-v2",
       "title": "Rates checkpoint (v3)",
       "prompt": "A tank drains 5 L/min. Sign of dV/dt?",
+      "promptLatex": "\\text{A tank drains} 5 L/min. \\text{Sign of} \\frac{dV}{dt} \\text{?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6688,6 +7081,7 @@
       "id": "cur-c1-rates_units-1-v0",
       "title": "Units",
       "prompt": "Speed 3 m/s for 10 s. Distance traveled?",
+      "promptLatex": "\\text{Speed} 3 m/s \\text{for} 10 \\text{s. Distance traveled?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6705,6 +7099,7 @@
       "id": "cur-c1-rates_units-1-v1",
       "title": "Units (v2)",
       "prompt": "Speed 3 m/s for 10 s. Distance traveled?",
+      "promptLatex": "\\text{Speed} 3 m/s \\text{for} 10 \\text{s. Distance traveled?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6722,6 +7117,7 @@
       "id": "cur-c1-rates_units-1-v2",
       "title": "Units (v3)",
       "prompt": "Speed 3 m/s for 10 s. Distance traveled?",
+      "promptLatex": "\\text{Speed} 3 m/s \\text{for} 10 \\text{s. Distance traveled?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6739,6 +7135,7 @@
       "id": "cur-c1-rates_units-2-v0",
       "title": "Unit conversion",
       "prompt": "60 mph equals how many miles per minute?",
+      "promptLatex": "60 \\text{mph equals how many miles per minute?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6756,6 +7153,7 @@
       "id": "cur-c1-rates_units-2-v1",
       "title": "Unit conversion (v2)",
       "prompt": "60 mph equals how many miles per minute?",
+      "promptLatex": "60 \\text{mph equals how many miles per minute?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6773,6 +7171,7 @@
       "id": "cur-c1-rates_units-2-v2",
       "title": "Unit conversion (v3)",
       "prompt": "60 mph equals how many miles per minute?",
+      "promptLatex": "60 \\text{mph equals how many miles per minute?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6790,6 +7189,7 @@
       "id": "cur-c1-rates_units-3-v0",
       "title": "Related quantity",
       "prompt": "If dx/dt = 2 ft/s, position changes how fast?",
+      "promptLatex": "\\text{If} \\frac{dx}{dt} = 2 \\text{f} t/s, \\text{position changes how fast?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6807,6 +7207,7 @@
       "id": "cur-c1-rates_units-3-v1",
       "title": "Related quantity (v2)",
       "prompt": "If dx/dt = 2 ft/s, position changes how fast?",
+      "promptLatex": "\\text{If} \\frac{dx}{dt} = 2 \\text{f} t/s, \\text{position changes how fast?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6824,6 +7225,7 @@
       "id": "cur-c1-rates_units-3-v2",
       "title": "Related quantity (v3)",
       "prompt": "If dx/dt = 2 ft/s, position changes how fast?",
+      "promptLatex": "\\text{If} \\frac{dx}{dt} = 2 \\text{f} t/s, \\text{position changes how fast?}",
       "skillIds": [
         "rates_units"
       ],
@@ -6841,6 +7243,7 @@
       "id": "cur-c1-inverse_trig_derivatives-0-v0",
       "title": "Inverse trig deriv checkpoint",
       "prompt": "d/dx arcsin(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arcsin(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6858,6 +7261,7 @@
       "id": "cur-c1-inverse_trig_derivatives-0-v1",
       "title": "Inverse trig deriv checkpoint (v2)",
       "prompt": "d/dx arcsin(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arcsin(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6875,6 +7279,7 @@
       "id": "cur-c1-inverse_trig_derivatives-0-v2",
       "title": "Inverse trig deriv checkpoint (v3)",
       "prompt": "d/dx arcsin(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arcsin(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6892,6 +7297,7 @@
       "id": "cur-c1-inverse_trig_derivatives-1-v0",
       "title": "Chain with arcsin",
       "prompt": "d/dx arcsin(2x) leading factor?",
+      "promptLatex": "\\frac{d}{dx} \\arcsin(2x) \\text{leading factor?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6909,6 +7315,7 @@
       "id": "cur-c1-inverse_trig_derivatives-1-v1",
       "title": "Chain with arcsin (v2)",
       "prompt": "d/dx arcsin(2x) leading factor?",
+      "promptLatex": "\\frac{d}{dx} \\arcsin(2x) \\text{leading factor?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6926,6 +7333,7 @@
       "id": "cur-c1-inverse_trig_derivatives-1-v2",
       "title": "Chain with arcsin (v3)",
       "prompt": "d/dx arcsin(2x) leading factor?",
+      "promptLatex": "\\frac{d}{dx} \\arcsin(2x) \\text{leading factor?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6943,6 +7351,7 @@
       "id": "cur-c1-inverse_trig_derivatives-2-v0",
       "title": "Arctan derivative",
       "prompt": "d/dx arctan(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arctan(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6960,6 +7369,7 @@
       "id": "cur-c1-inverse_trig_derivatives-2-v1",
       "title": "Arctan derivative (v2)",
       "prompt": "d/dx arctan(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arctan(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6977,6 +7387,7 @@
       "id": "cur-c1-inverse_trig_derivatives-2-v2",
       "title": "Arctan derivative (v3)",
       "prompt": "d/dx arctan(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arctan(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -6994,6 +7405,7 @@
       "id": "cur-c1-inverse_trig_derivatives-3-v0",
       "title": "Arccos derivative",
       "prompt": "d/dx arccos(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arccos(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -7011,6 +7423,7 @@
       "id": "cur-c1-inverse_trig_derivatives-3-v1",
       "title": "Arccos derivative (v2)",
       "prompt": "d/dx arccos(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arccos(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -7028,6 +7441,7 @@
       "id": "cur-c1-inverse_trig_derivatives-3-v2",
       "title": "Arccos derivative (v3)",
       "prompt": "d/dx arccos(x) = ?",
+      "promptLatex": "\\frac{d}{dx} \\arccos(x) = \\text{?}",
       "skillIds": [
         "inverse_trig_derivatives"
       ],
@@ -7045,6 +7459,7 @@
       "id": "cur-c1-first_derivative_test-0-v0",
       "title": "First deriv test checkpoint",
       "prompt": "f' changes + to − at x=1. Local extrema at x=1?",
+      "promptLatex": "f^{\\prime} \\text{change} s + \\text{t} o - \\text{at} x=1. \\text{Local extrema at} x=1 \\text{?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7062,6 +7477,7 @@
       "id": "cur-c1-first_derivative_test-0-v1",
       "title": "First deriv test checkpoint (v2)",
       "prompt": "f' changes + to − at x=1. Local extrema at x=1?",
+      "promptLatex": "f^{\\prime} \\text{change} s + \\text{t} o - \\text{at} x=1. \\text{Local extrema at} x=1 \\text{?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7079,6 +7495,7 @@
       "id": "cur-c1-first_derivative_test-0-v2",
       "title": "First deriv test checkpoint (v3)",
       "prompt": "f' changes + to − at x=1. Local extrema at x=1?",
+      "promptLatex": "f^{\\prime} \\text{change} s + \\text{t} o - \\text{at} x=1. \\text{Local extrema at} x=1 \\text{?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7096,6 +7513,7 @@
       "id": "cur-c1-first_derivative_test-1-v0",
       "title": "Sign chart",
       "prompt": "f' > 0 on (−1,2). f increasing there?",
+      "promptLatex": "f^{\\prime} \\text{>} 0 \\text{on} (-1,2). \\text{f increasing there?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7113,6 +7531,7 @@
       "id": "cur-c1-first_derivative_test-1-v1",
       "title": "Sign chart (v2)",
       "prompt": "f' > 0 on (−1,2). f increasing there?",
+      "promptLatex": "f^{\\prime} \\text{>} 0 \\text{on} (-1,2). \\text{f increasing there?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7130,6 +7549,7 @@
       "id": "cur-c1-first_derivative_test-1-v2",
       "title": "Sign chart (v3)",
       "prompt": "f' > 0 on (−1,2). f increasing there?",
+      "promptLatex": "f^{\\prime} \\text{>} 0 \\text{on} (-1,2). \\text{f increasing there?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7147,6 +7567,7 @@
       "id": "cur-c1-first_derivative_test-2-v0",
       "title": "Min detection",
       "prompt": "f' changes − to + at x=0. Extremum type?",
+      "promptLatex": "f^{\\prime} \\text{change} s - \\text{t} o + \\text{at} x=0. \\text{Extremum type?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7164,6 +7585,7 @@
       "id": "cur-c1-first_derivative_test-2-v1",
       "title": "Min detection (v2)",
       "prompt": "f' changes − to + at x=0. Extremum type?",
+      "promptLatex": "f^{\\prime} \\text{change} s - \\text{t} o + \\text{at} x=0. \\text{Extremum type?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7181,6 +7603,7 @@
       "id": "cur-c1-first_derivative_test-2-v2",
       "title": "Min detection (v3)",
       "prompt": "f' changes − to + at x=0. Extremum type?",
+      "promptLatex": "f^{\\prime} \\text{change} s - \\text{t} o + \\text{at} x=0. \\text{Extremum type?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7198,6 +7621,7 @@
       "id": "cur-c1-first_derivative_test-3-v0",
       "title": "No sign change",
       "prompt": "f' = 0 at x=2 but sign does not change. Guaranteed extremum?",
+      "promptLatex": "f^{\\prime} = 0 \\text{at} x=2 \\text{but sign does not change. Guaranteed extremum?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7215,6 +7639,7 @@
       "id": "cur-c1-first_derivative_test-3-v1",
       "title": "No sign change (v2)",
       "prompt": "f' = 0 at x=2 but sign does not change. Guaranteed extremum?",
+      "promptLatex": "f^{\\prime} = 0 \\text{at} x=2 \\text{but sign does not change. Guaranteed extremum?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7232,6 +7657,7 @@
       "id": "cur-c1-first_derivative_test-3-v2",
       "title": "No sign change (v3)",
       "prompt": "f' = 0 at x=2 but sign does not change. Guaranteed extremum?",
+      "promptLatex": "f^{\\prime} = 0 \\text{at} x=2 \\text{but sign does not change. Guaranteed extremum?}",
       "skillIds": [
         "first_derivative_test"
       ],
@@ -7249,6 +7675,7 @@
       "id": "cur-c1-second_derivative_test-0-v0",
       "title": "Second deriv test checkpoint",
       "prompt": "f''(3) > 0 and f'(3)=0. Local min or max?",
+      "promptLatex": "f^{\\prime\\prime}(3) \\text{>} 0 \\text{and} f^{\\prime}(3)=0. \\text{Local min or max?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7266,6 +7693,7 @@
       "id": "cur-c1-second_derivative_test-0-v1",
       "title": "Second deriv test checkpoint (v2)",
       "prompt": "f''(3) > 0 and f'(3)=0. Local min or max?",
+      "promptLatex": "f^{\\prime\\prime}(3) \\text{>} 0 \\text{and} f^{\\prime}(3)=0. \\text{Local min or max?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7283,6 +7711,7 @@
       "id": "cur-c1-second_derivative_test-0-v2",
       "title": "Second deriv test checkpoint (v3)",
       "prompt": "f''(3) > 0 and f'(3)=0. Local min or max?",
+      "promptLatex": "f^{\\prime\\prime}(3) \\text{>} 0 \\text{and} f^{\\prime}(3)=0. \\text{Local min or max?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7300,6 +7729,7 @@
       "id": "cur-c1-second_derivative_test-1-v0",
       "title": "Concavity link",
       "prompt": "f'' < 0 on an interval. Concave up or down?",
+      "promptLatex": "f^{\\prime\\prime} \\text{<} 0 \\text{on an interval. Concave up or down?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7317,6 +7747,7 @@
       "id": "cur-c1-second_derivative_test-1-v1",
       "title": "Concavity link (v2)",
       "prompt": "f'' < 0 on an interval. Concave up or down?",
+      "promptLatex": "f^{\\prime\\prime} \\text{<} 0 \\text{on an interval. Concave up or down?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7334,6 +7765,7 @@
       "id": "cur-c1-second_derivative_test-1-v2",
       "title": "Concavity link (v3)",
       "prompt": "f'' < 0 on an interval. Concave up or down?",
+      "promptLatex": "f^{\\prime\\prime} \\text{<} 0 \\text{on an interval. Concave up or down?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7351,6 +7783,7 @@
       "id": "cur-c1-second_derivative_test-2-v0",
       "title": "Max via f double prime",
       "prompt": "f'(1)=0 and f''(1)<0. Conclusion?",
+      "promptLatex": "f^{\\prime}(1)=0 \\text{and} f^{\\prime\\prime}(1) \\text{<} 0. \\text{Conclusion?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7368,6 +7801,7 @@
       "id": "cur-c1-second_derivative_test-2-v1",
       "title": "Max via f double prime (v2)",
       "prompt": "f'(1)=0 and f''(1)<0. Conclusion?",
+      "promptLatex": "f^{\\prime}(1)=0 \\text{and} f^{\\prime\\prime}(1) \\text{<} 0. \\text{Conclusion?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7385,6 +7819,7 @@
       "id": "cur-c1-second_derivative_test-2-v2",
       "title": "Max via f double prime (v3)",
       "prompt": "f'(1)=0 and f''(1)<0. Conclusion?",
+      "promptLatex": "f^{\\prime}(1)=0 \\text{and} f^{\\prime\\prime}(1) \\text{<} 0. \\text{Conclusion?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7402,6 +7837,7 @@
       "id": "cur-c1-second_derivative_test-3-v0",
       "title": "Inconclusive",
       "prompt": "f'(2)=0 and f''(2)=0. Second deriv test?",
+      "promptLatex": "f^{\\prime}(2)=0 \\text{and} f^{\\prime\\prime}(2)=0. \\text{Second deriv test?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7419,6 +7855,7 @@
       "id": "cur-c1-second_derivative_test-3-v1",
       "title": "Inconclusive (v2)",
       "prompt": "f'(2)=0 and f''(2)=0. Second deriv test?",
+      "promptLatex": "f^{\\prime}(2)=0 \\text{and} f^{\\prime\\prime}(2)=0. \\text{Second deriv test?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7436,6 +7873,7 @@
       "id": "cur-c1-second_derivative_test-3-v2",
       "title": "Inconclusive (v3)",
       "prompt": "f'(2)=0 and f''(2)=0. Second deriv test?",
+      "promptLatex": "f^{\\prime}(2)=0 \\text{and} f^{\\prime\\prime}(2)=0. \\text{Second deriv test?}",
       "skillIds": [
         "second_derivative_test"
       ],
@@ -7453,6 +7891,7 @@
       "id": "cur-c1-area_net_change-0-v0",
       "title": "Net change checkpoint",
       "prompt": "∫₀² v(t) dt with v>0 gives?",
+      "promptLatex": "\\int \\text{₀² v} (t) \\, \\text{dt with v>} 0 \\text{gives?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7470,6 +7909,7 @@
       "id": "cur-c1-area_net_change-0-v1",
       "title": "Net change checkpoint (v2)",
       "prompt": "∫₀² v(t) dt with v>0 gives?",
+      "promptLatex": "\\int \\text{₀² v} (t) \\, \\text{dt with v>} 0 \\text{gives?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7487,6 +7927,7 @@
       "id": "cur-c1-area_net_change-0-v2",
       "title": "Net change checkpoint (v3)",
       "prompt": "∫₀² v(t) dt with v>0 gives?",
+      "promptLatex": "\\int \\text{₀² v} (t) \\, \\text{dt with v>} 0 \\text{gives?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7504,6 +7945,7 @@
       "id": "cur-c1-area_net_change-1-v0",
       "title": "Average value",
       "prompt": "Average of f on [a,b] uses factor 1/(b-a) times ∫?",
+      "promptLatex": "\\text{Average of f on [a,b] uses factor} 1/(b-a) \\text{times} \\int \\text{?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7521,6 +7963,7 @@
       "id": "cur-c1-area_net_change-1-v1",
       "title": "Average value (v2)",
       "prompt": "Average of f on [a,b] uses factor 1/(b-a) times ∫?",
+      "promptLatex": "\\text{Average of f on [a,b] uses factor} 1/(b-a) \\text{times} \\int \\text{?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7538,6 +7981,7 @@
       "id": "cur-c1-area_net_change-1-v2",
       "title": "Average value (v3)",
       "prompt": "Average of f on [a,b] uses factor 1/(b-a) times ∫?",
+      "promptLatex": "\\text{Average of f on [a,b] uses factor} 1/(b-a) \\text{times} \\int \\text{?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7555,6 +7999,7 @@
       "id": "cur-c1-area_net_change-2-v0",
       "title": "Net change formula",
       "prompt": "Net change in f from a to b equals ∫ f'(x) dx from a to b?",
+      "promptLatex": "\\text{Net change in f from a to b equals} \\int f^{\\prime}(x) \\, \\text{dx from a to b?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7572,6 +8017,7 @@
       "id": "cur-c1-area_net_change-2-v1",
       "title": "Net change formula (v2)",
       "prompt": "Net change in f from a to b equals ∫ f'(x) dx from a to b?",
+      "promptLatex": "\\text{Net change in f from a to b equals} \\int f^{\\prime}(x) \\, \\text{dx from a to b?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7589,6 +8035,7 @@
       "id": "cur-c1-area_net_change-2-v2",
       "title": "Net change formula (v3)",
       "prompt": "Net change in f from a to b equals ∫ f'(x) dx from a to b?",
+      "promptLatex": "\\text{Net change in f from a to b equals} \\int f^{\\prime}(x) \\, \\text{dx from a to b?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7606,6 +8053,7 @@
       "id": "cur-c1-area_net_change-3-v0",
       "title": "Total distance",
       "prompt": "If v(t) changes sign, total distance requires?",
+      "promptLatex": "\\text{If v} (t) \\text{changes sign, total distance requires?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7623,6 +8071,7 @@
       "id": "cur-c1-area_net_change-3-v1",
       "title": "Total distance (v2)",
       "prompt": "If v(t) changes sign, total distance requires?",
+      "promptLatex": "\\text{If v} (t) \\text{changes sign, total distance requires?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7640,6 +8089,7 @@
       "id": "cur-c1-area_net_change-3-v2",
       "title": "Total distance (v3)",
       "prompt": "If v(t) changes sign, total distance requires?",
+      "promptLatex": "\\text{If v} (t) \\text{changes sign, total distance requires?}",
       "skillIds": [
         "area_net_change"
       ],
@@ -7657,6 +8107,7 @@
       "id": "cur-c1-numerical_integration-0-v0",
       "title": "Numerical integration checkpoint",
       "prompt": "Trapezoid rule uses what shape areas?",
+      "promptLatex": "\\text{Trapezoid rule uses what shape areas?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7674,6 +8125,7 @@
       "id": "cur-c1-numerical_integration-0-v1",
       "title": "Numerical integration checkpoint (v2)",
       "prompt": "Trapezoid rule uses what shape areas?",
+      "promptLatex": "\\text{Trapezoid rule uses what shape areas?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7691,6 +8143,7 @@
       "id": "cur-c1-numerical_integration-0-v2",
       "title": "Numerical integration checkpoint (v3)",
       "prompt": "Trapezoid rule uses what shape areas?",
+      "promptLatex": "\\text{Trapezoid rule uses what shape areas?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7708,6 +8161,7 @@
       "id": "cur-c1-numerical_integration-1-v0",
       "title": "Simpson idea",
       "prompt": "Simpson rule fits what degree polynomials on each subinterval?",
+      "promptLatex": "\\text{Simpson rule fits what degree polynomials on each subinterval?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7725,6 +8179,7 @@
       "id": "cur-c1-numerical_integration-1-v1",
       "title": "Simpson idea (v2)",
       "prompt": "Simpson rule fits what degree polynomials on each subinterval?",
+      "promptLatex": "\\text{Simpson rule fits what degree polynomials on each subinterval?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7742,6 +8197,7 @@
       "id": "cur-c1-numerical_integration-1-v2",
       "title": "Simpson idea (v3)",
       "prompt": "Simpson rule fits what degree polynomials on each subinterval?",
+      "promptLatex": "\\text{Simpson rule fits what degree polynomials on each subinterval?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7759,6 +8215,7 @@
       "id": "cur-c1-numerical_integration-2-v0",
       "title": "Midpoint rule",
       "prompt": "Midpoint rule uses sample point at interval?",
+      "promptLatex": "\\text{Midpoint rule uses sample point at interval?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7776,6 +8233,7 @@
       "id": "cur-c1-numerical_integration-2-v1",
       "title": "Midpoint rule (v2)",
       "prompt": "Midpoint rule uses sample point at interval?",
+      "promptLatex": "\\text{Midpoint rule uses sample point at interval?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7793,6 +8251,7 @@
       "id": "cur-c1-numerical_integration-2-v2",
       "title": "Midpoint rule (v3)",
       "prompt": "Midpoint rule uses sample point at interval?",
+      "promptLatex": "\\text{Midpoint rule uses sample point at interval?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7810,6 +8269,7 @@
       "id": "cur-c1-numerical_integration-3-v0",
       "title": "Error control",
       "prompt": "More subintervals generally do what to error?",
+      "promptLatex": "\\text{More subintervals generally} \\, \\text{do what to error?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7827,6 +8287,7 @@
       "id": "cur-c1-numerical_integration-3-v1",
       "title": "Error control (v2)",
       "prompt": "More subintervals generally do what to error?",
+      "promptLatex": "\\text{More subintervals generally} \\, \\text{do what to error?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7844,6 +8305,7 @@
       "id": "cur-c1-numerical_integration-3-v2",
       "title": "Error control (v3)",
       "prompt": "More subintervals generally do what to error?",
+      "promptLatex": "\\text{More subintervals generally} \\, \\text{do what to error?}",
       "skillIds": [
         "numerical_integration"
       ],
@@ -7861,6 +8323,7 @@
       "id": "cur-c1-work_applications-0-v0",
       "title": "Work checkpoint",
       "prompt": "Constant force 10 N over 2 m. Work W=?",
+      "promptLatex": "\\text{Constant force} 10 \\text{N over} 2 \\text{m. Work} W= \\text{?}",
       "skillIds": [
         "work_applications"
       ],
@@ -7878,6 +8341,7 @@
       "id": "cur-c1-work_applications-0-v1",
       "title": "Work checkpoint (v2)",
       "prompt": "Constant force 10 N over 2 m. Work W=?",
+      "promptLatex": "\\text{Constant force} 10 \\text{N over} 2 \\text{m. Work} W= \\text{?}",
       "skillIds": [
         "work_applications"
       ],
@@ -7895,6 +8359,7 @@
       "id": "cur-c1-work_applications-0-v2",
       "title": "Work checkpoint (v3)",
       "prompt": "Constant force 10 N over 2 m. Work W=?",
+      "promptLatex": "\\text{Constant force} 10 \\text{N over} 2 \\text{m. Work} W= \\text{?}",
       "skillIds": [
         "work_applications"
       ],
@@ -7912,6 +8377,7 @@
       "id": "cur-c1-work_applications-1-v0",
       "title": "Variable force",
       "prompt": "Work ∫ F(x) dx represents what?",
+      "promptLatex": "\\text{Work} \\int F(x) \\, \\text{dx represents what?}",
       "skillIds": [
         "work_applications"
       ],
@@ -7929,6 +8395,7 @@
       "id": "cur-c1-work_applications-1-v1",
       "title": "Variable force (v2)",
       "prompt": "Work ∫ F(x) dx represents what?",
+      "promptLatex": "\\text{Work} \\int F(x) \\, \\text{dx represents what?}",
       "skillIds": [
         "work_applications"
       ],
@@ -7946,6 +8413,7 @@
       "id": "cur-c1-work_applications-1-v2",
       "title": "Variable force (v3)",
       "prompt": "Work ∫ F(x) dx represents what?",
+      "promptLatex": "\\text{Work} \\int F(x) \\, \\text{dx represents what?}",
       "skillIds": [
         "work_applications"
       ],
@@ -7963,6 +8431,7 @@
       "id": "cur-c1-work_applications-2-v0",
       "title": "Spring work",
       "prompt": "Hooke spring F=kx. Work to stretch from 0 to L is ∫ kx dx from 0 to L?",
+      "promptLatex": "\\text{Hooke spring} F=kx. \\text{Work to stretch from} 0 \\text{to L is} \\int \\text{kx} \\, \\text{dx from} 0 \\text{to L?}",
       "skillIds": [
         "work_applications"
       ],
@@ -7980,6 +8449,7 @@
       "id": "cur-c1-work_applications-2-v1",
       "title": "Spring work (v2)",
       "prompt": "Hooke spring F=kx. Work to stretch from 0 to L is ∫ kx dx from 0 to L?",
+      "promptLatex": "\\text{Hooke spring} F=kx. \\text{Work to stretch from} 0 \\text{to L is} \\int \\text{kx} \\, \\text{dx from} 0 \\text{to L?}",
       "skillIds": [
         "work_applications"
       ],
@@ -7997,6 +8467,7 @@
       "id": "cur-c1-work_applications-2-v2",
       "title": "Spring work (v3)",
       "prompt": "Hooke spring F=kx. Work to stretch from 0 to L is ∫ kx dx from 0 to L?",
+      "promptLatex": "\\text{Hooke spring} F=kx. \\text{Work to stretch from} 0 \\text{to L is} \\int \\text{kx} \\, \\text{dx from} 0 \\text{to L?}",
       "skillIds": [
         "work_applications"
       ],
@@ -8014,6 +8485,7 @@
       "id": "cur-c1-work_applications-3-v0",
       "title": "Units check",
       "prompt": "Work in N·m is also called?",
+      "promptLatex": "\\text{Work in N·m is also called?}",
       "skillIds": [
         "work_applications"
       ],
@@ -8031,6 +8503,7 @@
       "id": "cur-c1-work_applications-3-v1",
       "title": "Units check (v2)",
       "prompt": "Work in N·m is also called?",
+      "promptLatex": "\\text{Work in N·m is also called?}",
       "skillIds": [
         "work_applications"
       ],
@@ -8048,6 +8521,7 @@
       "id": "cur-c1-work_applications-3-v2",
       "title": "Units check (v3)",
       "prompt": "Work in N·m is also called?",
+      "promptLatex": "\\text{Work in N·m is also called?}",
       "skillIds": [
         "work_applications"
       ],
@@ -8065,6 +8539,7 @@
       "id": "cur-c1-exponential_growth-0-v0",
       "title": "Growth checkpoint",
       "prompt": "y' = ky with k>0 models?",
+      "promptLatex": "y^{\\prime} = \\text{ky with k>} 0 \\text{models?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8082,6 +8557,7 @@
       "id": "cur-c1-exponential_growth-0-v1",
       "title": "Growth checkpoint (v2)",
       "prompt": "y' = ky with k>0 models?",
+      "promptLatex": "y^{\\prime} = \\text{ky with k>} 0 \\text{models?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8099,6 +8575,7 @@
       "id": "cur-c1-exponential_growth-0-v2",
       "title": "Growth checkpoint (v3)",
       "prompt": "y' = ky with k>0 models?",
+      "promptLatex": "y^{\\prime} = \\text{ky with k>} 0 \\text{models?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8116,6 +8593,7 @@
       "id": "cur-c1-exponential_growth-1-v0",
       "title": "Logistic",
       "prompt": "Logistic equation slows growth due to?",
+      "promptLatex": "\\text{Logistic equation slows growth due to?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8133,6 +8611,7 @@
       "id": "cur-c1-exponential_growth-1-v1",
       "title": "Logistic (v2)",
       "prompt": "Logistic equation slows growth due to?",
+      "promptLatex": "\\text{Logistic equation slows growth due to?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8150,6 +8629,7 @@
       "id": "cur-c1-exponential_growth-1-v2",
       "title": "Logistic (v3)",
       "prompt": "Logistic equation slows growth due to?",
+      "promptLatex": "\\text{Logistic equation slows growth due to?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8167,6 +8647,7 @@
       "id": "cur-c1-exponential_growth-2-v0",
       "title": "Decay model",
       "prompt": "y' = -ky with k>0 models?",
+      "promptLatex": "y^{\\prime} = -ky \\text{with k>} 0 \\text{models?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8184,6 +8665,7 @@
       "id": "cur-c1-exponential_growth-2-v1",
       "title": "Decay model (v2)",
       "prompt": "y' = -ky with k>0 models?",
+      "promptLatex": "y^{\\prime} = -ky \\text{with k>} 0 \\text{models?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8201,6 +8683,7 @@
       "id": "cur-c1-exponential_growth-2-v2",
       "title": "Decay model (v3)",
       "prompt": "y' = -ky with k>0 models?",
+      "promptLatex": "y^{\\prime} = -ky \\text{with k>} 0 \\text{models?}",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8218,6 +8701,7 @@
       "id": "cur-c1-exponential_growth-3-v0",
       "title": "General solution",
       "prompt": "y'=ky has solution y = ? times e^(kt)",
+      "promptLatex": "y^{\\prime}=ky \\text{has solution} y = \\text{? times} e^(kt)",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8235,6 +8719,7 @@
       "id": "cur-c1-exponential_growth-3-v1",
       "title": "General solution (v2)",
       "prompt": "y'=ky has solution y = ? times e^(kt)",
+      "promptLatex": "y^{\\prime}=ky \\text{has solution} y = \\text{? times} e^(kt)",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8252,6 +8737,7 @@
       "id": "cur-c1-exponential_growth-3-v2",
       "title": "General solution (v3)",
       "prompt": "y'=ky has solution y = ? times e^(kt)",
+      "promptLatex": "y^{\\prime}=ky \\text{has solution} y = \\text{? times} e^(kt)",
       "skillIds": [
         "exponential_growth"
       ],
@@ -8269,6 +8755,7 @@
       "id": "cur-c1-telescoping_series-0-v0",
       "title": "Telescoping checkpoint",
       "prompt": "Partial sum of 1/(n(n+1)) telescopes because?",
+      "promptLatex": "\\text{Partial sum of} 1/(n(n+1)) \\text{telescopes because?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8286,6 +8773,7 @@
       "id": "cur-c1-telescoping_series-0-v1",
       "title": "Telescoping checkpoint (v2)",
       "prompt": "Partial sum of 1/(n(n+1)) telescopes because?",
+      "promptLatex": "\\text{Partial sum of} 1/(n(n+1)) \\text{telescopes because?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8303,6 +8791,7 @@
       "id": "cur-c1-telescoping_series-0-v2",
       "title": "Telescoping checkpoint (v3)",
       "prompt": "Partial sum of 1/(n(n+1)) telescopes because?",
+      "promptLatex": "\\text{Partial sum of} 1/(n(n+1)) \\text{telescopes because?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8320,6 +8809,7 @@
       "id": "cur-c1-telescoping_series-1-v0",
       "title": "Limit",
       "prompt": "∑ 1/(n(n+1)) from n=1 to ∞ equals?",
+      "promptLatex": "\\sum 1/(n(n+1)) \\text{from} n=1 \\text{to} \\infty \\text{equals?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8337,6 +8827,7 @@
       "id": "cur-c1-telescoping_series-1-v1",
       "title": "Limit (v2)",
       "prompt": "∑ 1/(n(n+1)) from n=1 to ∞ equals?",
+      "promptLatex": "\\sum 1/(n(n+1)) \\text{from} n=1 \\text{to} \\infty \\text{equals?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8354,6 +8845,7 @@
       "id": "cur-c1-telescoping_series-1-v2",
       "title": "Limit (v3)",
       "prompt": "∑ 1/(n(n+1)) from n=1 to ∞ equals?",
+      "promptLatex": "\\sum 1/(n(n+1)) \\text{from} n=1 \\text{to} \\infty \\text{equals?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8371,6 +8863,7 @@
       "id": "cur-c1-telescoping_series-2-v0",
       "title": "Partial fraction form",
       "prompt": "1/(n(n+1)) = 1/n − 1/(n+1)?",
+      "promptLatex": "1/(n(n+1)) = 1/n - 1/(n+1) \\text{?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8388,6 +8881,7 @@
       "id": "cur-c1-telescoping_series-2-v1",
       "title": "Partial fraction form (v2)",
       "prompt": "1/(n(n+1)) = 1/n − 1/(n+1)?",
+      "promptLatex": "1/(n(n+1)) = 1/n - 1/(n+1) \\text{?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8405,6 +8899,7 @@
       "id": "cur-c1-telescoping_series-2-v2",
       "title": "Partial fraction form (v3)",
       "prompt": "1/(n(n+1)) = 1/n − 1/(n+1)?",
+      "promptLatex": "1/(n(n+1)) = 1/n - 1/(n+1) \\text{?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8422,6 +8917,7 @@
       "id": "cur-c1-telescoping_series-3-v0",
       "title": "Finite sum",
       "prompt": "Sum 1/(k(k+1)) from k=1 to 4 equals?",
+      "promptLatex": "\\text{Sum} 1/(k(k+1)) \\text{from} k=1 \\text{to} 4 \\text{equals?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8439,6 +8935,7 @@
       "id": "cur-c1-telescoping_series-3-v1",
       "title": "Finite sum (v2)",
       "prompt": "Sum 1/(k(k+1)) from k=1 to 4 equals?",
+      "promptLatex": "\\text{Sum} 1/(k(k+1)) \\text{from} k=1 \\text{to} 4 \\text{equals?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8456,6 +8953,7 @@
       "id": "cur-c1-telescoping_series-3-v2",
       "title": "Finite sum (v3)",
       "prompt": "Sum 1/(k(k+1)) from k=1 to 4 equals?",
+      "promptLatex": "\\text{Sum} 1/(k(k+1)) \\text{from} k=1 \\text{to} 4 \\text{equals?}",
       "skillIds": [
         "telescoping_series"
       ],
@@ -8473,6 +8971,7 @@
       "id": "cur-c1-root_test-0-v0",
       "title": "Root test checkpoint",
       "prompt": "Root test uses limit of nth root of |a_n|. If L<1, series?",
+      "promptLatex": "\\text{Root test uses limit of nth root of} |a_n|. \\text{If L<} 1, \\text{series?}",
       "skillIds": [
         "root_test"
       ],
@@ -8490,6 +8989,7 @@
       "id": "cur-c1-root_test-0-v1",
       "title": "Root test checkpoint (v2)",
       "prompt": "Root test uses limit of nth root of |a_n|. If L<1, series?",
+      "promptLatex": "\\text{Root test uses limit of nth root of} |a_n|. \\text{If L<} 1, \\text{series?}",
       "skillIds": [
         "root_test"
       ],
@@ -8507,6 +9007,7 @@
       "id": "cur-c1-root_test-0-v2",
       "title": "Root test checkpoint (v3)",
       "prompt": "Root test uses limit of nth root of |a_n|. If L<1, series?",
+      "promptLatex": "\\text{Root test uses limit of nth root of} |a_n|. \\text{If L<} 1, \\text{series?}",
       "skillIds": [
         "root_test"
       ],
@@ -8524,6 +9025,7 @@
       "id": "cur-c1-root_test-1-v0",
       "title": "Compare tests",
       "prompt": "Root test especially handy when terms look like?",
+      "promptLatex": "\\text{Root test especially handy when terms look like?}",
       "skillIds": [
         "root_test"
       ],
@@ -8541,6 +9043,7 @@
       "id": "cur-c1-root_test-1-v1",
       "title": "Compare tests (v2)",
       "prompt": "Root test especially handy when terms look like?",
+      "promptLatex": "\\text{Root test especially handy when terms look like?}",
       "skillIds": [
         "root_test"
       ],
@@ -8558,6 +9061,7 @@
       "id": "cur-c1-root_test-1-v2",
       "title": "Compare tests (v3)",
       "prompt": "Root test especially handy when terms look like?",
+      "promptLatex": "\\text{Root test especially handy when terms look like?}",
       "skillIds": [
         "root_test"
       ],
@@ -8575,6 +9079,7 @@
       "id": "cur-c1-root_test-2-v0",
       "title": "L equals 1",
       "prompt": "If root test gives L=1, conclusion?",
+      "promptLatex": "\\text{If root test gives} L=1, \\text{conclusion?}",
       "skillIds": [
         "root_test"
       ],
@@ -8592,6 +9097,7 @@
       "id": "cur-c1-root_test-2-v1",
       "title": "L equals 1 (v2)",
       "prompt": "If root test gives L=1, conclusion?",
+      "promptLatex": "\\text{If root test gives} L=1, \\text{conclusion?}",
       "skillIds": [
         "root_test"
       ],
@@ -8609,6 +9115,7 @@
       "id": "cur-c1-root_test-2-v2",
       "title": "L equals 1 (v3)",
       "prompt": "If root test gives L=1, conclusion?",
+      "promptLatex": "\\text{If root test gives} L=1, \\text{conclusion?}",
       "skillIds": [
         "root_test"
       ],
@@ -8626,6 +9133,7 @@
       "id": "cur-c1-root_test-3-v0",
       "title": "Geometric form",
       "prompt": "For a_n = (3/4)^n, root test limit L = ?",
+      "promptLatex": "\\text{For} a_n = (3/4)^n, \\text{root test limit} L = \\text{?}",
       "skillIds": [
         "root_test"
       ],
@@ -8643,6 +9151,7 @@
       "id": "cur-c1-root_test-3-v1",
       "title": "Geometric form (v2)",
       "prompt": "For a_n = (3/4)^n, root test limit L = ?",
+      "promptLatex": "\\text{For} a_n = (3/4)^n, \\text{root test limit} L = \\text{?}",
       "skillIds": [
         "root_test"
       ],
@@ -8660,6 +9169,7 @@
       "id": "cur-c1-root_test-3-v2",
       "title": "Geometric form (v3)",
       "prompt": "For a_n = (3/4)^n, root test limit L = ?",
+      "promptLatex": "\\text{For} a_n = (3/4)^n, \\text{root test limit} L = \\text{?}",
       "skillIds": [
         "root_test"
       ],
@@ -8677,6 +9187,7 @@
       "id": "cur-c1-absolute_convergence-0-v0",
       "title": "Absolute convergence checkpoint",
       "prompt": "If ∑|a_n| converges, original series is?",
+      "promptLatex": "\\text{If} \\sum|a_n| \\text{converges, original series is?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8694,6 +9205,7 @@
       "id": "cur-c1-absolute_convergence-0-v1",
       "title": "Absolute convergence checkpoint (v2)",
       "prompt": "If ∑|a_n| converges, original series is?",
+      "promptLatex": "\\text{If} \\sum|a_n| \\text{converges, original series is?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8711,6 +9223,7 @@
       "id": "cur-c1-absolute_convergence-0-v2",
       "title": "Absolute convergence checkpoint (v3)",
       "prompt": "If ∑|a_n| converges, original series is?",
+      "promptLatex": "\\text{If} \\sum|a_n| \\text{converges, original series is?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8728,6 +9241,7 @@
       "id": "cur-c1-absolute_convergence-1-v0",
       "title": "Conditional",
       "prompt": "Alternating series converges but ∑|a_n| diverges: convergence type?",
+      "promptLatex": "\\text{Alternating series converges but} \\sum|a_n| \\text{diverges: convergence type?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8745,6 +9259,7 @@
       "id": "cur-c1-absolute_convergence-1-v1",
       "title": "Conditional (v2)",
       "prompt": "Alternating series converges but ∑|a_n| diverges: convergence type?",
+      "promptLatex": "\\text{Alternating series converges but} \\sum|a_n| \\text{diverges: convergence type?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8762,6 +9277,7 @@
       "id": "cur-c1-absolute_convergence-1-v2",
       "title": "Conditional (v3)",
       "prompt": "Alternating series converges but ∑|a_n| diverges: convergence type?",
+      "promptLatex": "\\text{Alternating series converges but} \\sum|a_n| \\text{diverges: convergence type?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8779,6 +9295,7 @@
       "id": "cur-c1-absolute_convergence-2-v0",
       "title": "Rearrangement",
       "prompt": "Absolutely convergent series can be rearranged without changing?",
+      "promptLatex": "\\text{Absolutely convergent series can be rearranged without changing?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8796,6 +9313,7 @@
       "id": "cur-c1-absolute_convergence-2-v1",
       "title": "Rearrangement (v2)",
       "prompt": "Absolutely convergent series can be rearranged without changing?",
+      "promptLatex": "\\text{Absolutely convergent series can be rearranged without changing?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8813,6 +9331,7 @@
       "id": "cur-c1-absolute_convergence-2-v2",
       "title": "Rearrangement (v3)",
       "prompt": "Absolutely convergent series can be rearranged without changing?",
+      "promptLatex": "\\text{Absolutely convergent series can be rearranged without changing?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8830,6 +9349,7 @@
       "id": "cur-c1-absolute_convergence-3-v0",
       "title": "Ratio implication",
       "prompt": "If ratio test shows convergence, convergence is?",
+      "promptLatex": "\\text{If ratio test shows convergence, convergence is?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8847,6 +9367,7 @@
       "id": "cur-c1-absolute_convergence-3-v1",
       "title": "Ratio implication (v2)",
       "prompt": "If ratio test shows convergence, convergence is?",
+      "promptLatex": "\\text{If ratio test shows convergence, convergence is?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8864,6 +9385,7 @@
       "id": "cur-c1-absolute_convergence-3-v2",
       "title": "Ratio implication (v3)",
       "prompt": "If ratio test shows convergence, convergence is?",
+      "promptLatex": "\\text{If ratio test shows convergence, convergence is?}",
       "skillIds": [
         "absolute_convergence"
       ],
@@ -8881,6 +9403,7 @@
       "id": "cur-c1-surface_area-0-v0",
       "title": "Surface area checkpoint",
       "prompt": "Surface area of revolution uses arc length element and?",
+      "promptLatex": "\\text{Surface area of revolution uses arc length element and?}",
       "skillIds": [
         "surface_area"
       ],
@@ -8898,6 +9421,7 @@
       "id": "cur-c1-surface_area-0-v1",
       "title": "Surface area checkpoint (v2)",
       "prompt": "Surface area of revolution uses arc length element and?",
+      "promptLatex": "\\text{Surface area of revolution uses arc length element and?}",
       "skillIds": [
         "surface_area"
       ],
@@ -8915,6 +9439,7 @@
       "id": "cur-c1-surface_area-0-v2",
       "title": "Surface area checkpoint (v3)",
       "prompt": "Surface area of revolution uses arc length element and?",
+      "promptLatex": "\\text{Surface area of revolution uses arc length element and?}",
       "skillIds": [
         "surface_area"
       ],
@@ -8932,6 +9457,7 @@
       "id": "cur-c1-surface_area-1-v0",
       "title": "Compare volume",
       "prompt": "Surface area formula resembles volume formula but uses?",
+      "promptLatex": "\\text{Surface area formula resembles volume formula but uses?}",
       "skillIds": [
         "surface_area"
       ],
@@ -8949,6 +9475,7 @@
       "id": "cur-c1-surface_area-1-v1",
       "title": "Compare volume (v2)",
       "prompt": "Surface area formula resembles volume formula but uses?",
+      "promptLatex": "\\text{Surface area formula resembles volume formula but uses?}",
       "skillIds": [
         "surface_area"
       ],
@@ -8966,6 +9493,7 @@
       "id": "cur-c1-surface_area-1-v2",
       "title": "Compare volume (v3)",
       "prompt": "Surface area formula resembles volume formula but uses?",
+      "promptLatex": "\\text{Surface area formula resembles volume formula but uses?}",
       "skillIds": [
         "surface_area"
       ],
@@ -8983,6 +9511,7 @@
       "id": "cur-c1-surface_area-2-v0",
       "title": "Sphere surface",
       "prompt": "Rotating y=sqrt(R^2-x^2) about x-axis gives shape with surface area involving?",
+      "promptLatex": "\\text{Rotating} y=\\sqrt{R^2-x^2} \\text{about} x-axis \\text{gives shape with surface area involving?}",
       "skillIds": [
         "surface_area"
       ],
@@ -9000,6 +9529,7 @@
       "id": "cur-c1-surface_area-2-v1",
       "title": "Sphere surface (v2)",
       "prompt": "Rotating y=sqrt(R^2-x^2) about x-axis gives shape with surface area involving?",
+      "promptLatex": "\\text{Rotating} y=\\sqrt{R^2-x^2} \\text{about} x-axis \\text{gives shape with surface area involving?}",
       "skillIds": [
         "surface_area"
       ],
@@ -9017,6 +9547,7 @@
       "id": "cur-c1-surface_area-2-v2",
       "title": "Sphere surface (v3)",
       "prompt": "Rotating y=sqrt(R^2-x^2) about x-axis gives shape with surface area involving?",
+      "promptLatex": "\\text{Rotating} y=\\sqrt{R^2-x^2} \\text{about} x-axis \\text{gives shape with surface area involving?}",
       "skillIds": [
         "surface_area"
       ],
@@ -9034,6 +9565,7 @@
       "id": "cur-c1-surface_area-3-v0",
       "title": "Shell vs surface",
       "prompt": "Surface area integral measures?",
+      "promptLatex": "\\text{Surface area integral measures?}",
       "skillIds": [
         "surface_area"
       ],
@@ -9051,6 +9583,7 @@
       "id": "cur-c1-surface_area-3-v1",
       "title": "Shell vs surface (v2)",
       "prompt": "Surface area integral measures?",
+      "promptLatex": "\\text{Surface area integral measures?}",
       "skillIds": [
         "surface_area"
       ],
@@ -9068,6 +9601,7 @@
       "id": "cur-c1-surface_area-3-v2",
       "title": "Shell vs surface (v3)",
       "prompt": "Surface area integral measures?",
+      "promptLatex": "\\text{Surface area integral measures?}",
       "skillIds": [
         "surface_area"
       ],
@@ -9085,6 +9619,7 @@
       "id": "cur-c1-polar_arc_length-0-v0",
       "title": "Polar arc length checkpoint",
       "prompt": "Polar arc length uses integrand sqrt(r^2 + (dr/dθ)^2) dθ?",
+      "promptLatex": "\\text{Polar arc length uses integrand} \\sqrt{r^2 + (dr/d\\theta}^2 \\text{) d} \\theta \\text{?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9102,6 +9637,7 @@
       "id": "cur-c1-polar_arc_length-0-v1",
       "title": "Polar arc length checkpoint (v2)",
       "prompt": "Polar arc length uses integrand sqrt(r^2 + (dr/dθ)^2) dθ?",
+      "promptLatex": "\\text{Polar arc length uses integrand} \\sqrt{r^2 + (dr/d\\theta}^2 \\text{) d} \\theta \\text{?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9119,6 +9655,7 @@
       "id": "cur-c1-polar_arc_length-0-v2",
       "title": "Polar arc length checkpoint (v3)",
       "prompt": "Polar arc length uses integrand sqrt(r^2 + (dr/dθ)^2) dθ?",
+      "promptLatex": "\\text{Polar arc length uses integrand} \\sqrt{r^2 + (dr/d\\theta}^2 \\text{) d} \\theta \\text{?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9136,6 +9673,7 @@
       "id": "cur-c1-polar_arc_length-1-v0",
       "title": "Circle arc",
       "prompt": "For r = 5, from θ=0 to π/2, arc length integrand at each θ uses r = ?",
+      "promptLatex": "\\text{For} r = 5, \\text{from} \\theta=0 \\text{to} \\pi/2, \\text{arc length integrand at each} \\theta \\text{uses} r = \\text{?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9153,6 +9691,7 @@
       "id": "cur-c1-polar_arc_length-1-v1",
       "title": "Circle arc (v2)",
       "prompt": "For r = 5, from θ=0 to π/2, arc length integrand at each θ uses r = ?",
+      "promptLatex": "\\text{For} r = 5, \\text{from} \\theta=0 \\text{to} \\pi/2, \\text{arc length integrand at each} \\theta \\text{uses} r = \\text{?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9170,6 +9709,7 @@
       "id": "cur-c1-polar_arc_length-1-v2",
       "title": "Circle arc (v3)",
       "prompt": "For r = 5, from θ=0 to π/2, arc length integrand at each θ uses r = ?",
+      "promptLatex": "\\text{For} r = 5, \\text{from} \\theta=0 \\text{to} \\pi/2, \\text{arc length integrand at each} \\theta \\text{uses} r = \\text{?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9187,6 +9727,7 @@
       "id": "cur-c1-polar_arc_length-2-v0",
       "title": "Derivative term",
       "prompt": "If r = 2θ, dr/dθ equals?",
+      "promptLatex": "\\text{If} r = 2\\theta, \\, \\text{d} r/d\\theta \\text{equals?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9204,6 +9745,7 @@
       "id": "cur-c1-polar_arc_length-2-v1",
       "title": "Derivative term (v2)",
       "prompt": "If r = 2θ, dr/dθ equals?",
+      "promptLatex": "\\text{If} r = 2\\theta, \\, \\text{d} r/d\\theta \\text{equals?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9221,6 +9763,7 @@
       "id": "cur-c1-polar_arc_length-2-v2",
       "title": "Derivative term (v3)",
       "prompt": "If r = 2θ, dr/dθ equals?",
+      "promptLatex": "\\text{If} r = 2\\theta, \\, \\text{d} r/d\\theta \\text{equals?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9238,6 +9781,7 @@
       "id": "cur-c1-polar_arc_length-3-v0",
       "title": "Bounds",
       "prompt": "Full circle in polar from θ=0 to θ=2π traces arc length equal to?",
+      "promptLatex": "\\text{Full circle in polar from} \\theta=0 \\text{to} \\theta=2\\pi \\text{traces arc length equal to?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9255,6 +9799,7 @@
       "id": "cur-c1-polar_arc_length-3-v1",
       "title": "Bounds (v2)",
       "prompt": "Full circle in polar from θ=0 to θ=2π traces arc length equal to?",
+      "promptLatex": "\\text{Full circle in polar from} \\theta=0 \\text{to} \\theta=2\\pi \\text{traces arc length equal to?}",
       "skillIds": [
         "polar_arc_length"
       ],
@@ -9272,6 +9817,7 @@
       "id": "cur-c1-polar_arc_length-3-v2",
       "title": "Bounds (v3)",
       "prompt": "Full circle in polar from θ=0 to θ=2π traces arc length equal to?",
+      "promptLatex": "\\text{Full circle in polar from} \\theta=0 \\text{to} \\theta=2\\pi \\text{traces arc length equal to?}",
       "skillIds": [
         "polar_arc_length"
       ],

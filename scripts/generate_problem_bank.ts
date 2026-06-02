@@ -8,6 +8,7 @@ import { writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { skillsForCourse } from '../apps/desktop/src/domain/courseGraph.ts'
 import { SKILL_CATALOG } from '../apps/desktop/src/domain/skillProblemCatalog.ts'
+import { promptToLatex } from '../apps/desktop/src/lib/promptToLatex.ts'
 import type { ActivityKind, CourseFocus, Problem } from '../apps/desktop/src/domain/types.ts'
 
 const MODES: ActivityKind[] = ['guided_practice', 'independent_practice', 'mixed_review']
@@ -20,6 +21,7 @@ function buildCuratedBankFromCatalog(course: CourseFocus) {
     id: string
     title: string
     prompt: string
+    promptLatex: string
     skillIds: string[]
     difficulty: number
     mode: ActivityKind
@@ -44,6 +46,7 @@ function buildCuratedBankFromCatalog(course: CourseFocus) {
           id: `cur-${prefix}-${entry.skillId}-${specIndex}-v${variant}`,
           title: variant === 0 ? spec.title : `${spec.title} (v${variant + 1})`,
           prompt: spec.prompt,
+          promptLatex: spec.promptLatex ?? promptToLatex(spec.prompt),
           skillIds: [entry.skillId],
           difficulty: Math.min(0.8, Math.max(0.2, spec.difficulty + variant * 0.04)),
           mode,

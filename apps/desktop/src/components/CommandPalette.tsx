@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Clock3, FileText, Map, Search, Settings, Sparkles, Wrench } from 'lucide-react'
 import { AccessibleModal } from './AccessibleModal'
+import { MathText } from './MathText'
 import { searchResources, type ResourceSearchResult } from '@mathpilot/content-engine'
 import { mergeSearchHits, searchViaFts, type SearchHit } from '../domain/searchIndex'
 import type { MathPilotState } from '../domain/types'
@@ -145,7 +146,11 @@ export function CommandPalette({
                 >
                   <Search size={16} />
                   <strong>{hit.title}</strong>
-                  <span className="muted palette-hit-sub">{hit.subtitle}</span>
+                  {hit.kind === 'problem' ? (
+                    <MathText text={hit.subtitle} compact className="muted palette-hit-sub" as="span" />
+                  ) : (
+                    <span className="muted palette-hit-sub">{hit.subtitle}</span>
+                  )}
                 </button>
               </li>
             ))}

@@ -3,18 +3,24 @@ import calc2Curated from '@config/problem_bank/calculus_2_curated.json'
 import { skillsForCourse } from './courseGraph'
 import { SKILL_CATALOG } from './skillProblemCatalog'
 import { SKILL_CATALOG_EXTENSION } from './skillProblemCatalogExtension'
+import { enrichProblemWithLatex, enrichProblems, enrichProblemsRecord } from '../lib/problemLatex'
+import { promptToLatex } from '../lib/promptToLatex'
 import type { ActivityKind, CourseFocus, Problem } from './types'
 
 export interface CuratedBankProblem {
   id: string
   title: string
   prompt: string
+  promptLatex?: string
   skillIds: string[]
   difficulty: number
   mode: ActivityKind
   answerType: Problem['answerType']
   expectedAnswer: string
   hintSequence?: string[]
+  hintSequenceLatex?: string[]
+  choiceLatex?: string[]
+  workedExampleLatex?: string[]
   verificationStatus?: Problem['verificationStatus']
   requiresShowWork?: boolean
 }
@@ -42,21 +48,29 @@ function catalogToProblems(): Problem[] {
         const id = `bank-${entry.skillId}-${specIndex}-v${variant}`
         if (seen.has(id)) continue
         seen.add(id)
-        out.push({
-          id,
-          title: variant === 0 ? spec.title : `${spec.title} (variant ${variant + 1})`,
-          prompt: spec.prompt,
-          skillIds: [entry.skillId],
-          difficulty: Math.min(0.95, spec.difficulty + variant * 0.02),
-          mode,
-          answerType: spec.answerType,
-          expectedAnswer: spec.expectedAnswer,
-          hintSequence: spec.hintSequence,
-          verificationStatus: variant === 0 ? 'verified' : 'unverified_used',
-          source: 'catalog_bank',
-          requiresShowWork: spec.difficulty >= 0.45,
-          tags: spec.tags,
-        })
+        out.push(
+          enrichProblemWithLatex({
+            id,
+            title: variant === 0 ? spec.title : `${spec.title} (variant ${variant + 1})`,
+            prompt: spec.prompt,
+            promptLatex: spec.promptLatex,
+            skillIds: [entry.skillId],
+            difficulty: Math.min(0.95, spec.difficulty + variant * 0.02),
+            mode,
+            answerType: spec.answerType,
+            expectedAnswer: spec.expectedAnswer,
+            hintSequence: spec.hintSequence,
+            hintSequenceLatex: spec.hintSequenceLatex,
+            choices: spec.choices,
+            choiceLatex: spec.choiceLatex,
+            workedExample: spec.workedExample,
+            workedExampleLatex: spec.workedExampleLatex,
+            verificationStatus: variant === 0 ? 'verified' : 'unverified_used',
+            source: 'catalog_bank',
+            requiresShowWork: spec.difficulty >= 0.45,
+            tags: spec.tags,
+          }),
+        )
       }
     })
   }
@@ -84,12 +98,14 @@ export function buildCuratedBankFromCatalog(course: CourseFocus): CuratedBankPro
           id: `cur-${prefix}-${entry.skillId}-${specIndex}-v${variant}`,
           title: variant === 0 ? spec.title : `${spec.title} (v${variant + 1})`,
           prompt: spec.prompt,
+          promptLatex: spec.promptLatex ?? promptToLatex(spec.prompt),
           skillIds: [entry.skillId],
           difficulty: Math.min(0.8, Math.max(0.2, spec.difficulty + variant * 0.04)),
           mode,
           answerType: spec.answerType,
           expectedAnswer: spec.expectedAnswer,
           hintSequence: spec.hintSequence,
+          hintSequenceLatex: spec.hintSequenceLatex,
           verificationStatus: variant === 0 ? 'verified' : 'unverified_used',
           requiresShowWork: spec.difficulty >= 0.42,
         })
@@ -102,12 +118,14 @@ export function buildCuratedBankFromCatalog(course: CourseFocus): CuratedBankPro
 
 function curatedForCourse(course: CourseFocus): Problem[] {
   const file = (course === 'Calculus 2' ? calc2Curated : calc1Curated) as CuratedFile
-  return file.problems.map((p) => ({
-    ...p,
-    hintSequence: p.hintSequence ?? [],
-    verificationStatus: p.verificationStatus ?? 'verified',
-    source: 'curated_json',
-  }))
+  return enrichProblems(
+    file.problems.map((p) => ({
+      ...p,
+      hintSequence: p.hintSequence ?? [],
+      verificationStatus: p.verificationStatus ?? 'verified',
+      source: 'curated_json',
+    })),
+  )
 }
 
 /** Production-scale bank: curated JSON + 3 variants per catalog spec per skill. */
@@ -116,7 +134,7 @@ export function loadProductionProblemBank(course: CourseFocus): Problem[] {
   for (const problem of [...catalogToProblems(), ...curatedForCourse(course)]) {
     byId.set(problem.id, problem)
   }
-  return [...byId.values()]
+  return enrichProblems([...byId.values()])
 }
 
 export function mergeProblemBank(
@@ -125,7 +143,7 @@ export function mergeProblemBank(
 ): Record<string, Problem> {
   const merged = { ...existing }
   for (const problem of loadProductionProblemBank(course)) {
-    if (!merged[problem.id]) merged[problem.id] = problem
+    if (!merged[problem.id]) merged[problem.id] = enrichProblemWithLatex(problem)
   }
-  return merged
+  return enrichProblemsRecord(merged)
 }

@@ -56,14 +56,19 @@ export interface Problem {
   id: string
   title: string
   prompt: string
+  /** Pre-rendered LaTeX for display; auto-derived from prompt when omitted. */
+  promptLatex?: string
   skillIds: string[]
   difficulty: number
   mode: ActivityKind
   answerType: 'expression' | 'text' | 'choice'
   expectedAnswer: string
   workedExample?: string[]
+  workedExampleLatex?: string[]
   hintSequence: string[]
+  hintSequenceLatex?: string[]
   choices?: string[]
+  choiceLatex?: string[]
   verificationStatus?: 'verified' | 'unverified_used' | 'deprecated'
   source?: string
   deprecated?: boolean

@@ -557,6 +557,7 @@ Implementation suggestions:
 - convert to LaTeX and parseable internal math representation
 - show preview clearly
 - allow plain text for conceptual explanations
+- typeset problem prompts, choices, hints, and worked examples with read-only MathLive fields when content is math-heavy
 
 ---
 

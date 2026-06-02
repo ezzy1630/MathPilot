@@ -2,6 +2,7 @@ import { CheckCircle2, XCircle } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { searchAppState } from '../domain/searchIndex'
 import type { MathPilotState } from '../domain/types'
+import { MathText } from './MathText'
 
 export function AttemptHistoryPanel({
   state,
@@ -22,6 +23,7 @@ export function AttemptHistoryPanel({
         id: attempt.id,
         skillName,
         problemTitle: problem?.title ?? attempt.problemId,
+        answer: attempt.answer,
         correct: attempt.correct,
         createdAt: attempt.createdAt,
         mode: attempt.mode,
@@ -55,6 +57,9 @@ export function AttemptHistoryPanel({
               <span className="muted">
                 {row.problemTitle} · {new Date(row.createdAt).toLocaleString()} · {row.mode}
               </span>
+              {row.answer && (
+                <MathText text={row.answer} compact className="attempt-history-answer" as="span" />
+              )}
               {row.mistakeTags.length > 0 && (
                 <span className="attempt-tags">{row.mistakeTags.join(', ')}</span>
               )}

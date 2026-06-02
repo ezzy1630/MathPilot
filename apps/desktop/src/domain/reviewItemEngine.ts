@@ -1,6 +1,15 @@
 import { generateProblemForSkill } from './problemGenerator'
 import { FORMULA_CATALOG } from './formulaRecallCatalog'
+import { enrichProblemWithLatex } from '../lib/problemLatex'
 import type { ActivityKind, MathPilotState, Problem, ReviewItem } from './types'
+
+function withReviewProblem(state: MathPilotState, problem: Problem) {
+  const enriched = enrichProblemWithLatex(problem)
+  return {
+    state: { ...state, problems: { ...state.problems, [enriched.id]: enriched } },
+    problem: enriched,
+  }
+}
 
 export type ReviewItemType =
   | 'procedural'
@@ -130,7 +139,7 @@ export function buildReviewProblem(
   if (reviewType === 'recall') {
     const formula = FORMULA_CATALOG.find((f) => f.skillId === skillId) ?? FORMULA_CATALOG[0]
     const id = `review-recall-${skillId}-${seed}`
-    const problem: Problem = {
+    return withReviewProblem(state, {
       id,
       title: `Recall: ${state.skills[skillId]?.name ?? skillId}`,
       prompt: formula.prompt,
@@ -142,14 +151,13 @@ export function buildReviewProblem(
       hintSequence: ['State the rule in words or symbols.'],
       source: 'review_recall',
       verificationStatus: 'verified',
-    }
-    return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
+    })
   }
 
   if (reviewType === 'method_selection' && METHOD_SELECTION[skillId]) {
     const spec = METHOD_SELECTION[skillId]
     const id = `review-method-${skillId}-${seed}`
-    const problem: Problem = {
+    return withReviewProblem(state, {
       id,
       title: 'Method selection',
       prompt: spec.prompt,
@@ -162,14 +170,13 @@ export function buildReviewProblem(
       hintSequence: ['Match the integrand/series form to a standard technique.'],
       source: 'review_method',
       verificationStatus: 'verified',
-    }
-    return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
+    })
   }
 
   if (reviewType === 'graph_interpretation' && GRAPH_PROMPTS[skillId]) {
     const spec = GRAPH_PROMPTS[skillId]
     const id = `review-graph-${skillId}-${seed}`
-    const problem: Problem = {
+    return withReviewProblem(state, {
       id,
       title: 'Graph / sign interpretation',
       prompt: spec.prompt,
@@ -182,14 +189,13 @@ export function buildReviewProblem(
       hintSequence: ['Build a sign chart from critical points and test intervals.'],
       source: 'review_graph',
       verificationStatus: 'verified',
-    }
-    return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
+    })
   }
 
   if (reviewType === 'explain_in_words' && EXPLAIN_PROMPTS[skillId]) {
     const spec = EXPLAIN_PROMPTS[skillId]
     const id = `review-explain-${skillId}-${seed}`
-    const problem: Problem = {
+    return withReviewProblem(state, {
       id,
       title: 'Explain in words',
       prompt: spec.prompt,
@@ -201,14 +207,13 @@ export function buildReviewProblem(
       hintSequence: ['Focus on meaning, not symbols — retrieval in words strengthens memory.'],
       source: 'review_explain',
       verificationStatus: 'verified',
-    }
-    return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
+    })
   }
 
   if (reviewType === 'mistake_correction') {
     const tag = Object.values(state.mistakePatterns).find((m) => m.skillIds.includes(skillId))
     const id = `review-mistake-${skillId}-${seed}`
-    const problem: Problem = {
+    return withReviewProblem(state, {
       id,
       title: 'Correct the mistake pattern',
       prompt: `You often miss "${tag?.tag ?? 'setup'}" on ${state.skills[skillId]?.name ?? skillId}. What is the first check before computing?`,
@@ -220,14 +225,13 @@ export function buildReviewProblem(
       hintSequence: ['Name the step where your last errors started.'],
       source: 'review_mistake',
       verificationStatus: 'verified',
-    }
-    return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
+    })
   }
 
   if (reviewType === 'concept' && CONCEPT_MC[skillId]) {
     const spec = CONCEPT_MC[skillId]
     const id = `review-concept-${skillId}-${seed}`
-    const problem: Problem = {
+    return withReviewProblem(state, {
       id,
       title: 'Concept check',
       prompt: spec.prompt,
@@ -240,8 +244,7 @@ export function buildReviewProblem(
       hintSequence: ['Eliminate choices that confuse limits, averages, and rates.'],
       source: 'review_concept',
       verificationStatus: 'verified',
-    }
-    return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
+    })
   }
 
   if (reviewType === 'transfer') {
@@ -249,31 +252,23 @@ export function buildReviewProblem(
     const generated = generateProblemForSkill(state, transferSkillId, seed)
     if (!generated) return { state }
     const id = `review-transfer-${skillId}-${seed}`
-    const problem: Problem = {
+    return withReviewProblem(generated.state, {
       ...generated.record.problem,
       id,
       title: `Transfer: ${state.skills[transferSkillId]?.name ?? transferSkillId}`,
       skillIds: [skillId, transferSkillId],
       mode: 'mixed_review',
       source: 'review_transfer',
-    }
-    return {
-      state: { ...generated.state, problems: { ...generated.state.problems, [id]: problem } },
-      problem,
-    }
+    })
   }
 
   const generated = generateProblemForSkill(state, skillId, seed)
   if (!generated) return { state }
-  const problem: Problem = {
+  return withReviewProblem(generated.state, {
     ...generated.record.problem,
     mode: 'mixed_review' as ActivityKind,
     source: `review_${reviewType}`,
-  }
-  return {
-    state: { ...generated.state, problems: { ...generated.state.problems, [problem.id]: problem } },
-    problem,
-  }
+  })
 }
 
 export function enrichReviewQueue(state: MathPilotState): MathPilotState {

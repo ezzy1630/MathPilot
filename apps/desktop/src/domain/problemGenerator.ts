@@ -1,3 +1,4 @@
+import { enrichProblemWithLatex } from '../lib/problemLatex'
 import { SKILL_CATALOG } from './skillProblemCatalog'
 import { toCodexMetadata } from './problemBank'
 import { checkAnswer, checkAnswerAsync } from './mathEngine'
@@ -121,7 +122,7 @@ export function generateProblemForSkill(
   const status = verification.symbolic === 'passed' ? 'verified' : 'unverified_used'
 
   const id = `gen-${skillId}-${seed}`
-  const problem: Problem = {
+  const problem = enrichProblemWithLatex({
     id,
     title: spec.title,
     prompt: spec.prompt,
@@ -135,7 +136,7 @@ export function generateProblemForSkill(
     source: 'template_engine',
     attemptCount: 0,
     requiresShowWork: spec.requiresShowWork,
-  }
+  })
 
   const record: GeneratedProblemRecord = {
     problem,
@@ -205,7 +206,7 @@ export async function generateProblemForSkillAsync(
   const status = verification.symbolic === 'passed' ? 'verified' : 'unverified_used'
 
   const id = `gen-${skillId}-${seed}`
-  const problem: Problem = {
+  const problem = enrichProblemWithLatex({
     id,
     title: spec.title,
     prompt: spec.prompt,
@@ -219,7 +220,7 @@ export async function generateProblemForSkillAsync(
     source: 'template_engine',
     attemptCount: 0,
     requiresShowWork: spec.requiresShowWork,
-  }
+  })
 
   const record: GeneratedProblemRecord = {
     problem,
@@ -346,7 +347,7 @@ export async function generateProblemViaCodexAsync(
     independent.ok || templateVerification.symbolic === 'passed' ? 'verified' : 'unverified_used'
   const id = `codex-${skillId}-${seed}`
 
-  const problem: Problem = {
+  const problem = enrichProblemWithLatex({
     id,
     title: spec.title,
     prompt: spec.prompt,
@@ -360,7 +361,7 @@ export async function generateProblemViaCodexAsync(
     source: 'codex_generated',
     attemptCount: 0,
     requiresShowWork: spec.requiresShowWork,
-  }
+  })
 
   const record: GeneratedProblemRecord = {
     problem,

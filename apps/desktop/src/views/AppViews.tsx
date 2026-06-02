@@ -29,6 +29,10 @@ import { HomeworkResultCard } from '../components/HomeworkResultCard'
 import { DesmosEmbed } from '../components/DesmosEmbed'
 import { FormulaRecallPanel } from '../components/FormulaRecallPanel'
 import { MathInput } from '../components/MathInput'
+import { MathLineList } from '../components/MathLineList'
+import { MathChoiceButton } from '../components/MathChoiceButton'
+import { MathText } from '../components/MathText'
+import { ProblemPrompt } from '../components/ProblemPrompt'
 import { EmptyStateIllustration } from '../components/EmptyStateIllustration'
 import { SimilarExamplePanel } from '../components/SimilarExamplePanel'
 import { PrerequisiteTree } from '../components/PrerequisiteTree'
@@ -671,12 +675,8 @@ export function ActivityView({
           </div>
         </header>
         <section className="panel repair-explain">
-          <p className="lead">{explain.summary}</p>
-          <ol className="repair-steps">
-            {explain.steps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ol>
+          <MathText text={explain.summary} className="lead" />
+          <MathLineList lines={explain.steps} className="repair-steps" />
           <button type="button" className="primary large" onClick={submitAnswer}>
             Continue to worked examples
           </button>
@@ -860,11 +860,11 @@ export function ActivityView({
       {readOnly && (
         <section className="panel worked-example-readonly">
           <p className="eyebrow">Worked example — read only</p>
-          <ol>
-            {(problem.workedExample ?? []).map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ol>
+          <MathLineList
+            lines={problem.workedExample ?? []}
+            linesLatex={problem.workedExampleLatex}
+            className="worked-example-steps"
+          />
           <button type="button" className="primary" onClick={submitAnswer}>
             Continue to practice
           </button>
@@ -888,7 +888,19 @@ export function ActivityView({
               <p className="meta-label">Problem</p>
               <span>{problem.answerType === 'choice' ? 'Choose' : problem.answerType === 'text' ? 'Explain' : 'Compute'}</span>
             </div>
-            <p className="prompt">{problem.prompt}</p>
+            <ProblemPrompt problem={problem} prompt={problem.prompt} />
+            {hintCount > 0 && problem.hintSequence.length > 0 && (
+              <div className="hint-panel" aria-live="polite">
+                <p className="meta-label">
+                  {hintLabels[Math.min(hintCount - 1, hintLabels.length - 1)]}
+                </p>
+                <MathText
+                  text={problem.hintSequence[Math.min(hintCount - 1, problem.hintSequence.length - 1)]}
+                  latex={problem.hintSequenceLatex?.[Math.min(hintCount - 1, problem.hintSequence.length - 1)]}
+                  compact
+                />
+              </div>
+            )}
           </section>
           {showWorkRequired && !showSteps && (
             <p className="eyebrow show-work-note">Show-your-work recommended — add steps before checking.</p>
@@ -977,15 +989,14 @@ export function ActivityView({
           )}
           {problem.answerType === 'choice' && problem.choices && (
             <div className="choice-grid">
-              {problem.choices.map((choice) => (
-                <button
+              {problem.choices.map((choice, index) => (
+                <MathChoiceButton
                   key={choice}
-                  type="button"
-                  className={`secondary ${answer === choice ? 'active' : ''}`}
-                  onClick={() => setAnswer(choice)}
-                >
-                  {choice}
-                </button>
+                  choice={choice}
+                  choiceLatex={problem.choiceLatex?.[index]}
+                  selected={answer === choice}
+                  onSelect={setAnswer}
+                />
               ))}
             </div>
           )}
@@ -1104,7 +1115,7 @@ export function ActivityView({
           >
             <p className="meta-label">Teaching inspector</p>
             <h3>{inspectorTitle}</h3>
-            <p>{inspectorBody}</p>
+            <MathText text={inspectorBody} className="inspector-feedback-body" />
             {(wrongEscalation ?? 0) > 0 && feedbackTone !== 'correct' && (
               <p className="eyebrow feedback-escalation" data-testid="feedback-escalation">
                 Guided feedback · step {(wrongEscalation ?? 0) + 1} of 3
@@ -1117,7 +1128,9 @@ export function ActivityView({
                 <h4>Try next</h4>
                 <ul>
                   {(feedbackNextSteps?.length ? feedbackNextSteps : ['Try a similar problem without hints to lock in the skill.']).map((step) => (
-                    <li key={step}>{step}</li>
+                    <li key={step}>
+                      <MathText text={step} compact />
+                    </li>
                   ))}
                 </ul>
               </section>
@@ -1251,7 +1264,12 @@ export function ActivityView({
                 </div>
               )}
               {graphPresets[graphPresetIndex]?.notes && (
-                <p className="muted graph-preset-notes">{graphPresets[graphPresetIndex]?.notes}</p>
+                <MathText
+                  text={graphPresets[graphPresetIndex]!.notes}
+                  compact
+                  className="muted graph-preset-notes"
+                  as="p"
+                />
               )}
               <DesmosEmbed expression={activeGraphExpression} />
               {builtInGraphProps && (

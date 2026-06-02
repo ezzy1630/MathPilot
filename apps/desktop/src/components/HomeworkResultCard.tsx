@@ -1,5 +1,6 @@
 import { AlertCircle, BookMarked, CheckCircle2, HelpCircle, Wrench } from 'lucide-react'
 import type { HomeworkAnalysis } from '../domain/types'
+import { MathText } from './MathText'
 
 function resolveWrongStepIndex(analysis: HomeworkAnalysis): number | undefined {
   if (analysis.wrongStepIndex !== undefined) return analysis.wrongStepIndex
@@ -40,13 +41,13 @@ export function HomeworkResultCard({
           <time dateTime={analysis.createdAt}>{new Date(analysis.createdAt).toLocaleString()}</time>
         </div>
       </header>
-      <p className="homework-result-feedback">{analysis.feedbackSummary}</p>
+      <MathText text={analysis.feedbackSummary} className="homework-result-feedback" />
       {analysis.detectedProblems && analysis.detectedProblems.length > 1 && (
         <ul className="homework-multi-problems">
           {analysis.detectedProblems.map((problem) => (
             <li key={problem.label}>
               <strong>{problem.label}</strong>
-              <span className="muted">{problem.problemText.slice(0, 120)}</span>
+              <MathText text={problem.problemText.slice(0, 120)} compact as="span" className="muted" />
             </li>
           ))}
         </ul>
@@ -63,8 +64,8 @@ export function HomeworkResultCard({
               }
             >
               <span className="homework-step-num">{step.label || `Step ${index + 1}`}</span>
-              <span>{step.work}</span>
-              {step.note && <span className="muted">{step.note}</span>}
+              <MathText text={step.work} compact as="span" />
+              {step.note && <MathText text={step.note} compact as="span" className="muted" />}
             </li>
           ))}
         </ol>
@@ -81,7 +82,7 @@ export function HomeworkResultCard({
                 {step.step}
                 {wrongStepIndex === index && !step.correct ? ' (first issue)' : ''}
               </strong>
-              : {step.note}
+              : <MathText text={step.note} compact as="span" />
             </li>
           ))}
         </ul>
@@ -116,7 +117,7 @@ export function HomeworkResultCard({
       </div>
       <details className="collapsible-details">
         <summary>Extracted work</summary>
-        <p>{analysis.extractedWorkSummary}</p>
+        <MathText text={analysis.extractedWorkSummary} compact as="p" />
       </details>
     </article>
   )

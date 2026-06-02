@@ -1,4 +1,5 @@
 import type { Problem } from './types'
+import { enrichProblems } from '../lib/problemLatex'
 
 export type DiagnosticQuestionKind = 'procedural' | 'choice' | 'graph' | 'error_identification'
 
@@ -590,20 +591,22 @@ const MIX: DiagnosticMixSpec[] = [
 
 export function diagnosticMixForSkills(skillIds: string[]): Problem[] {
   const set = new Set(skillIds)
-  return MIX.filter((spec) => set.has(spec.skillId)).map((spec, index) => ({
-    id: `diag-mix-${spec.skillId}-${spec.kind}-${index}`,
-    title: spec.title,
-    prompt: spec.prompt,
-    skillIds: [spec.skillId],
-    difficulty: spec.difficulty,
-    mode: 'diagnostic' as const,
-    answerType: spec.answerType,
-    expectedAnswer: spec.expectedAnswer,
-    choices: spec.choices,
-    hintSequence: spec.hintSequence,
-    verificationStatus: 'verified' as const,
-    source: `diagnostic_${spec.kind}`,
-  }))
+  return enrichProblems(
+    MIX.filter((spec) => set.has(spec.skillId)).map((spec, index) => ({
+      id: `diag-mix-${spec.skillId}-${spec.kind}-${index}`,
+      title: spec.title,
+      prompt: spec.prompt,
+      skillIds: [spec.skillId],
+      difficulty: spec.difficulty,
+      mode: 'diagnostic' as const,
+      answerType: spec.answerType,
+      expectedAnswer: spec.expectedAnswer,
+      choices: spec.choices,
+      hintSequence: spec.hintSequence,
+      verificationStatus: 'verified' as const,
+      source: `diagnostic_${spec.kind}`,
+    })),
+  )
 }
 
 export function inferDiagnosticQuestionKind(problem: Problem): DiagnosticQuestionKind {

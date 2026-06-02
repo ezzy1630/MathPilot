@@ -1,3 +1,4 @@
+import { enrichProblemWithLatex } from '../lib/problemLatex'
 import { FORMULA_CATALOG } from './formulaRecallCatalog'
 import type { ActivityKind, MathPilotState, Problem } from './types'
 
@@ -51,7 +52,7 @@ export function buildFormulaRecallProblem(
     FORMULA_CATALOG[0]
   const targetSkill = formula.skillId
   const id = `session-formula-${targetSkill}-${seed}`
-  const problem: Problem = {
+  const problem = enrichProblemWithLatex({
     id,
     title: `Formula recall: ${state.skills[targetSkill]?.name ?? targetSkill}`,
     prompt: formula.prompt,
@@ -63,7 +64,7 @@ export function buildFormulaRecallProblem(
     hintSequence: ['State the rule in words or standard notation.'],
     source: 'formula_recall_session',
     verificationStatus: 'verified',
-  }
+  })
   return { state: { ...state, problems: { ...state.problems, [id]: problem } }, problem }
 }
 

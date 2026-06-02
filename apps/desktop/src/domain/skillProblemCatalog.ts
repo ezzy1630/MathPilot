@@ -4,12 +4,18 @@ import { SKILL_CATALOG_EXTENSION } from './skillProblemCatalogExtension'
 export interface ProblemSpec {
   title: string
   prompt: string
+  promptLatex?: string
   expectedAnswer: string
   answerType: 'expression' | 'text'
   difficulty: number
   hintSequence: string[]
+  hintSequenceLatex?: string[]
   variables?: string[]
   tags?: string[]
+  choices?: string[]
+  choiceLatex?: string[]
+  workedExample?: string[]
+  workedExampleLatex?: string[]
 }
 
 export interface PracticeSpec extends ProblemSpec {

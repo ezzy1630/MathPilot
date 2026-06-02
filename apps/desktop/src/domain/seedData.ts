@@ -1,3 +1,4 @@
+import { enrichProblems } from '../lib/problemLatex'
 import { skillsForCourse } from './courseGraph'
 import { loadProductionProblemBank } from './problemBankLoader'
 import { expandDiagnosticProblemsForSkills } from './diagnosticTemplates'
@@ -110,7 +111,7 @@ export const legacySkills = [
   },
 ]
 
-export const problems: Problem[] = [
+export const problems: Problem[] = enrichProblems([
   {
     id: 'diagnostic-chain-setup',
     title: 'Diagnostic: Chain Rule Setup',
@@ -164,7 +165,7 @@ export const problems: Problem[] = [
     hintSequence: ['Compare the series to the standard 1/n^p family.'],
     workedExample: ['This is a p-series with p = 2. Since p > 1, it converges.'],
   },
-]
+])
 
 export const resources: ResourceRecord[] = [
   {
@@ -237,5 +238,5 @@ export function allProblems(course: CourseFocus): Problem[] {
       merged.push(bank)
     }
   }
-  return merged
+  return enrichProblems(merged)
 }

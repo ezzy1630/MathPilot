@@ -12,6 +12,7 @@ import {
 import { buildAnalyticsSnapshot } from '../domain/analyticsEngine'
 import { chooseNextAction } from '../domain/learningEngine'
 import type { MathPilotState } from '../domain/types'
+import { MathText } from './MathText'
 
 export function ProgressReport({
   state,
@@ -192,7 +193,7 @@ export function ProgressReport({
           <ol className="study-plan-list">
             {state.studyPlan.steps.slice(0, 6).map((step) => (
               <li key={`${step.skillId}-${step.action}`}>
-                <strong>{step.skillName}</strong> — {step.action}
+                <strong>{step.skillName}</strong> — <MathText text={step.action} compact as="span" />
               </li>
             ))}
           </ol>

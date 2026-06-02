@@ -2,6 +2,7 @@ import { Map } from 'lucide-react'
 import { AccessibleModal } from './AccessibleModal'
 import type { CoachInsight, NextAction } from '../domain/types'
 import type { StudyPlan } from '../domain/studyPlanEngine'
+import { MathText } from './MathText'
 
 export function WhyPanel({
   action,
@@ -50,7 +51,7 @@ export function WhyPanel({
           <ol className="why-steps">
             {studyPlan.steps.slice(0, 5).map((step) => (
               <li key={step.skillId}>
-                <strong>{step.skillName}</strong> — {step.action}
+                <strong>{step.skillName}</strong> — <MathText text={step.action} compact as="span" />
               </li>
             ))}
           </ol>

@@ -5,6 +5,7 @@ declare module 'react' {
     interface IntrinsicElements {
       'math-field': React.DetailedHTMLProps<React.HTMLAttributes<MathfieldElement>, MathfieldElement> & {
         readOnly?: boolean
+        'default-mode'?: string
       }
     }
   }

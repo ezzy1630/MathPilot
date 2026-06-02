@@ -1,5 +1,6 @@
 import { Play } from 'lucide-react'
 import type { Problem } from '../domain/types'
+import { MathLineList } from './MathLineList'
 
 export function SimilarExamplePanel({
   problem,
@@ -29,14 +30,7 @@ export function SimilarExamplePanel({
           </button>
         )}
       </div>
-      <ol className="similar-steps">
-        {lines.map((line, i) => (
-          <li key={`${line}-${i}`}>
-            <span className="step-num">{i + 1}</span>
-            <span>{line}</span>
-          </li>
-        ))}
-      </ol>
+      <MathLineList lines={lines} linesLatex={problem.workedExampleLatex} className="similar-steps" />
     </div>
   )
 }

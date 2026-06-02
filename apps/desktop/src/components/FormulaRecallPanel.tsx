@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { checkFormulaAnswer, nextFormulaRecall } from '../domain/formulaRecall'
 import type { MathPilotState } from '../domain/types'
 import { MathInput } from './MathInput'
+import { MathText } from './MathText'
 
 export function FormulaRecallPanel({
   state,
@@ -26,7 +27,7 @@ export function FormulaRecallPanel({
   return (
     <section className="panel formula-recall">
       <p className="eyebrow">Formula recall</p>
-      <h3>{active.prompt}</h3>
+      <MathText text={active.prompt} className="formula-recall-prompt" as="h3" />
       <MathInput value={answer} onChange={setAnswer} placeholder="Type the formula" />
       <div className="help-toolbar">
         <button type="button" className="primary" onClick={check}>

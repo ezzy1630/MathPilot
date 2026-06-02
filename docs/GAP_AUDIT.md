@@ -64,7 +64,7 @@ Manual Tauri pass: [`docs/MANUAL_QA_CHECKLIST.md`](MANUAL_QA_CHECKLIST.md)
 | Monorepo layout (desktop + packages + skills + config) | Done | repo root structure |
 | Tauri + React + TypeScript | Done | `apps/desktop/` |
 | SQLite persistence | Done | `apps/desktop/src-tauri/src/db.rs`, `migrations.rs`, `relational.rs` |
-| MathLive input | Done | `MathInput.tsx`, `mathlive.d.ts` |
+| MathLive input + read-only display | Done | `MathInput.tsx`, `MathDisplay.tsx`, `MathText.tsx`, `mathlive.d.ts` |
 | Python/SymPy subprocess checking | Done | `scripts/check_math.py`, `check_math_symbolic` in `db.rs` |
 | Built-in + Desmos graphing | Done | `BuiltInGraph.tsx`, `DesmosEmbed.tsx`, `SignChart.tsx`, `graphPresets.ts` |
 | Codex CLI adapter | Done | `invoke_codex` in `db.rs`, `aiAdapter.ts` |
@@ -94,6 +94,7 @@ Manual Tauri pass: [`docs/MANUAL_QA_CHECKLIST.md`](MANUAL_QA_CHECKLIST.md)
 | §5.2 Knowledge map (wheel, mastery states) | Done | `KnowledgeMapWheel.tsx`, `mapHelpers.ts`, `MasteryBadge.tsx` |
 | §5.3 Current activity UI (input, hints, feedback, help) | Done | Activity flow in `AppViews.tsx`, `SessionChrome.tsx` |
 | §5.4 Excellent math input (LaTeX, toolbar, preview) | Done | `MathInput.tsx` |
+| §5.5 Math display (prompts, choices, hints, worked examples) | Done | `MathText.tsx`, `ProblemPrompt.tsx`, `promptToLatex.ts`, `problemLatex.ts` (`enrichProblemWithLatex`) |
 
 ---
 

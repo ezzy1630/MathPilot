@@ -1245,6 +1245,99 @@ select:focus-visible {
   box-shadow: none;
 }
 
+.math-display,
+math-field.math-display {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.35rem;
+  line-height: 1.6;
+  cursor: default;
+  pointer-events: none;
+}
+
+math-field.math-display:focus-within {
+  outline: none;
+  box-shadow: none;
+}
+
+.math-display-compact,
+math-field.math-display-compact {
+  font-size: 1.05rem;
+  line-height: 1.45;
+  padding: 0;
+}
+
+.math-display-wrap {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.math-display-placeholder {
+  display: block;
+  min-height: 1.4em;
+  visibility: hidden;
+}
+
+.hint-panel {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--mp-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--mp-accent) 18%, transparent);
+}
+
+.hint-panel .meta-label {
+  margin: 0 0 8px;
+}
+
+.choice-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.choice-button math-field,
+.choice-button .math-display {
+  pointer-events: none;
+}
+
+.worked-example-steps,
+.similar-steps,
+.repair-steps {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.worked-example-steps li,
+.similar-steps li,
+.repair-steps li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.formula-recall-prompt {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.worked-example-readonly .worked-example-steps {
+  margin-bottom: 16px;
+}
+
 .math-tools,
 .math-toolbar {
   display: flex;
@@ -1472,9 +1565,20 @@ math-field {
   font-size: 1rem;
 }
 
-.inspector-card > p {
+.inspector-card > p,
+.inspector-card .inspector-feedback-body {
   margin: 8px 0 0;
   color: var(--mp-text-secondary);
+}
+
+.inspector-card .inspector-feedback-body math-field,
+.inspector-card .inspector-feedback-body .math-display {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.inspector-next li .math-display-wrap {
+  margin-top: 2px;
 }
 
 .inspector-correct {
@@ -2124,6 +2228,20 @@ a {
   display: block;
   font-size: 0.8125rem;
   margin-top: 2px;
+}
+
+.palette-list button .palette-hit-sub math-field,
+.palette-list button .palette-hit-sub .math-display-compact {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  padding: 0;
+}
+
+.homework-result-feedback math-field,
+.homework-result-feedback .math-display {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--mp-text-secondary);
 }
 
 .confidence-chip {
@@ -3303,6 +3421,20 @@ textarea {
   align-items: start;
   padding: 12px 0;
   border-bottom: 1px solid var(--mp-border);
+}
+
+.attempt-history-answer {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--mp-text-sm);
+  color: var(--mp-text-secondary);
+}
+
+.attempt-history-answer math-field,
+.attempt-history-answer .math-display-compact {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  padding: 0;
 }
 
 .attempt-tags {
