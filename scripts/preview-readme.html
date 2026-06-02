@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>README preview — MathPilot</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown-light.min.css">
+  <style>
+    body { background: #f6f8fa; margin: 0; padding: 24px; }
+    .markdown-body {
+      box-sizing: border-box;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 40px;
+      background: #fff;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+    }
+    .banner-check { max-width: 980px; margin: 0 auto 12px; font: 13px system-ui; color: #57606a; }
+    .banner-check.fail { color: #cf222e; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <p id="status" class="banner-check">Preview generated from README.md</p>
+  <article class="markdown-body">
+<p align="center">
+  <img src="docs/assets/readme-banner.png" alt="MathPilot — private calculus mastery engine for macOS" width="100%">
+</p>
+
+<p align="center">
+  <a href="https://github.com/ezzy1630/MathPilot/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/ezzy1630/MathPilot/ci.yml?branch=main&label=CI&style=flat-square"></a>
+  <img alt="macOS" src="https://img.shields.io/badge/macOS-Apple%20Silicon-111827?style=flat-square">
+  <img alt="Local-first" src="https://img.shields.io/badge/local--first-no%20account-1f7a5a?style=flat-square">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-1264d8?style=flat-square">
+</p>
+
+<p align="center">
+  <a href="#highlights">Highlights</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#develop">Develop</a> ·
+  <a href="MathPilot_spec.md">Spec</a>
+</p>
+
+<table>
+<tr><th>**1,080+** problems</th><th>**171** unit · **15** E2E tests</th><th>**Zero** cloud accounts</th><th>**One** next action</th></tr>
+</table>
+
+<h2>What is MathPilot?</h2>
+
+<p>A <strong>local-first calculus study cockpit</strong> for <strong>Calculus 1 &amp; 2</strong> — not a chatbot, LMS, or video playlist. MathPilot diagnoses your level, tracks mastery on a skill graph, coaches your next step, and keeps everything on your Mac.</p>
+
+<table>
+<tr><th></th><th></th></tr>
+<tr><td>**Diagnose**</td><td>Adaptive, branching assessment</td></tr>
+<tr><td>**Track**</td><td>Evidence-based mastery + prerequisites</td></tr>
+<tr><td>**Coach**</td><td>One clear action on the Today desk</td></tr>
+<tr><td>**Practice**</td><td>Typeset math, hints, repair, spaced review</td></tr>
+<tr><td>**Stay local**</td><td>SQLite + memory files — no cloud account</td></tr>
+</table>
+
+<blockquote><p>Open the app → <strong>Continue</strong> → start the best next step. Map, homework, and settings stay one click away.</p></blockquote>
+
+<h2>Highlights</h2>
+
+<table>
+<tr><th></th><th></th></tr>
+<tr><td>**Coach desk**</td><td>Blocker insight, one recommended action, pace controls (Short → Deep). No dashboard clutter.</td></tr>
+<tr><td>**Typeset math**</td><td>Prompts, hints, and choices render via **MathLive** + auto LaTeX enrichment — not plain `x^2` text.</td></tr>
+<tr><td>**Codex-first**</td><td>Optional **Codex CLI** for coach, homework, and maintenance — with offline fallbacks. No in-app API key.</td></tr>
+<tr><td>**Native macOS**</td><td>**Tauri 2** shell, bundled **Python + SymPy**, **Vision OCR**, command palette.</td></tr>
+</table>
+
+<h2>Features</h2>
+
+<table>
+<tr><th>Area</th><th>What you get</th></tr>
+<tr><td>**Today**</td><td>Coach insight, recommended action, adjustable session pace</td></tr>
+<tr><td>**Map**</td><td>ALEKS-style wheel, list, and prerequisite tree</td></tr>
+<tr><td>**Activity**</td><td>Practice, formula recall, Desmos + built-in graphs, step-aware feedback</td></tr>
+<tr><td>**Review**</td><td>FSRS scheduling, interleaving, mixed cumulative review</td></tr>
+<tr><td>**Homework**</td><td>Upload/paste, step feedback, local OCR; images discarded by default</td></tr>
+<tr><td>**AI (optional)**</td><td>Codex curator + deterministic fallbacks; SymPy symbolic checking</td></tr>
+<tr><td>**Privacy**</td><td>No cloud account; export/reset in Settings</td></tr>
+</table>
+
+<h2>How it works</h2>
+
+<pre><code class="mermaid">
+flowchart LR
+
+  T[Today] --&gt; P[Planner]
+
+  P --&gt; A[Activity]
+
+  P --&gt; H[Homework]
+
+  A --&gt; M[Mastery]
+
+  H --&gt; M
+
+  M --&gt; R[FSRS review]
+
+  R --&gt; T
+
+  D[Diagnostics] --&gt; M
+
+</code></pre>
+
+<p>MathPilot optimizes for <strong>durable mastery</strong>: hints count, mixed review matters, prerequisites gate advancement (with test-out when you&#x27;re ready).</p>
+
+<h2>Install</h2>
+
+<pre><code class="bash">
+git clone https://github.com/ezzy1630/MathPilot.git
+
+cd MathPilot
+
+./scripts/install-mathpilot-macos.sh
+
+open -a MathPilot
+
+</code></pre>
+
+<p>Release builds include bundled <strong>Python + SymPy</strong> and <strong>Vision OCR</strong> — no <code>pip install</code> needed.</p>
+
+<details>
+<summary>Manual build, first-run, and data location</summary>
+
+<pre><code class="bash">
+pnpm install
+
+./scripts/build-macos-python-runtime.sh
+
+pnpm --filter @mathpilot/desktop desktop:build
+
+cp -R apps/desktop/src-tauri/target/release/bundle/macos/MathPilot.app /Applications/
+
+</code></pre>
+
+<p>1. Choose <strong>Calculus 1</strong> or <strong>Calculus 2</strong>, complete the diagnostic.</p>
+<p>2. Symbolic checking works immediately (bundled runtime).</p>
+<p>3. <strong>Optional:</strong> sign in to <strong>Codex CLI</strong> for AI coach and homework analysis.</p>
+
+<p>Data: <code>~/Library/Application Support/local.mathpilot.desktop/</code> — delete or <strong>Settings → Reset</strong> (<code>RESET</code>) to start fresh.</p>
+
+</details>
+
+<h2>Develop</h2>
+
+<pre><code class="bash">
+pnpm install &amp;&amp; pnpm dev                              # web UI
+
+pnpm --filter @mathpilot/desktop desktop:dev          # full app
+
+pnpm lint &amp;&amp; pnpm test &amp;&amp; pnpm build &amp;&amp; pnpm test:e2e # verify
+
+</code></pre>
+
+<table>
+<tr><th>Tool</th><th>Version</th></tr>
+<tr><td>Node.js</td><td>22 · pnpm 9+ · Rust (Tauri) · Python 3 optional</td></tr>
+</table>
+
+<p><strong>Stack:</strong> Tauri 2 · React 19 · TypeScript · MathLive · Tailwind 4 · SQLite · SymPy · FSRS</p>
+
+<p><strong>Layout:</strong> <code>apps/desktop/</code> (UI) · <code>packages/learning-engine</code> · <code>content-engine</code> · <code>math-engine</code> · <code>ai-adapter</code> · <code>config/</code> · <code>skills/</code></p>
+
+<h2>Docs</h2>
+
+<p><a href="MathPilot_spec.md">Spec</a> · <a href="PRODUCT.md">Product</a> · <a href="docs/GAP_AUDIT.md">Gap audit</a> · <a href="docs/MANUAL_QA_CHECKLIST.md">QA checklist</a> · <a href="CHANGELOG.md">Changelog</a></p>
+
+<hr>
+
+<p align="center">
+  <sub>Spec complete · MIT License · <a href="LICENSE">LICENSE</a></sub>
+</p>
+  </article>
+  <script>
+    const banner = document.querySelector('img[src*="readme-banner"]');
+    const status = document.getElementById('status');
+    if (banner) {
+      banner.onload = () => status.textContent = 'Banner loaded OK (' + banner.naturalWidth + '×' + banner.naturalHeight + ')';
+      banner.onerror = () => { status.textContent = 'BANNER FAILED TO LOAD'; status.className = 'banner-check fail'; };
+      if (banner.complete) banner.onload();
+    }
+  </script>
+</body>
+</html>
