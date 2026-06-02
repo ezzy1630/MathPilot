@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { BookOpen, Clock3, FileText, Map, Search, Settings, Sparkles, Wrench } from 'lucide-react'
 import { AccessibleModal } from './AccessibleModal'
 import { MathText } from './MathText'
@@ -13,6 +13,7 @@ export interface PaletteCommand {
   group?: 'Learn' | 'Navigate' | 'Maintain'
   icon?: 'homework' | 'review' | 'map' | 'resources' | 'diagnostic' | 'settings' | 'maintain' | 'report' | 'developer'
   run: () => void
+  disabled?: boolean
 }
 
 const paletteIcons = {
@@ -27,6 +28,17 @@ const paletteIcons = {
   developer: Wrench,
 } satisfies Record<NonNullable<PaletteCommand['icon']>, typeof Search>
 
+type DisplayRow =
+  | { type: 'heading'; key: string; label: string }
+  | {
+      type: 'action'
+      key: string
+      label: string
+      icon: NonNullable<PaletteCommand['icon']>
+      sub?: ReactNode
+      run: () => void
+    }
+
 export function CommandPalette({
   commands,
   onClose,
@@ -39,16 +51,21 @@ export function CommandPalette({
   onSearchSelect?: (hit: SearchHit) => void
 }) {
   const [query, setQuery] = useState('')
+  const [activeIndex, setActiveIndex] = useState(0)
   const [ftsRows, setFtsRows] = useState<Array<{ entityType: string; entityId: string; body: string }>>([])
   const [resourceHits, setResourceHits] = useState<ResourceSearchResult[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
 
   useEffect(() => {
-    if (!state || query.trim().length < 2) return
+    if (!state || query.trim().length < 2) {
+      setFtsRows([])
+      return
+    }
     let cancelled = false
     void searchViaFts(query, 8).then((rows) => {
       if (!cancelled) setFtsRows(rows)
@@ -59,7 +76,10 @@ export function CommandPalette({
   }, [state, query])
 
   useEffect(() => {
-    if (!state || query.trim().length < 2) return
+    if (!state || query.trim().length < 2) {
+      setResourceHits([])
+      return
+    }
     let cancelled = false
     void searchResources(query, { resources: state.resources }, { limit: 4 }).then((results) => {
       if (!cancelled) setResourceHits(results)
@@ -69,8 +89,6 @@ export function CommandPalette({
     }
   }, [state, query])
 
-  const effectiveResourceHits = query.trim().length < 2 ? [] : resourceHits
-
   const searchHits = useMemo(() => {
     if (!state || query.trim().length < 2) return []
     return mergeSearchHits(state, query, ftsRows, 8)
@@ -78,21 +96,120 @@ export function CommandPalette({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return commands
-    return commands.filter(
+    const enabled = commands.filter((c) => !c.disabled)
+    if (!q) return enabled
+    return enabled.filter(
       (c) => c.label.toLowerCase().includes(q) || (c.keywords ?? '').toLowerCase().includes(q),
     )
   }, [commands, query])
-  const groupedCommands = useMemo(() => {
-    const groups: Array<NonNullable<PaletteCommand['group']>> = ['Learn', 'Navigate', 'Maintain']
-    return groups
-      .map((group) => ({ group, commands: filtered.filter((command) => (command.group ?? 'Learn') === group) }))
-      .filter((group) => group.commands.length > 0)
-  }, [filtered])
-  const recentCommands = commands.filter((command) => ['review', 'map', 'hw'].includes(command.id)).slice(0, 3)
+
+  const displayRows = useMemo(() => {
+    const out: DisplayRow[] = []
+    const addHeading = (label: string) => {
+      if (out.some((row) => row.type === 'heading' && row.label === label)) return
+      out.push({ type: 'heading', key: `heading-${label}`, label })
+    }
+    const addActions = (
+      heading: string,
+      actions: Array<{
+        key: string
+        label: string
+        icon: NonNullable<PaletteCommand['icon']>
+        sub?: ReactNode
+        run: () => void
+      }>,
+    ) => {
+      if (!actions.length) return
+      addHeading(heading)
+      for (const action of actions) out.push({ type: 'action', ...action })
+    }
+
+    if (query.trim().length >= 2) {
+      addActions(
+        'Resources',
+        resourceHits.map((hit) => ({
+          key: `res-${hit.id}`,
+          label: hit.title,
+          icon: 'resources' as const,
+          sub: (
+            <span className="muted palette-hit-sub">
+              {hit.source}
+              {hit.dynamic ? ' · search' : ''}
+            </span>
+          ),
+          run: () => window.open(hit.url, '_blank', 'noopener,noreferrer'),
+        })),
+      )
+      addActions(
+        'Results',
+        searchHits.map((hit) => ({
+          key: hit.id,
+          label: hit.title,
+          icon: 'review' as const,
+          sub:
+            hit.kind === 'problem' ? (
+              <MathText text={hit.subtitle} compact className="muted palette-hit-sub" as="span" />
+            ) : (
+              <span className="muted palette-hit-sub">{hit.subtitle}</span>
+            ),
+          run: () => onSearchSelect?.(hit),
+        })),
+      )
+    }
+
+    if (!query) {
+      addActions(
+        'Recent',
+        commands
+          .filter((command) => !command.disabled && ['review', 'map', 'hw'].includes(command.id))
+          .slice(0, 3)
+          .map((command) => ({
+            key: command.id,
+            label: command.label,
+            icon: command.icon ?? 'review',
+            run: () => command.run(),
+          })),
+      )
+    }
+
+    for (const group of ['Learn', 'Navigate', 'Maintain'] as const) {
+      addActions(
+        group,
+        filtered
+          .filter((command) => (command.group ?? 'Learn') === group)
+          .map((command) => ({
+            key: command.id,
+            label: command.label,
+            icon: command.icon ?? 'review',
+            run: () => command.run(),
+          })),
+      )
+    }
+
+    return out
+  }, [commands, filtered, onSearchSelect, query, resourceHits, searchHits])
+
+  const actionableOnly = displayRows.filter((row): row is Extract<DisplayRow, { type: 'action' }> => row.type === 'action')
+
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [query, actionableOnly.length])
+
+  useEffect(() => {
+    listRef.current?.querySelector<HTMLElement>(`[data-palette-index="${activeIndex}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex])
+
+  function runActive() {
+    const row = actionableOnly[activeIndex]
+    if (!row) return
+    row.run()
+    onClose()
+  }
+
+  let actionIndex = -1
 
   return (
-    <AccessibleModal title="Search & commands" onClose={onClose}>
+    <AccessibleModal title="Search and commands" onClose={onClose} size="palette">
       <input
         ref={inputRef}
         className="palette-search"
@@ -100,117 +217,54 @@ export function CommandPalette({
         placeholder="Search skills, problems, commands…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            setActiveIndex((i) => Math.min(i + 1, Math.max(0, actionableOnly.length - 1)))
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            setActiveIndex((i) => Math.max(i - 1, 0))
+          } else if (e.key === 'Enter') {
+            e.preventDefault()
+            runActive()
+          }
+        }}
         aria-label="Search"
       />
-      {effectiveResourceHits.length > 0 && (
-        <>
-          <p className="meta-label" style={{ marginTop: 12 }}>
-            Resources
-          </p>
-          <ul className="palette-list">
-            {effectiveResourceHits.map((hit) => (
-              <li key={hit.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.open(hit.url, '_blank', 'noopener,noreferrer')
-                    onClose()
-                  }}
-                >
-                  <BookOpen size={16} />
-                  <strong>{hit.title}</strong>
-                  <span className="muted palette-hit-sub">
-                    {hit.source}
-                    {hit.dynamic ? ' · search' : ''}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      {searchHits.length > 0 && (
-        <>
-          <p className="meta-label" style={{ marginTop: 12 }}>
-            Results
-          </p>
-          <ul className="palette-list">
-            {searchHits.map((hit) => (
-            <li key={hit.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSearchSelect?.(hit)
-                    onClose()
-                  }}
-                >
-                  <Search size={16} />
-                  <strong>{hit.title}</strong>
-                  {hit.kind === 'problem' ? (
-                    <MathText text={hit.subtitle} compact className="muted palette-hit-sub" as="span" />
-                  ) : (
-                    <span className="muted palette-hit-sub">{hit.subtitle}</span>
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      {!query && (
-        <>
-          <p className="meta-label" style={{ marginTop: 12 }}>
-            Recent
-          </p>
-          <ul className="palette-list palette-recents">
-            {recentCommands.map((command) => {
-              const Icon = paletteIcons[command.icon ?? 'review']
-              return (
-                <li key={command.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      command.run()
-                      onClose()
-                    }}
-                  >
-                    <Icon size={16} />
-                    <span>{command.label}</span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        </>
-      )}
-      {groupedCommands.map(({ group, commands }) => (
-        <div className="palette-group" key={group}>
-          <p className="meta-label">{group}</p>
-          <ul className="palette-list">
-            {commands.map((command) => {
-              const Icon = paletteIcons[command.icon ?? 'review']
-              return (
-                <li key={command.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      command.run()
-                      onClose()
-                    }}
-                  >
-                    <Icon size={16} />
-                    <span>{command.label}</span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      ))}
-      {!filtered.length && !searchHits.length && !effectiveResourceHits.length && (
-        <p className="muted">No matches</p>
-      )}
-      <p className="muted palette-hint">Esc to close · ⌘K anytime</p>
+      <div className="command-palette-body" ref={listRef}>
+        {displayRows.map((row) => {
+          if (row.type === 'heading') {
+            return (
+              <p key={row.key} className="meta-label palette-section-label">
+                {row.label}
+              </p>
+            )
+          }
+          actionIndex += 1
+          const index = actionIndex
+          const Icon = paletteIcons[row.icon]
+          return (
+            <button
+              key={row.key}
+              type="button"
+              className={`palette-row ${index === activeIndex ? 'active' : ''}`}
+              data-palette-index={index}
+              onClick={() => {
+                row.run()
+                onClose()
+              }}
+            >
+              <Icon size={16} />
+              <span className="palette-row-text">
+                <strong>{row.label}</strong>
+                {row.sub}
+              </span>
+            </button>
+          )
+        })}
+        {!actionableOnly.length && <p className="muted palette-empty">No matches</p>}
+      </div>
+      <p className="muted palette-hint">↑↓ to navigate · Enter to run · Esc to close</p>
     </AccessibleModal>
   )
 }

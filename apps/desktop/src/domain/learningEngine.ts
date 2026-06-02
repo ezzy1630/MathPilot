@@ -148,8 +148,45 @@ export function chooseNextAction(state: MathPilotState): NextAction {
 }
 
 function chooseNextActionCore(state: MathPilotState): NextAction {
+  if (state.diagnostic && !state.diagnostic.completed) {
+    const problemId = state.diagnostic.queue[state.diagnostic.currentIndex]
+    const skillId = problemId ? state.problems[problemId]?.skillIds[0] : undefined
+    return {
+      kind: 'diagnostic',
+      title: 'Adaptive diagnostic',
+      reason: 'Continue the diagnostic so MathPilot can calibrate your knowledge map.',
+      skillIds: skillId ? [skillId] : [],
+      problemId,
+      cta: 'Continue diagnostic',
+    }
+  }
+
+  if (state.testOut && !state.testOut.completed) {
+    const problemId = state.testOut.queue[state.testOut.currentIndex]
+    const skillId = problemId ? state.problems[problemId]?.skillIds[0] : undefined
+    return {
+      kind: 'guided_practice',
+      title: 'Prerequisite test-out',
+      reason: 'Complete the test-out to unlock the next topic.',
+      skillIds: skillId ? [skillId] : [],
+      problemId,
+      cta: 'Continue test-out',
+    }
+  }
+
+  if (state.quickRepair && state.quickRepair.phase !== 'complete' && state.quickRepair.phase !== 'explain') {
+    return {
+      kind: 'quick_repair',
+      title: `Quick repair: ${state.skills[state.quickRepair.skillId]?.name ?? state.quickRepair.skillId}`,
+      reason: 'Finish the repair sequence for this skill.',
+      skillIds: [state.quickRepair.skillId],
+      problemId: problemForSkill(state, state.quickRepair.skillId, 'quick_repair'),
+      cta: 'Continue repair',
+    }
+  }
+
   const sessionPhase = currentSessionPhase(state)
-  if (sessionPhase && !(state.diagnostic && !state.diagnostic.completed) && !state.quickRepair) {
+  if (sessionPhase && !state.quickRepair) {
     return buildSessionPhaseAction(state, sessionPhase)
   }
 

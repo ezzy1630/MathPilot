@@ -267,13 +267,39 @@ export function AppShell() {
   }
 
   const paletteCommands: PaletteCommand[] = [
-    { id: 'review', label: hasActiveDiagnostic ? 'Resume diagnostic' : 'Start review', group: 'Learn', icon: 'review', keywords: 'spaced diagnostic activity', run: () => startAction() },
+    {
+      id: 'review',
+      label: hasActiveDiagnostic ? 'Continue diagnostic' : 'Start review',
+      group: 'Learn',
+      icon: 'review',
+      keywords: 'spaced diagnostic activity',
+      run: () => {
+        setView('activity')
+        startAction()
+      },
+    },
     { id: 'hw', label: 'Review homework', group: 'Learn', icon: 'homework', keywords: 'homework photo upload inline', run: () => setHomeworkUploadOpen(true) },
-    { id: 'diag', label: 'Start diagnostic', group: 'Learn', icon: 'diagnostic', keywords: 'assessment', run: () => {
-      update(startDiagnostic(appState).state)
-      setView('activity')
-    } },
-    { id: 'map', label: 'Knowledge map', group: 'Navigate', icon: 'map', keywords: 'mastery', run: () => navigate('map') },
+    {
+      id: 'diag',
+      label: hasActiveDiagnostic ? 'Diagnostic in progress' : 'Start diagnostic',
+      group: 'Learn',
+      icon: 'diagnostic',
+      keywords: 'assessment',
+      disabled: hasActiveDiagnostic,
+      run: () => {
+        update(startDiagnostic(appState).state)
+        setView('activity')
+      },
+    },
+    {
+      id: 'map',
+      label: 'Knowledge map',
+      group: 'Navigate',
+      icon: 'map',
+      keywords: 'mastery',
+      disabled: hasActiveDiagnostic && !showMain,
+      run: () => navigate('map'),
+    },
     { id: 'weak', label: 'Weak skills', group: 'Navigate', icon: 'map', keywords: 'repair', run: () => navigate('map') },
     { id: 'res', label: 'Resources', group: 'Navigate', icon: 'resources', keywords: 'video khan', run: () => navigate('resources') },
     { id: 'settings', label: 'Settings', group: 'Navigate', icon: 'settings', keywords: 'preferences', run: () => navigate('settings') },

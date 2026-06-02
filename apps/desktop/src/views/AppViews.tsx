@@ -890,6 +890,7 @@ export function ActivityView({
         }}
       >
         <div className="problem-main">
+          <div className="problem-stack">
           <section className="problem-card" aria-label="Current problem">
             <ProblemPrompt problem={problem} prompt={problem.prompt} />
             {hintCount > 0 && problem.hintSequence.length > 0 && (
@@ -1009,6 +1010,7 @@ export function ActivityView({
               ))}
             </div>
           )}
+          </div>
           {showSteps &&
             steps.map((step, index) => (
               <MathInput

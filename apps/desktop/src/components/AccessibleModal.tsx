@@ -4,13 +4,18 @@ export function AccessibleModal({
   children,
   onClose,
   title,
+  className = '',
+  size = 'default',
 }: {
   children: ReactNode
   onClose: () => void
   title?: string
+  className?: string
+  size?: 'default' | 'palette'
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
+  const modalClass = `mp-modal ${size === 'palette' ? 'mp-modal-palette' : ''} ${className}`.trim()
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -54,13 +59,13 @@ export function AccessibleModal({
       aria-labelledby={title ? titleId : undefined}
       onClick={onClose}
     >
-      <div className="mp-modal" ref={panelRef} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
+      <div className={modalClass} ref={panelRef} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         {title && (
           <h2 className="mp-modal-title" id={titleId}>
             {title}
           </h2>
         )}
-        {children}
+        {size === 'palette' ? <div className="mp-modal-scroll">{children}</div> : children}
       </div>
     </div>
   )

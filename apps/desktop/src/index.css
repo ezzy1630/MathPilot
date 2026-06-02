@@ -1,3 +1,4 @@
+@import './styles/motion.css';
 @import './app/app-shell.css';
 
 html {

@@ -42,24 +42,28 @@ export function SessionChrome({
           ? (quick.phaseIndex / 5) * 100
           : undefined
 
+  const progressLabel =
+    diagnosticProgress ??
+    (diagnostic
+      ? `Question ${Math.min(diagnostic.answeredCount + 1, diagnostic.targetCount)} of ${diagnostic.targetCount}`
+      : session
+        ? `Phase ${session.phaseIndex + 1} of ${session.phases.length}`
+        : undefined)
+
   return (
     <div className={`session-chrome session-chrome-${phaseKind}`}>
       <div className="session-chrome-top">
         <span className="session-chrome-label">{label}</span>
-        {session && (
-          <span className="session-chrome-meta">
-            Phase {session.phaseIndex + 1} of {session.phases.length}
-          </span>
-        )}
-        {diagnosticProgress && <span className="session-chrome-meta">{diagnosticProgress}</span>}
-        {diagnostic && (
-          <span className="session-chrome-meta">
-            {diagnostic.answeredCount}/{diagnostic.targetCount}
-          </span>
-        )}
+        {progressLabel && <span className="session-chrome-meta">{progressLabel}</span>}
       </div>
-      {sessionProgress !== undefined && (
-        <div className="session-timeline" role="progressbar" aria-valuenow={Math.round(sessionProgress)} aria-valuemin={0} aria-valuemax={100}>
+      {sessionProgress !== undefined && sessionProgress > 0 && (
+        <div
+          className="session-timeline"
+          role="progressbar"
+          aria-valuenow={Math.round(sessionProgress)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <span className="session-timeline-fill" style={{ width: `${Math.min(100, sessionProgress)}%` }} />
         </div>
       )}

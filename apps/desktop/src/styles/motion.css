@@ -1,0 +1,94 @@
+@media (prefers-reduced-motion: no-preference) {
+  .mp-btn,
+  .nav-button,
+  .confidence-chip,
+  .primary,
+  .secondary,
+  .ghost,
+  .palette-list button {
+    transition:
+      background var(--mp-transition),
+      border-color var(--mp-transition),
+      color var(--mp-transition),
+      transform 0.14s cubic-bezier(0.25, 0.1, 0.25, 1),
+      box-shadow var(--mp-transition);
+  }
+
+  .mp-btn:active:not(:disabled),
+  .primary:active:not(:disabled),
+  .secondary:active:not(:disabled),
+  .confidence-chip:active {
+    transform: scale(0.98);
+  }
+
+  .nav-button:active {
+    transform: scale(0.99);
+  }
+
+  .page {
+    animation: mp-page-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes mp-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .problem-enter {
+    animation: mp-problem-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes mp-problem-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .mp-modal-backdrop {
+    animation: mp-backdrop-enter 0.2s ease;
+  }
+
+  .mp-modal {
+    animation: mp-modal-enter 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes mp-backdrop-enter {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes mp-modal-enter {
+    from {
+      opacity: 0;
+      transform: scale(0.97) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .session-timeline-fill {
+    transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .inspector-card,
+  .problem-stack {
+    transition: border-color var(--mp-transition), background var(--mp-transition);
+  }
+}

@@ -31,7 +31,7 @@ export const MathInput = forwardRef<MathfieldElement | null, MathInputProps>(fun
     field.mathVirtualKeyboardPolicy = 'auto'
     field.inlineShortcutTimeout = 400
     field.inlineShortcuts = mergeMathInlineShortcuts({ ...field.inlineShortcuts })
-    field.placeholder = placeholder ?? 'Type your answer'
+    field.placeholder = placeholder ? `\\text{${placeholder}}` : '\\text{Type your answer}'
   }, [placeholder])
 
   useEffect(() => {
