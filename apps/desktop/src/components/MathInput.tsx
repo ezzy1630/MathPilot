@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, type FormEvent } from 'react'
 import 'mathlive'
 import { MathfieldElement } from 'mathlive'
+import { mergeMathInlineShortcuts } from '../lib/mathInlineShortcuts'
 
 MathfieldElement.fontsDirectory = '/mathlive-fonts'
 
@@ -23,12 +24,14 @@ export const MathInput = forwardRef<MathfieldElement | null, MathInputProps>(fun
     if (!field) return
 
     field.defaultMode = 'math'
-    field.smartMode = true
+    field.smartMode = false
     field.smartFence = true
     field.smartSuperscript = true
     field.removeExtraneousParentheses = true
     field.mathVirtualKeyboardPolicy = 'auto'
-    field.placeholder = placeholder ?? 'Enter your answer…'
+    field.inlineShortcutTimeout = 400
+    field.inlineShortcuts = mergeMathInlineShortcuts({ ...MathfieldElement.inlineShortcuts })
+    field.placeholder = placeholder ?? 'Type your answer (try sqrt, sin, pi, / for fractions)'
   }, [placeholder])
 
   useEffect(() => {

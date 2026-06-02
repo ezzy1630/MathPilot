@@ -971,7 +971,14 @@ export function ActivityView({
                   rows={3}
                 />
               ) : (
-                <MathInput ref={mathFieldRef} value={answer} onChange={setAnswer} placeholder="Enter your answer" />
+                <>
+                  <MathInput ref={mathFieldRef} value={answer} onChange={setAnswer} placeholder="Type your answer" />
+                  <p className="math-input-hint muted" id="math-input-shortcuts">
+                    Shortcuts: <kbd>/</kbd> fraction, <kbd>sqrt</kbd> root, <kbd>sin</kbd>{' '}
+                    <kbd>cos</kbd> <kbd>tan</kbd>, <kbd>pi</kbd> <kbd>infty</kbd>, <kbd>^</kbd> power,{' '}
+                    <kbd>int</kbd> <kbd>lim</kbd>
+                  </p>
+                </>
               )}
             </section>
           )}
